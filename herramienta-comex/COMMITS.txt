@@ -1,0 +1,12 @@
+ebf65b6 Agrega al README la fecha de las fuentes y el alcance probado, y actualiza la vigencia de la casilla 7.35.
+3f684d4 Incluye el código del proveedor (Formato B, 3.1) en las limitaciones.
+894e36e Agrega el README en español y cierra el recorrido del caso Shenzhen–Callao.
+fa71ff2 Repite la marca de agua en cada página impresa con CSS fijo.
+be87d66 Agrega la tabla de trazabilidad desde la ayuda didáctica, con marcas en rubro 9 y FOB en tres/seis decimales.
+9f7e093 Agrega la DAM Formatos A y B en pantalla, con 3.4 pendiente en anticipado y aviso de coherencia.
+7dd57b3 Agrega el conocimiento de embarque en pantalla con flete 800,00 USD, sin peso neto y campos opcionales de emisión.
+23969e0 Agrega la factura comercial y el packing list en pantalla con origen, puertos, contenedor, precinto y marcas.
+f0c8e2b Agrega cálculos, validaciones de coherencia y la prueba RUC con control negativo.
+717bc73 Agrega el modo didáctico y ajusta las ayudas de Incoterm y subpartida.
+c485c61 Agrega el formulario, el caso Shenzhen–Callao y guardar/cargar JSON.
+742e9b5 Agrega la página de prueba en hoja A4 con la marca de agua didáctica.

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Herramienta didáctica de documentos de comercio exterior</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <header class="encabezado">
+    <h1>Herramienta didáctica de documentos de comercio exterior</h1>
+    <p class="subtitulo">Cursos de Negocios Internacionales, Lima. Caso en pantalla: relojes, Shenzhen–Callao.</p>
+    <p class="aviso">DOCUMENTO DIDÁCTICO – SIN VALIDEZ OFICIAL. El caso de la pantalla es ficticio: no es una importación ni una empresa real.</p>
+  </header>
+
+  <main>
+    <div class="zona-trabajo">
+      <p id="nota-caso" class="nota-caso">Caso didáctico ficticio.</p>
+
+      <div id="bloque-didactico">
+        <p class="barra-didactica">
+          <label class="interruptor" for="modo-didactico">
+            <input type="checkbox" id="modo-didactico">
+            Modo didáctico
+          </label>
+        </p>
+        <p id="nota-didactica" class="nota nota-didactica" hidden>Junto a cada campo: qué es, quién lo llena en la realidad y de qué documento sale. Si el instructivo no le da casilla en la DAM, la ayuda lo dice.</p>
+      </div>
+
+      <section class="panel-totales" aria-labelledby="titulo-totales">
+        <h2 id="titulo-totales">Totales de la operación</h2>
+        <div class="totales">
+          <p class="total" id="total-unidades"><span class="total-cifra">—</span><span class="total-etiqueta">unidades</span></p>
+          <p class="total" id="total-bultos"><span class="total-cifra">—</span><span class="total-etiqueta">bultos</span></p>
+          <p class="total" id="total-neto"><span class="total-cifra">—</span><span class="total-etiqueta">kg netos</span></p>
+          <p class="total" id="total-bruto"><span class="total-cifra">—</span><span class="total-etiqueta">kg brutos</span></p>
+          <p class="total" id="total-volumen"><span class="total-cifra">—</span><span class="total-etiqueta">m³</span></p>
+          <p class="total" id="total-fob"><span class="total-cifra">—</span><span class="total-etiqueta">precio de la factura, USD</span></p>
+          <p class="total" id="total-flete"><span class="total-cifra">—</span><span class="total-etiqueta">Shenzhen–Callao, USD</span></p>
+          <p class="total" id="total-seguro"><span class="total-cifra">—</span><span class="total-etiqueta">póliza individual, USD</span></p>
+          <p class="total" id="total-ajustes"><span class="total-cifra">—</span><span class="total-etiqueta">USD</span></p>
+          <p class="total" id="total-aduana"><span class="total-cifra">—</span><span class="total-etiqueta">FOB + flete + seguro + ajustes, USD</span></p>
+        </div>
+      </section>
+
+      <section id="validaciones" class="panel-validaciones" aria-labelledby="titulo-validaciones">
+        <h2 id="titulo-validaciones">Coherencia</h2>
+        <p class="nota">Los totales se recalculan solos al cambiar cantidades, precios, pesos, flete o seguro. Un error bloquea la lectura limpia. Un aviso no la bloquea.</p>
+        <p id="validaciones-resumen" class="validaciones-resumen" role="status"></p>
+        <h3 id="titulo-errores">Errores</h3>
+        <p id="errores-vacio" class="errores-vacio">No hay errores de coherencia.</p>
+        <ul id="lista-errores" class="lista-mensajes"></ul>
+        <h3 id="titulo-avisos-pendientes">Avisos: códigos PENDIENTE DE VERIFICAR</h3>
+        <p class="nota">No son errores. Faltan tablas que no están en esta carpeta, o el instructivo no explica el cálculo.</p>
+        <ul id="lista-avisos-pendientes" class="lista-mensajes"></ul>
+        <p id="avisos-pendientes-vacio" class="errores-vacio" hidden>Ningún código quedó pendiente.</p>
+        <h3 id="titulo-avisos">Avisos</h3>
+        <p class="nota">Tampoco bloquean. Dicen qué dato no entra en la DAM, que la casilla 3.1 es el agente marítimo, o que el shipper y el proveedor no son la misma persona.</p>
+        <ul id="lista-avisos" class="lista-mensajes"></ul>
+        <p id="avisos-vacio" class="errores-vacio" hidden>No hay otros avisos.</p>
+      </section>
+
+      <div class="acciones">
+        <button type="button" id="btn-guardar">Guardar JSON</button>
+        <label class="btn-cargar">Cargar JSON
+          <input class="input-archivo" type="file" id="input-cargar" accept=".json,application/json">
+        </label>
+      </div>
+      <p id="mensaje-archivo" class="mensaje-archivo" role="status"></p>
+
+      <section id="prueba-ruc" class="prueba-ruc" aria-labelledby="titulo-prueba-ruc">
+        <h2 id="titulo-prueba-ruc">Prueba RUC</h2>
+        <p class="nota">Al abrir la página se calcula el dígito verificador de los 4 RUC del ejemplo (deben cumplir) y del control negativo 20998887776 (debe fallar: dígito correcto 2, declarado 6). Módulo 11, pesos 5-4-3-2-7-6-5-4-3-2. No consulta SUNAT.</p>
+        <ul id="prueba-ruc-lista"></ul>
+        <p id="prueba-ruc-resumen"></p>
+      </section>
+
+      <form id="formulario" autocomplete="off">
+        <fieldset>
+          <legend>Partes</legend>
+
+          <h3>Proveedor / shipper</h3>
+          <div class="campos">
+            <label class="campo campo-ancho">Razón social
+              <input type="text" data-ruta="partes.proveedor.razonSocial">
+            </label>
+            <label class="campo campo-ancho">Shipper del BL, si es distinto del proveedor
+              <input type="text" data-ruta="partes.shipperBl">
+            </label>
+            <label class="campo campo-ancho">Dirección
+              <input type="text" data-ruta="partes.proveedor.direccion">
+            </label>
+            <label class="campo">Ciudad
+              <input type="text" data-ruta="partes.proveedor.ciudad">
+            </label>
+            <label class="campo">País
+              <input type="text" data-ruta="partes.proveedor.pais">
+            </label>
+            <label class="campo">Código de país
+              <input type="text" data-ruta="partes.proveedor.codigoPais" spellcheck="false">
+            </label>
+            <label class="campo">Condición de proveedor
+              <input type="text" data-ruta="partes.proveedor.condicion" spellcheck="false">
+            </label>
+            <label class="campo campo-ancho">Descripción de la condición
+              <input type="text" data-ruta="partes.proveedor.condicionDescripcion">
+            </label>
+          </div>
+
+          <h3>Importador / consignee</h3>
+          <div class="campos">
+            <label class="campo campo-ancho">Razón social
+              <input type="text" data-ruta="partes.importador.razonSocial">
+            </label>
+            <label class="campo">Código de documento
+              <input type="text" data-ruta="partes.importador.codigoDocumento" spellcheck="false">
+            </label>
+            <label class="campo">RUC
+              <input type="text" data-ruta="partes.importador.ruc" inputmode="numeric" spellcheck="false" maxlength="11">
+            </label>
+            <label class="campo">Dirección
+              <input type="text" data-ruta="partes.importador.direccion">
+            </label>
+            <label class="campo">Ubigeo
+              <input type="text" data-ruta="partes.importador.ubigeo" spellcheck="false">
+            </label>
+          </div>
+
+          <h3>Notify party</h3>
+          <div class="campos">
+            <label class="campo campo-ancho">Razón social
+              <input type="text" data-ruta="partes.notify.razonSocial">
+            </label>
+          </div>
+
+          <h3>Agente de aduanas</h3>
+          <div class="campos">
+            <label class="campo campo-ancho">Razón social
+              <input type="text" data-ruta="partes.agenteAduanas.razonSocial">
+            </label>
+            <label class="campo">RUC
+              <input type="text" data-ruta="partes.agenteAduanas.ruc" inputmode="numeric" spellcheck="false" maxlength="11">
+            </label>
+            <label class="campo">Fecha de formulación
+              <input type="date" data-ruta="partes.agenteAduanas.fechaFormulacion">
+            </label>
+          </div>
+
+          <h3>Agente marítimo</h3>
+          <div class="campos">
+            <label class="campo">Razón social
+              <input type="text" data-ruta="partes.agenteMaritimo.razonSocial">
+            </label>
+            <label class="campo">RUC
+              <input type="text" data-ruta="partes.agenteMaritimo.ruc" inputmode="numeric" spellcheck="false" maxlength="11">
+            </label>
+          </div>
+
+          <h3>Naviera</h3>
+          <div class="campos">
+            <label class="campo campo-ancho">Nombre
+              <input type="text" data-ruta="partes.naviera.nombre">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Transporte</legend>
+          <div class="campos">
+            <label class="campo">Buque (SUPUESTO)
+              <input type="text" data-ruta="transporte.buque">
+            </label>
+            <label class="campo">Viaje (SUPUESTO)
+              <input type="text" data-ruta="transporte.viaje" spellcheck="false">
+            </label>
+            <label class="campo">Puerto de embarque
+              <input type="text" data-ruta="transporte.puertoEmbarque">
+            </label>
+            <label class="campo">Código del puerto de embarque
+              <input type="text" data-ruta="transporte.codigoPuertoEmbarque" spellcheck="false">
+            </label>
+            <label class="campo">Puerto de destino
+              <input type="text" data-ruta="transporte.puertoDestino">
+            </label>
+            <label class="campo">Aduana
+              <input type="text" data-ruta="transporte.aduana">
+            </label>
+            <label class="campo">Código de aduana
+              <input type="text" data-ruta="transporte.codigoAduana" spellcheck="false">
+            </label>
+            <label class="campo">Vía
+              <input type="text" data-ruta="transporte.via" spellcheck="false">
+            </label>
+            <label class="campo">Descripción de la vía
+              <input type="text" data-ruta="transporte.viaDescripcion">
+            </label>
+            <label class="campo">N.º de BL (SUPUESTO)
+              <input type="text" data-ruta="transporte.numeroBl" spellcheck="false">
+            </label>
+            <label class="campo">Contenedor (SUPUESTO)
+              <input type="text" data-ruta="transporte.contenedorTipo">
+            </label>
+            <label class="campo">N.º de contenedor (SUPUESTO)
+              <input type="text" data-ruta="transporte.contenedorNumero" spellcheck="false">
+            </label>
+            <label class="campo">Precinto (SUPUESTO)
+              <input type="text" data-ruta="transporte.precinto" spellcheck="false">
+            </label>
+            <label class="campo campo-ancho">Marcas de los bultos
+              <input type="text" data-ruta="transporte.marcasBultos" spellcheck="false">
+            </label>
+            <label class="campo">Fecha de embarque
+              <input type="date" data-ruta="transporte.fechaEmbarque">
+            </label>
+            <label class="campo">N.º de originales del BL
+              <input type="text" data-ruta="transporte.numeroOriginalesBl" spellcheck="false">
+            </label>
+            <label class="campo">Lugar de emisión del BL
+              <input type="text" data-ruta="transporte.lugarEmisionBl">
+            </label>
+            <label class="campo">Fecha de emisión del BL
+              <input type="date" data-ruta="transporte.fechaEmisionBl">
+            </label>
+            <label class="campo">Shipped on board
+              <input type="text" data-ruta="transporte.shippedOnBoard">
+            </label>
+            <label class="campo campo-ancho">Cláusula «said to contain»
+              <input type="text" data-ruta="transporte.clausulaSaidToContain">
+            </label>
+            <label class="campo">Término de la descarga
+              <input type="date" data-ruta="transporte.fechaTerminoDescarga">
+            </label>
+            <label class="campo campo-ancho">N.º de manifiesto
+              <input type="text" data-ruta="transporte.manifiesto" spellcheck="false">
+            </label>
+          </div>
+          <p class="nota">El manifiesto sigue la estructura del instructivo: código de aduana de ingreso, año y número. Ese código queda pendiente porque las tablas de SUNAT no están en esta carpeta.</p>
+
+          <h3>Depósito temporal</h3>
+          <div class="campos">
+            <label class="campo">Razón social
+              <input type="text" data-ruta="transporte.deposito.razonSocial">
+            </label>
+            <label class="campo">RUC
+              <input type="text" data-ruta="transporte.deposito.ruc" inputmode="numeric" spellcheck="false" maxlength="11">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Comercial</legend>
+          <div class="campos">
+            <label class="campo">Incoterm
+              <input type="text" data-ruta="comercial.incoterm" spellcheck="false">
+            </label>
+            <label class="campo">Lugar
+              <input type="text" data-ruta="comercial.incotermLugar">
+            </label>
+            <label class="campo">Versión (4 = Incoterms 2020)
+              <input type="text" data-ruta="comercial.incotermVersion" spellcheck="false">
+            </label>
+            <p class="lectura-incoterm campo">Casilla 5.4 del Formato B: <strong id="lectura-incoterm">—</strong></p>
+            <label class="campo">Moneda
+              <input type="text" data-ruta="comercial.moneda">
+            </label>
+            <label class="campo">Código de moneda
+              <input type="text" data-ruta="comercial.codigoMoneda" spellcheck="false">
+            </label>
+            <label class="campo">N.º de factura
+              <input type="text" data-ruta="comercial.numeroFactura" spellcheck="false">
+            </label>
+            <label class="campo">Fecha de la factura
+              <input type="date" data-ruta="comercial.fechaFactura">
+            </label>
+            <label class="campo">Forma de pago
+              <input type="text" data-ruta="comercial.formaPago" spellcheck="false">
+            </label>
+            <label class="campo">Descripción de la forma de pago
+              <input type="text" data-ruta="comercial.formaPagoDescripcion">
+            </label>
+            <label class="campo campo-ancho">Frase en la factura (SUPUESTO)
+              <input type="text" data-ruta="comercial.formaPagoFrase">
+            </label>
+            <label class="campo">Naturaleza de la transacción
+              <input type="text" data-ruta="comercial.naturaleza" spellcheck="false">
+            </label>
+            <label class="campo">Descripción de la naturaleza
+              <input type="text" data-ruta="comercial.naturalezaDescripcion">
+            </label>
+            <label class="campo">Nivel comercial del importador (SUPUESTO)
+              <input type="text" data-ruta="comercial.nivelComercial" spellcheck="false">
+            </label>
+            <label class="campo">Descripción del nivel comercial
+              <input type="text" data-ruta="comercial.nivelComercialDescripcion">
+            </label>
+            <label class="campo">Tipo de valor
+              <input type="text" data-ruta="comercial.tipoValor" spellcheck="false">
+            </label>
+            <label class="campo">Descripción del tipo de valor
+              <input type="text" data-ruta="comercial.tipoValorDescripcion">
+            </label>
+            <label class="campo">Forma de envío
+              <input type="text" data-ruta="comercial.formaEnvio" spellcheck="false">
+            </label>
+            <label class="campo">Descripción de la forma de envío
+              <input type="text" data-ruta="comercial.formaEnvioDescripcion">
+            </label>
+            <label class="campo">Destinación
+              <input type="text" data-ruta="comercial.destinacion" spellcheck="false">
+            </label>
+            <label class="campo">Descripción de la destinación
+              <input type="text" data-ruta="comercial.destinacionDescripcion">
+            </label>
+            <label class="campo">Modalidad
+              <input type="text" data-ruta="comercial.modalidad" spellcheck="false">
+            </label>
+            <label class="campo">Descripción de la modalidad
+              <input type="text" data-ruta="comercial.modalidadDescripcion">
+            </label>
+            <label class="campo">Tipo de despacho (PENDIENTE DE VERIFICAR)
+              <input type="text" data-ruta="comercial.tipoDespacho" spellcheck="false">
+            </label>
+            <label class="campo">Entidad financiera (nombre ficticio)
+              <input type="text" data-ruta="comercial.entidadFinanciera">
+            </label>
+            <label class="campo">Código de la entidad financiera
+              <input type="text" data-ruta="comercial.codigoEntidadFinanciera" spellcheck="false">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Ítems</legend>
+          <p class="nota">Una serie, dos modelos. La subpartida es la misma en los dos ítems. El dígito verificador de la subpartida no se calcula: el instructivo de esta carpeta no lo explica. Los relojes 9102 no piden serie ni IMEI. Sí lo piden 8517.13.00.00 y 8517.14.00.00: es el párrafo de 2026 de la casilla 7.35.</p>
+          <h3>Datos comunes de la serie</h3>
+          <div class="campos">
+            <label class="campo">Subpartida nacional (SUPUESTO)
+              <input type="text" data-ruta="serie.subpartida" spellcheck="false">
+            </label>
+            <label class="campo">Dígito verificador de la subpartida (PENDIENTE DE VERIFICAR)
+              <input type="text" data-ruta="serie.digitoSubpartida" spellcheck="false">
+            </label>
+            <label class="campo">País de origen
+              <input type="text" data-ruta="serie.paisOrigen">
+            </label>
+            <label class="campo">Código del país de origen
+              <input type="text" data-ruta="serie.codigoPaisOrigen" spellcheck="false">
+            </label>
+            <label class="campo">País de adquisición
+              <input type="text" data-ruta="serie.paisAdquisicion">
+            </label>
+            <label class="campo">Código del país de adquisición
+              <input type="text" data-ruta="serie.codigoPaisAdquisicion" spellcheck="false">
+            </label>
+            <label class="campo">País de embarque
+              <input type="text" data-ruta="serie.paisEmbarque">
+            </label>
+            <label class="campo">Código del país de embarque
+              <input type="text" data-ruta="serie.codigoPaisEmbarque" spellcheck="false">
+            </label>
+            <label class="campo">Unidad física (SUPUESTO)
+              <input type="text" data-ruta="serie.unidadFisica" spellcheck="false">
+            </label>
+            <label class="campo">Clase de bulto
+              <input type="text" data-ruta="serie.claseBulto">
+            </label>
+            <label class="campo">Código de clase de bulto
+              <input type="text" data-ruta="serie.codigoClaseBulto" spellcheck="false">
+            </label>
+          </div>
+
+          <h3>Ítem 1</h3>
+          <p id="nota-imei" class="nota campo-imei" hidden>Casilla 7.35, párrafo de 2026, vigente desde el 5 de octubre de 2026: un número de serie único y el IMEI de cada equipo. Uno por línea. Tantos como unidades declare el ítem.</p>
+          <div class="campos">
+            <label class="campo campo-ancho">Descripción
+              <textarea data-ruta="items.0.descripcion" rows="3"></textarea>
+            </label>
+            <label class="campo">Marca
+              <input type="text" data-ruta="items.0.marca">
+            </label>
+            <label class="campo">Modelo
+              <input type="text" data-ruta="items.0.modelo">
+            </label>
+            <label class="campo campo-ancho campo-imei" hidden>Números de serie, uno por equipo
+              <textarea data-ruta="items.0.series" rows="3" spellcheck="false"></textarea>
+            </label>
+            <label class="campo campo-ancho campo-imei" hidden>IMEI, uno por equipo
+              <textarea data-ruta="items.0.imeis" rows="3" spellcheck="false"></textarea>
+            </label>
+            <label class="campo">Cantidad
+              <input type="number" step="any" data-ruta="items.0.cantidad" data-tipo="numero">
+            </label>
+            <label class="campo">Unidad comercial
+              <input type="text" data-ruta="items.0.unidadComercial" spellcheck="false">
+            </label>
+            <label class="campo">Bultos
+              <input type="number" step="any" data-ruta="items.0.bultos" data-tipo="numero">
+            </label>
+            <label class="campo">Peso neto, kg
+              <input type="number" step="any" data-ruta="items.0.pesoNetoKg" data-tipo="numero">
+            </label>
+            <label class="campo">Peso bruto, kg
+              <input type="number" step="any" data-ruta="items.0.pesoBrutoKg" data-tipo="numero">
+            </label>
+            <label class="campo">Volumen, m³
+              <input type="number" step="any" data-ruta="items.0.volumenM3" data-tipo="numero">
+            </label>
+            <label class="campo">Precio unitario, USD
+              <input type="number" step="any" data-ruta="items.0.precioUnitarioUsd" data-tipo="numero">
+            </label>
+            <p class="campo valor-item">Valor del ítem: <strong data-valor-item="0">—</strong> USD</p>
+          </div>
+
+          <h3>Ítem 2</h3>
+          <div class="campos">
+            <label class="campo campo-ancho">Descripción
+              <textarea data-ruta="items.1.descripcion" rows="3"></textarea>
+            </label>
+            <label class="campo">Marca
+              <input type="text" data-ruta="items.1.marca">
+            </label>
+            <label class="campo">Modelo
+              <input type="text" data-ruta="items.1.modelo">
+            </label>
+            <label class="campo campo-ancho campo-imei" hidden>Números de serie, uno por equipo
+              <textarea data-ruta="items.1.series" rows="3" spellcheck="false"></textarea>
+            </label>
+            <label class="campo campo-ancho campo-imei" hidden>IMEI, uno por equipo
+              <textarea data-ruta="items.1.imeis" rows="3" spellcheck="false"></textarea>
+            </label>
+            <label class="campo">Cantidad
+              <input type="number" step="any" data-ruta="items.1.cantidad" data-tipo="numero">
+            </label>
+            <label class="campo">Unidad comercial
+              <input type="text" data-ruta="items.1.unidadComercial" spellcheck="false">
+            </label>
+            <label class="campo">Bultos
+              <input type="number" step="any" data-ruta="items.1.bultos" data-tipo="numero">
+            </label>
+            <label class="campo">Peso neto, kg
+              <input type="number" step="any" data-ruta="items.1.pesoNetoKg" data-tipo="numero">
+            </label>
+            <label class="campo">Peso bruto, kg
+              <input type="number" step="any" data-ruta="items.1.pesoBrutoKg" data-tipo="numero">
+            </label>
+            <label class="campo">Volumen, m³
+              <input type="number" step="any" data-ruta="items.1.volumenM3" data-tipo="numero">
+            </label>
+            <label class="campo">Precio unitario, USD
+              <input type="number" step="any" data-ruta="items.1.precioUnitarioUsd" data-tipo="numero">
+            </label>
+            <p class="campo valor-item">Valor del ítem: <strong data-valor-item="1">—</strong> USD</p>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Valoración</legend>
+          <p class="nota">El FOB es la suma de los ítems. El valor en aduana es FOB + flete + seguro + ajustes. Con ajuste 0, en este ejemplo ese valor coincide con el CIF comercial.</p>
+          <div class="campos">
+            <p class="campo valor-item">FOB: <strong id="valor-fob-detalle">—</strong> USD</p>
+            <label class="campo">Flete, USD (SUPUESTO, flete por cobrar)
+              <input type="number" step="any" data-ruta="valoracion.fleteUsd" data-tipo="numero">
+            </label>
+            <label class="campo">Seguro, USD (SUPUESTO)
+              <input type="number" step="any" data-ruta="valoracion.seguroUsd" data-tipo="numero">
+            </label>
+            <label class="campo">Tipo de seguro
+              <input type="text" data-ruta="valoracion.tipoSeguro" spellcheck="false">
+            </label>
+            <label class="campo">Descripción del tipo de seguro
+              <input type="text" data-ruta="valoracion.tipoSeguroDescripcion">
+            </label>
+            <label class="campo">Ajustes, USD
+              <input type="number" step="any" data-ruta="valoracion.ajustesUsd" data-tipo="numero">
+            </label>
+            <p class="campo valor-item">Valor en aduana: <strong id="valor-aduana-detalle">—</strong> USD</p>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+
+    <section class="seccion-secundaria" id="seccion-factura">
+      <h2 class="intro-hoja">Factura comercial</h2>
+      <p class="intro-hoja nota">Se arma con el formulario. En FOB el total de esta hoja es el precio de la factura. Marca de agua en la hoja.</p>
+      <article class="hoja-a4 hoja-documento" id="factura-comercial"></article>
+    </section>
+
+    <section class="seccion-secundaria" id="seccion-packing">
+      <h2 class="intro-hoja">Packing list</h2>
+      <p class="intro-hoja nota">Mismos bultos, pesos y volumen que el formulario. Esta hoja no lleva precios.</p>
+      <article class="hoja-a4 hoja-documento" id="packing-list"></article>
+    </section>
+
+    <section class="seccion-secundaria" id="seccion-bl">
+      <h2 class="intro-hoja">Bill of Lading</h2>
+      <p class="intro-hoja nota">Conocimiento de embarque didáctico y genérico: no es el formulario de una naviera concreta. Según la línea cambian el rótulo del número de BL, el de buque y viaje, si el flete se dice prepaid, collect o as arranged, y si se imprime el monto. Los datos salen del formulario. Marca de agua en la hoja.</p>
+      <article class="hoja-a4 hoja-documento" id="bill-of-lading"></article>
+    </section>
+
+    <section class="seccion-secundaria" id="seccion-dam">
+      <h2 class="intro-hoja">DAM. Formato A</h2>
+      <p class="intro-hoja nota">Datos generales y serie 1/1. Casillas en el orden del instructivo. Las que no corresponden a esta importación se ven con su leyenda y vacías. Marca de agua en la hoja.</p>
+      <div id="dam">
+        <article class="hoja-a4 hoja-documento" id="dam-formato-a"></article>
+        <h2 class="intro-hoja">DAM. Formato B</h2>
+        <p class="intro-hoja nota">Declaración del valor. Un proveedor y dos ítems: no hace falta el Formato B1. La sección 7 responde «No» en este ejemplo. Marca de agua en la hoja.</p>
+        <article class="hoja-a4 hoja-documento" id="dam-formato-b"></article>
+      </div>
+      <p class="intro-hoja nota" id="dam-sin-formato-c">No se genera el Formato C. La liquidación de la deuda tributaria queda fuera del ejercicio.</p>
+    </section>
+
+    <section class="seccion-secundaria" id="seccion-trazabilidad" aria-labelledby="titulo-trazabilidad">
+      <h2 class="intro-hoja" id="titulo-trazabilidad">Tabla de trazabilidad</h2>
+      <p class="intro-hoja nota">Cada fila es un dato del modo didáctico. Factura, packing list, BL y casilla de la DAM se leen de esa misma lista, así que la tabla y la ayuda dicen lo mismo. Donde el instructivo no da casilla, la celda de la DAM empieza por «sin casilla».</p>
+      <p class="aviso aviso-trazabilidad">DOCUMENTO DIDÁCTICO – SIN VALIDEZ OFICIAL</p>
+      <p class="intro-hoja nota" id="trazabilidad-cuenta"></p>
+      <table id="tabla-trazabilidad" class="tabla-trazabilidad"></table>
+    </section>
+
+    <section class="seccion-secundaria" id="hoja-prueba">
+      <h2 class="intro-hoja">Hoja de prueba del paso 1</h2>
+      <p class="intro-hoja nota">Se conserva la hoja A4 vacía y la marca de agua. No forma parte del caso de los relojes.</p>
+      <article class="hoja-a4">
+        <p class="marca-agua" aria-hidden="true">DOCUMENTO DIDÁCTICO – SIN VALIDEZ OFICIAL</p>
+        <div class="cuerpo-prueba">
+          <p class="kicker">Hoja de prueba</p>
+          <p>Esta hoja está vacía a propósito. No corresponde a una importación ni a una empresa real.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <noscript>
+    <p class="aviso">Esta página necesita JavaScript. Ábrela con doble clic en el archivo; no hace falta un servidor.</p>
+  </noscript>
+
+  <script src="datos/ejemplo-relojes-shenzhen-callao.js"></script>
+  <script src="js/calculos.js"></script>
+  <script src="js/validaciones.js"></script>
+  <script src="js/modelo.js"></script>
+  <script src="js/ayuda.js"></script>
+  <script src="js/trazabilidad.js"></script>
+  <script src="js/documentos/factura.js"></script>
+  <script src="js/documentos/packing.js"></script>
+  <script src="js/documentos/bl.js"></script>
+  <script src="js/documentos/dam.js"></script>
+</body>
+</html>

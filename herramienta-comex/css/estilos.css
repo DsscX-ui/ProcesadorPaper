@@ -1,0 +1,931 @@
+/* Texto de la herramienta, encima de la hoja. En la impresión no sale. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: #e4e4e4;
+  color: #1c1c1c;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 1.5rem 1rem 2.5rem;
+}
+
+.encabezado {
+  max-width: 980px;
+  margin: 0 auto 1rem;
+}
+
+.encabezado h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.45rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.subtitulo {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.aviso {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #9a3412;
+  background: #fff7ed;
+  color: #7c2d12;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* Hoja en tamaño A4 (210 mm × 297 mm), como una página sobre el escritorio. */
+
+.hoja-a4 {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto;
+  padding: 16mm 16mm 18mm;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.18);
+  font-family: "Liberation Serif", "Nimbus Roman", "Times New Roman", Times, serif;
+}
+
+.cuerpo-prueba,
+.cuerpo-documento {
+  position: relative;
+  z-index: 1;
+}
+
+.hoja-documento {
+  height: auto;
+  min-height: 297mm;
+  overflow: visible;
+}
+
+.doc-subtitulo {
+  margin: 0 0 4mm;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+}
+
+.doc-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2mm 8mm;
+  margin: 0 0 5mm;
+}
+
+.doc-dato {
+  margin: 0 0 2mm;
+  font-size: 11pt;
+  line-height: 1.35;
+}
+
+.doc-etiqueta {
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.doc-partes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5mm 8mm;
+  margin: 0 0 5mm;
+}
+
+.doc-bloque {
+  padding: 3mm 3.5mm;
+  border: 1px solid #1c1c1c;
+}
+
+.doc-bloque h3 {
+  margin: 0 0 2mm;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.doc-texto {
+  margin: 0;
+  font-size: 11pt;
+  line-height: 1.4;
+}
+
+.doc-tabla {
+  width: 100%;
+  margin: 3mm 0 0;
+  border-collapse: collapse;
+  font-size: 10pt;
+}
+
+.doc-tabla th,
+.doc-tabla td {
+  border: 1px solid #1c1c1c;
+  padding: 1.6mm 2mm;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.doc-tabla th {
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 8.5pt;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  background: #f3f3f3;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.doc-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.doc-total-etiqueta,
+.doc-total-cifra {
+  font-weight: 700;
+}
+
+.doc-totales-packing {
+  margin: 4mm 0 0;
+  font-size: 12pt;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.doc-destacado {
+  margin: 0 0 3mm;
+  font-size: 12pt;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.doc-ancho {
+  grid-column: 1 / -1;
+}
+
+.doc-leyenda {
+  margin: 0 0 4mm;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.doc-flete {
+  margin-top: 4mm;
+}
+
+.doc-flete-nota {
+  margin-top: 2mm;
+}
+
+.kicker {
+  margin: 0 0 0.4rem;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cuerpo-prueba p:last-child {
+  margin: 0;
+  max-width: 38em;
+  font-size: 12pt;
+  line-height: 1.45;
+}
+
+/*
+  Marca de agua diagonal y semitransparente.
+  print-color-adjust obliga al navegador a imprimir ese color
+  (si no, muchos lo omiten por ser claro).
+*/
+
+.marca-agua {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  transform: rotate(-36deg);
+  color: rgba(153, 27, 27, 0.32);
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 20pt;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Impresión: una sola hoja A4, sin el texto de ayuda ni la sombra de pantalla. */
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  .encabezado {
+    display: none;
+  }
+
+  .hoja-a4 {
+    margin: 0;
+    box-shadow: none;
+    page-break-after: avoid;
+    break-after: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .marca-agua {
+    color: rgba(153, 27, 27, 0.42);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .zona-trabajo,
+  .intro-hoja,
+  noscript {
+    display: none;
+  }
+
+  .seccion-secundaria {
+    margin: 0;
+    max-width: none;
+  }
+}
+
+/* Formulario del caso. La hoja A4 de prueba sigue abajo, en .seccion-secundaria. */
+
+.zona-trabajo {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.nota-caso,
+.nota {
+  margin: 0 0 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.panel-totales h2,
+.prueba-ruc h2,
+.panel-validaciones h2,
+.seccion-secundaria h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1.15rem;
+}
+
+.totales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: 0.55rem;
+}
+
+.total {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #d4d4d4;
+  background: #fff;
+}
+
+.total-cifra {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+.total-etiqueta {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.acciones {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 1rem 0 0.35rem;
+}
+
+#btn-guardar {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #1c1c1c;
+  background: #1c1c1c;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-cargar {
+  position: relative;
+  display: inline-block;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #1c1c1c;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* El input sigue en la página (type=file). El rótulo en español es el que se pulsa. */
+.input-archivo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mensaje-archivo {
+  min-height: 1.35em;
+  margin: 0 0 1rem;
+  font-weight: 700;
+}
+
+.prueba-ruc,
+fieldset {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid #d4d4d4;
+  background: #fff;
+}
+
+#prueba-ruc-lista {
+  margin: 0.4rem 0;
+  padding-left: 1.2rem;
+}
+
+#prueba-ruc-lista li {
+  margin: 0.28rem 0;
+}
+
+#prueba-ruc-resumen {
+  margin: 0.4rem 0 0;
+  font-weight: 700;
+}
+
+.ruc-cumple {
+  color: #14532d;
+}
+
+.ruc-falla {
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.panel-validaciones {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid #d4d4d4;
+  background: #fff;
+}
+
+.panel-validaciones h3 {
+  margin: 0.9rem 0 0.35rem;
+  font-size: 1rem;
+}
+
+.validaciones-resumen {
+  margin: 0;
+  font-weight: 700;
+}
+
+.resumen-ok {
+  color: #14532d;
+}
+
+.resumen-mal {
+  color: #7f1d1d;
+}
+
+.errores-vacio {
+  margin: 0.2rem 0 0.35rem;
+  font-weight: 700;
+  color: #14532d;
+}
+
+.lista-mensajes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista-mensajes li {
+  margin: 0.35rem 0;
+  padding: 0.45rem 0.6rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.msg-error {
+  border-left: 4px solid #7f1d1d;
+  background: #fef2f2;
+}
+
+.msg-aviso {
+  border-left: 4px solid #a16207;
+  background: #fffbeb;
+}
+
+.campo-imei[hidden] {
+  display: none !important;
+}
+
+fieldset h3 {
+  margin: 1rem 0 0.55rem;
+  font-size: 1rem;
+}
+
+fieldset h3:first-of-type {
+  margin-top: 0.2rem;
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.campo-ancho {
+  grid-column: 1 / -1;
+}
+
+.campo input,
+.campo textarea {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #bdbdbd;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.valor-item,
+.lectura-incoterm {
+  justify-content: flex-end;
+}
+
+#btn-guardar:focus-visible,
+.btn-cargar:focus-within,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #9a3412;
+  outline-offset: 2px;
+}
+
+.seccion-secundaria {
+  max-width: min(210mm, 100%);
+  margin: 2.5rem auto 0;
+  overflow-x: auto;
+}
+
+@media (max-width: 720px) {
+  .campos {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-ancho {
+    grid-column: auto;
+  }
+
+  .total-cifra {
+    font-size: 1.05rem;
+  }
+}
+
+/* Modo didáctico. Apagado, las ayudas no ocupan sitio. */
+
+.barra-didactica {
+  margin: 0 0 0.35rem;
+}
+
+.interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #9a3412;
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.interruptor input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: #9a3412;
+}
+
+body.modo-didactico .interruptor {
+  background: #fff7ed;
+}
+
+.nota-didactica {
+  margin-top: 0.55rem;
+}
+
+.ayuda-campo {
+  display: block;
+  margin: 0.4rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #fdba74;
+  border-left: 4px solid #9a3412;
+  background: #fff7ed;
+  color: #431407;
+  font-size: 0.84rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.ayuda-campo[hidden] {
+  display: none !important;
+}
+
+.ayuda-linea {
+  display: block;
+  margin: 0.18rem 0;
+}
+
+.ayuda-dam-sin {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #c2410c;
+  background: #ffedd5;
+  font-weight: 700;
+}
+
+body.modo-didactico .campo:has(.ayuda-amplia) {
+  grid-column: 1 / -1;
+}
+
+/* Estas reglas van al final: si no, el margen de pantalla
+   empuja la hoja de 297 mm y la impresión sale en dos páginas. */
+@media print {
+  .seccion-secundaria {
+    max-width: none;
+    margin: 0;
+    overflow: visible;
+  }
+}
+
+.doc-clausula,
+.doc-shipped {
+  font-style: italic;
+}
+
+/* Tabla de trazabilidad. En pantalla puede ser alta. En la impresión de los documentos no sale. */
+
+#seccion-trazabilidad {
+  max-width: min(1180px, 100%);
+}
+
+.tabla-trazabilidad {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.tabla-trazabilidad th,
+.tabla-trazabilidad td {
+  border: 1px solid #c8c8c8;
+  padding: 0.4rem 0.5rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+.tabla-trazabilidad th {
+  position: sticky;
+  top: 0;
+  background: #fff7ed;
+  font-weight: 700;
+}
+
+.tabla-trazabilidad tbody tr:nth-child(even) {
+  background: #f7f7f7;
+}
+
+.tabla-trazabilidad .traz-bloque,
+.tabla-trazabilidad .traz-dato {
+  font-weight: 700;
+}
+
+.tabla-trazabilidad .traz-dam-sin {
+  background: #ffedd5;
+  font-weight: 700;
+}
+
+.aviso-trazabilidad {
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .tabla-trazabilidad {
+    font-size: 0.78rem;
+  }
+}
+
+@media print {
+  #seccion-trazabilidad {
+    display: none;
+  }
+}
+
+.doc-emision {
+  margin-top: 0.75rem;
+}
+
+/* DAM. Casillas numeradas. La hoja crece con el formato; la marca de agua se repite. */
+
+.dam-hoja {
+  height: auto;
+  min-height: 297mm;
+  overflow: visible;
+}
+
+.dam-marcas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dam-marcas .marca-agua {
+  position: static;
+  inset: auto;
+  display: block;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  transform: rotate(-36deg);
+}
+
+.dam-rubro {
+  margin: 0 0 4mm;
+}
+
+.dam-rubro h3 {
+  margin: 0 0 1.4mm;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.dam-casillas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4mm;
+}
+
+.dam-casilla {
+  padding: 1.3mm 1.8mm 1.5mm;
+  border: 1px solid #1c1c1c;
+  break-inside: avoid;
+}
+
+.dam-ancho {
+  grid-column: 1 / -1;
+}
+
+.dam-vacia {
+  background: #f4f4f4;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.dam-cab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2mm;
+  margin: 0;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.dam-num {
+  color: #9a3412;
+}
+
+.dam-valor {
+  margin: 0.7mm 0 0;
+  font-size: 10.5pt;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.dam-leyenda,
+.dam-leyenda-rubro {
+  margin: 0.7mm 0 0;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.35;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.dam-leyenda-rubro {
+  margin: 0 0 1.6mm;
+}
+
+.dam-pendiente,
+.dam-supuesto {
+  font-style: normal;
+}
+
+.dam-pendiente {
+  color: #9a3412;
+}
+
+.dam-preguntas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dam-pregunta {
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr) auto;
+  gap: 1mm 2.5mm;
+  align-items: start;
+  padding: 1.3mm 0;
+  border-bottom: 1px solid #ccc;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.dam-pregunta .dam-num {
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: 700;
+}
+
+.dam-enunciado-texto {
+  margin: 0;
+}
+
+.dam-respuesta {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dam-nota-2026 {
+  margin-top: 2mm;
+  padding: 2mm 2.4mm;
+  border: 2px solid #9a3412;
+  background: #fff7ed;
+  color: #431407;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 8.5pt;
+  line-height: 1.35;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.dam-nota-2026 h4,
+.dam-nota-vigencia,
+.dam-cita,
+.dam-nota-aplica {
+  margin: 0 0 1.2mm;
+}
+
+.dam-nota-2026 h4 {
+  font-size: 9pt;
+  font-weight: 700;
+  color: #9a3412;
+}
+
+.dam-cita {
+  padding-left: 2mm;
+  border-left: 3px solid #9a3412;
+}
+
+.dam-nota-aplica {
+  margin-bottom: 0;
+  font-weight: 700;
+}
+
+.dam-cierre,
+.dam-sin-c {
+  margin: 3mm 0 0;
+  font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.dam-sin-c {
+  font-weight: 700;
+}
+
+#dam-formato-b {
+  margin-top: 8mm;
+}
+
+/*
+  En la impresión Chrome repite un elemento position:fixed en cada página.
+  Si cada hoja trae la suya, se apilan y el rojo queda más oscuro: la DAM
+  mete tres marcas en una hoja que ocupa varias páginas, y los formatos A y B
+  salen en el mismo PDF. Por eso en print hay una sola marca, fija, y las de
+  cada hoja no se dibujan. En pantalla no cambia.
+*/
+
+@media print {
+  body::before {
+    content: "DOCUMENTO DIDÁCTICO – SIN VALIDEZ OFICIAL";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 0;
+    margin: 0;
+    transform: translate(-50%, -50%) rotate(-36deg);
+    color: rgba(153, 27, 27, 0.42);
+    font-family: "Liberation Sans", "Nimbus Sans", Arial, Helvetica, sans-serif;
+    font-size: 20pt;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.03em;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .hoja-a4 {
+    background: transparent;
+  }
+
+  .hoja-a4 > .marca-agua,
+  .dam-marcas .marca-agua {
+    display: none;
+  }
+}

@@ -74,6 +74,43 @@ section {
 }
 .hoja-pie { font-size: 0.8rem; color: var(--suave); margin-top: 24px; }
 
+/* F2: operación cargada y vista de datos. */
+.ayuda-seccion { color: var(--suave); margin-top: 0; }
+.botones { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+#botones-ejemplo { display: contents; }
+button, .boton-archivo {
+  font: inherit;
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: #eef2f7;
+  cursor: pointer;
+}
+button:hover, .boton-archivo:hover { background: #e1e7ef; }
+.boton-archivo input { display: none; }
+.mensaje { min-height: 1.5em; margin: 4px 0; }
+.mensaje.ok { color: #1a7f37; }
+.mensaje.error, .error { color: #b42318; font-weight: 600; }
+.ok { color: #1a7f37; }
+.resumen { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0 12px; }
+.resumen dt { font-weight: 600; }
+.resumen dd { margin: 0; overflow-wrap: anywhere; }
+.nota { color: var(--suave); font-size: 0.85rem; }
+details { border-top: 1px solid var(--borde); padding: 6px 0; }
+summary { cursor: pointer; font-weight: 600; }
+h4 { margin: 12px 0 4px; font-size: 0.95rem; }
+.vacio { color: var(--suave); }
+table.datos { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 0.9rem; }
+table.datos th, table.datos td { border-bottom: 1px solid var(--borde); padding: 4px 6px; text-align: left; vertical-align: top; }
+table.datos th { background: #f0f2f5; }
+table.datos td.campo { width: 38%; }
+table.datos td.casilla { width: 22%; color: var(--suave); }
+table.datos td.valor { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  table.datos td.casilla { display: none; }
+  table.datos th:last-child { display: none; }
+}
+
 /* Marca de agua: oculta en pantalla, fija en cada hoja impresa. */
 .marca-agua { display: none; }
 
@@ -83,7 +120,7 @@ section {
   body { background: #fff; padding: 0; }
   body > * { max-width: none; }
   /* Solo se imprimen las hojas de documentos. */
-  .cabecera, .aviso, .marcas, .estado { display: none; }
+  .cabecera, .aviso, .marcas, .estado, .operacion { display: none; }
   section.hoja { border: none; padding: 0; margin: 0; min-height: auto; break-after: page; }
   .marca-agua {
     display: block;

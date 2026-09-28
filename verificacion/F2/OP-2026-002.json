@@ -1,0 +1,363 @@
+{
+  "formato": "procesador-paper/operacion",
+  "version": 1,
+  "meta": {
+    "referencia": "OP-2026-002",
+    "descripcion": "Caso 2 — Exportación FOB Callao de prendas de algodón a Chile, con certificado de origen.",
+    "ficticio": true
+  },
+  "generales": {
+    "operacion": {
+      "tipo": "exportacion",
+      "modalidadCarga": "FCL"
+    },
+    "partes": {
+      "vendedor": {
+        "razonSocial": "Textiles Didácticos del Perú S.A.C. — FICTICIA",
+        "direccion": "Av. Ejemplo 456, Cercado de Lima",
+        "ciudad": "Lima",
+        "pais": "PE",
+        "idFiscal": "20000000010",
+        "ubigeo": "150101",
+        "telefono": "",
+        "correo": "",
+        "condicion": ""
+      },
+      "comprador": {
+        "razonSocial": "Tiendas Ejemplo SpA — FICTICIA",
+        "direccion": "Av. Ejemplo 789",
+        "ciudad": "Santiago",
+        "pais": "CL",
+        "idFiscal": "RUT ficticio",
+        "ubigeo": ""
+      },
+      "consignatario": {
+        "tipo": "comprador",
+        "razonSocial": "",
+        "direccion": ""
+      },
+      "notify": {
+        "tipo": "consignatario",
+        "razonSocial": "",
+        "direccion": ""
+      },
+      "naviera": {
+        "nombre": "Naviera Didáctica Line — FICTICIA"
+      },
+      "agenteMaritimo": {
+        "razonSocial": "Agencia Marítima Didáctica S.A.C. — FICTICIA",
+        "ruc": "20000000036"
+      },
+      "agenteAduana": {
+        "razonSocial": "Agencia de Aduanas Didáctica S.A.C. — FICTICIA",
+        "ruc": "20000000028"
+      },
+      "depositoTemporal": {
+        "razonSocial": "Depósito Temporal Didáctico S.A.C. — FICTICIA",
+        "ruc": "20000000044"
+      },
+      "entidadFinanciera": {
+        "nombre": "Banco Didáctico — FICTICIO",
+        "codigo": ""
+      },
+      "aseguradora": {
+        "razonSocial": "",
+        "direccion": ""
+      },
+      "productor": {
+        "razonSocial": "",
+        "direccion": ""
+      },
+      "entidadCO": {
+        "nombre": "Entidad certificadora autorizada — FICTICIA"
+      }
+    },
+    "ruta": {
+      "puertoEmbarque": {
+        "nombre": "Callao",
+        "locode": "PECLL"
+      },
+      "puertoDescarga": {
+        "nombre": "San Antonio",
+        "locode": "CLSAI"
+      },
+      "paisAdquisicion": "",
+      "lugarRecepcion": "",
+      "lugarEntrega": ""
+    },
+    "comercial": {
+      "incoterm": "FOB",
+      "lugarConvenido": "Callao",
+      "moneda": "USD",
+      "facturaNumero": "TDP-2026-0102",
+      "facturaFecha": "2026-10-20",
+      "modalidadPago": "2",
+      "condicionesPago": "100 % por transferencia a 30 días de la fecha del B/L",
+      "medioPago": "",
+      "pagoDiferido": {
+        "porcentaje": null,
+        "plazoDias": null,
+        "evento": "",
+        "fecha": ""
+      },
+      "contrato": ""
+    },
+    "aduana": {
+      "aduana": "118",
+      "modalidadDespacho": "",
+      "tipoDespacho": "00",
+      "numeroOrden": "2026-000002",
+      "fechaFormulacion": "2026-10-21",
+      "tipoCambio": null,
+      "tipoCambioFecha": "",
+      "tipoCambioFuente": "",
+      "regionDestino": ""
+    },
+    "valor": {
+      "nivelComercial": "",
+      "naturaleza": "",
+      "formaEnvio": "",
+      "tipoValor": "",
+      "intermediario": {
+        "hubo": "",
+        "nombre": "",
+        "direccion": "",
+        "ciudad": "",
+        "pais": "",
+        "tipo": "",
+        "contacto": ""
+      },
+      "rubro7": {
+        "p7_1": "",
+        "p7_2": "",
+        "p7_3": "",
+        "p7_4": "",
+        "p7_5": "",
+        "p7_6": "",
+        "p7_7": "",
+        "p7_8": "",
+        "p7_9": "",
+        "p7_10": "",
+        "p7_11": "",
+        "p7_12": "",
+        "p7_13": "",
+        "p7_14": ""
+      }
+    }
+  },
+  "especificos": {
+    "items": [
+      {
+        "nombre": "Polo",
+        "descripcion": "Polo 100 % algodón, tejido de punto, cuello redondo, tallas S–XL",
+        "marca": "EJEMPLO",
+        "modelo": "",
+        "subpartida": "6109.10.00.00",
+        "subpartidaVerificada": false,
+        "paisOrigen": "PE",
+        "ubigeoOrigen": "150101",
+        "estado": "10",
+        "cantidad": 4000,
+        "unidadComercial": "U",
+        "unidadFisica": "U",
+        "precioUnitario": 5.2,
+        "series": [],
+        "imeis": [],
+        "claseBulto": "CAJA_CARTON",
+        "unidadesPorBulto": 50,
+        "pesoNetoBulto": 9,
+        "pesoBrutoBulto": 9.8,
+        "largoCm": 60,
+        "anchoCm": 40,
+        "altoCm": 35,
+        "tasaAV": null,
+        "sobretasa": 0,
+        "derechoEspecifico": 0,
+        "isc": 0,
+        "antidumping": 0,
+        "tpi": "",
+        "tipoA720": "",
+        "tasaPercepcion": null
+      },
+      {
+        "nombre": "Sudadera con capucha",
+        "descripcion": "Sudadera con capucha 100 % algodón, tejido de punto, tallas S–XL",
+        "marca": "EJEMPLO",
+        "modelo": "",
+        "subpartida": "6110.20.00.00",
+        "subpartidaVerificada": false,
+        "paisOrigen": "PE",
+        "ubigeoOrigen": "150101",
+        "estado": "10",
+        "cantidad": 1500,
+        "unidadComercial": "U",
+        "unidadFisica": "U",
+        "precioUnitario": 12.5,
+        "series": [],
+        "imeis": [],
+        "claseBulto": "CAJA_CARTON",
+        "unidadesPorBulto": 25,
+        "pesoNetoBulto": 12.5,
+        "pesoBrutoBulto": 13.4,
+        "largoCm": 60,
+        "anchoCm": 40,
+        "altoCm": 45,
+        "tasaAV": null,
+        "sobretasa": 0,
+        "derechoEspecifico": 0,
+        "isc": 0,
+        "antidumping": 0,
+        "tpi": "",
+        "tipoA720": "",
+        "tasaPercepcion": null
+      }
+    ],
+    "marcasEmbarque": "TE / OP-2026-002 / SAN ANTONIO / C/No. 1-140 / HECHO EN PERÚ",
+    "contenedor": {
+      "tipo": "22G1",
+      "numero": "EJMU2600025",
+      "precinto": "SD-000124",
+      "tara": 2200,
+      "estibaTrincaje": 0,
+      "vgmMetodo": "2",
+      "vgmResponsable": "Textiles Didácticos del Perú S.A.C. — FICTICIA",
+      "vgmFecha": "2026-10-23"
+    },
+    "transporte": {
+      "nave": "MV DIDACTIC STAR",
+      "viaje": "2643S",
+      "booking": "BK-2026-0002",
+      "blNumero": "DIDL2026000102",
+      "blTipo": "nominativo",
+      "blOriginales": 3,
+      "blLugarEmision": "Callao",
+      "blFechaEmision": "2026-10-24",
+      "fechaShippedOnBoard": "2026-10-24",
+      "clausulaSlac": true,
+      "clausulaStc": true,
+      "shipper": "",
+      "manifiesto": "118-2026-POR ASIGNAR",
+      "fechaEmbarque": "2026-10-24",
+      "fechaTerminoEmbarque": "2026-10-24",
+      "eta": "2026-10-30",
+      "fechaTerminoDescarga": ""
+    },
+    "seguro": {
+      "hay": false,
+      "tipoPoliza": "",
+      "poliza": "",
+      "certificado": "",
+      "fechaEmision": "",
+      "clausulas": "",
+      "guerra": false,
+      "huelgas": false,
+      "coberturaPct": null,
+      "tasaPrimaPct": null,
+      "lugarPagoSiniestros": "",
+      "agenteReclamos": "",
+      "pctTablaSunat": null
+    },
+    "origen": {
+      "solicitaPreferencia": true,
+      "acuerdo": "TLC Perú–Chile",
+      "criterio": "",
+      "certificadoNumero": "CO-2026-0001",
+      "certificadoFecha": "2026-10-22"
+    },
+    "valoracion": {
+      "flete": null,
+      "gastosExw815": 0,
+      "otros816": 0,
+      "comisiones821": 0,
+      "envases822": 0,
+      "materiales8231": 0,
+      "herramientas8232": 0,
+      "consumidos8233": 0,
+      "ingenieria8234": 0,
+      "canones824": 0,
+      "reversion825": 0,
+      "gastosDestino832": 0,
+      "posteriores851": 0,
+      "montaje852": 0,
+      "tributos853": 0,
+      "intereses854": 0,
+      "otros855": 0,
+      "expOtrosDeducibles": 0,
+      "expAjustes": 0
+    }
+  },
+  "marcas": {
+    "generales.aduana.numeroOrden": {
+      "marca": "S",
+      "nota": "Número ficticio; lo asigna el declarante."
+    },
+    "generales.aduana.fechaFormulacion": {
+      "marca": "S",
+      "nota": "Supuesto del caso."
+    },
+    "generales.partes.entidadCO.nombre": {
+      "marca": "S",
+      "nota": "Nombre ficticio; emisor real según el acuerdo (PV-12)."
+    },
+    "especificos.items.0.subpartida": {
+      "marca": "PV",
+      "nota": "PV-10: SA 6109.10 [H*]; dígitos nacionales por verificar."
+    },
+    "especificos.items.1.subpartida": {
+      "marca": "PV",
+      "nota": "PV-10: SA 6110.20 [H*]; dígitos nacionales por verificar."
+    },
+    "especificos.items.0.estado": {
+      "marca": "PV",
+      "nota": "PV-09: el código de estado en exportación (S 7.20) no está en el IT."
+    },
+    "especificos.items.1.estado": {
+      "marca": "PV",
+      "nota": "PV-09: el código de estado en exportación (S 7.20) no está en el IT."
+    },
+    "especificos.items.0.ubigeoOrigen": {
+      "marca": "S",
+      "nota": "Se supone que se fabricó en Lima."
+    },
+    "especificos.items.1.ubigeoOrigen": {
+      "marca": "S",
+      "nota": "Se supone que se fabricó en Lima."
+    },
+    "especificos.origen.criterio": {
+      "marca": "PV",
+      "nota": "PV-12: formato y criterio de origen según el TLC Perú–Chile."
+    },
+    "especificos.contenedor.numero": {
+      "marca": "S",
+      "nota": "Prefijo EJMU ficticio (PV-19); dígito de control ISO 6346 calculado."
+    },
+    "especificos.contenedor.tara": {
+      "marca": "S",
+      "nota": "Tara supuesta (PV-16)."
+    },
+    "especificos.transporte.manifiesto": {
+      "marca": "S",
+      "nota": "Estructura aduana–año–número (IT B 3.2); número por asignar."
+    },
+    "especificos.transporte.blTipo": {
+      "marca": "S",
+      "nota": "Supuesto del caso."
+    },
+    "generales.partes.agenteMaritimo.ruc": {
+      "marca": "PV",
+      "nota": "PV-28: en la Aduana Marítima del Callao podría ir el código de SUNAT en lugar del RUC."
+    },
+    "generales.partes.agenteAduana.ruc": {
+      "marca": "PV",
+      "nota": "PV-28"
+    },
+    "generales.partes.depositoTemporal.ruc": {
+      "marca": "PV",
+      "nota": "PV-28"
+    },
+    "generales.partes.entidadFinanciera.codigo": {
+      "marca": "PV",
+      "nota": "PV-09: código de la entidad financiera en la tabla de SUNAT."
+    }
+  }
+}

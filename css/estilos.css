@@ -1,0 +1,110 @@
+/* Estilos de pantalla e impresión A4. Sin librerías externas. */
+
+:root {
+  --texto: #1f2328;
+  --suave: #57606a;
+  --fondo: #f6f7f9;
+  --papel: #ffffff;
+  --borde: #d0d7de;
+  --aviso-fondo: #fff4e5;
+  --aviso-borde: #d97706;
+  --pv-fondo: #fff3b0;
+  --hx-fondo: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+  line-height: 1.5;
+}
+
+body > * { max-width: 960px; margin-left: auto; margin-right: auto; }
+
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+h2 { font-size: 1.15rem; margin: 0 0 8px; }
+.en { color: var(--suave); font-weight: normal; }
+.subtitulo { margin: 0 0 16px; color: var(--suave); }
+
+section {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.aviso { background: var(--aviso-fondo); border: 2px solid var(--aviso-borde); }
+
+/* Etiquetas de marca: H, H*, SUPUESTO, POR VERIFICAR (PLAN.md, encabezado). */
+.lista-marcas { list-style: none; padding: 0; margin: 0; }
+.lista-marcas li { margin: 6px 0; }
+.marca {
+  display: inline-block;
+  min-width: 3.2em;
+  padding: 0 6px;
+  margin-right: 6px;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+.marca-h { background: var(--papel); }
+.marca-hx { background: var(--hx-fondo); }
+.marca-s { background: #e0ecff; }
+.marca-pv { background: var(--pv-fondo); }
+
+.fases { margin: 8px 0 0; padding-left: 1.4em; color: var(--suave); }
+.fases .hecha { color: var(--texto); font-weight: 600; }
+
+/* Hoja A4 de prueba: en pantalla se ve como papel. */
+.hoja { min-height: 60vh; position: relative; }
+.hoja-encabezado {
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--borde);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.hoja-pie { font-size: 0.8rem; color: var(--suave); margin-top: 24px; }
+
+/* Marca de agua: oculta en pantalla, fija en cada hoja impresa. */
+.marca-agua { display: none; }
+
+@page { size: A4; margin: 15mm; }
+
+@media print {
+  body { background: #fff; padding: 0; }
+  body > * { max-width: none; }
+  /* Solo se imprimen las hojas de documentos. */
+  .cabecera, .aviso, .marcas, .estado { display: none; }
+  section.hoja { border: none; padding: 0; margin: 0; min-height: auto; break-after: page; }
+  .marca-agua {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.4;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 22pt;
+    font-weight: 700;
+    color: rgba(200, 0, 0, 0.14);
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .marca-pv { background: var(--pv-fondo); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .marca-hx { background: var(--hx-fondo); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  h1 { font-size: 1.25rem; }
+}

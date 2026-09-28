@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** Fase 0, plan **v2**. Incorpora la comparación con `herramienta-comex/` y sus referencias, con los cambios 1 a 10 aprobados por Aarón y sus 5 condiciones. No hay código.
+> **Estado:** plan **v2 aprobado**. Fase actual: **F1** (estructura + página con aviso didáctico). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -520,7 +520,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 
 | ID | Regla |
 |---|---|
-| A01 | FAS, FOB, CFR o CIF con contenedor. La nota de orientación de ICC recomienda FCA, CPT o CIP [H\*]. |
+| A01 | **Aviso didáctico** (no bloquea): FAS, FOB, CFR o CIF con contenedor. Explica que en estas reglas el riesgo pasa al costado o a bordo del buque, pero la carga en contenedor suele entregarse antes, en la terminal o el depósito; por eso la nota de orientación de ICC recomienda FCA (en lugar de FAS o FOB), CPT (en lugar de CFR) o CIP (en lugar de CIF) [H\*]. |
 | A02 | EXW en exportación desde Perú: el despacho de exportación correspondería al comprador extranjero |
 | A03 | DDP en importación a Perú: el vendedor extranjero actuaría como importador |
 | A04 | Grupo D en importación: revisar 8.3.2 y 8.5.x (§6.3) |
@@ -858,10 +858,13 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 5. Caso 1: el segundo producto es tecnológico (cargador USB-C) y su subpartida queda POR VERIFICAR.
 6. Fuentes de SUNAT: se verifican y descargan cuando se habilite el dominio (F0b).
 
-**Pendientes (de la v1 del plan)**
+**Respuestas a los pendientes de la v1**
 
-1. **Stack:** ¿confirmas la página HTML local?
-2. **Idioma:** bilingüe español/inglés en factura, lista de empaque, B/L, seguro y CO; solo español en la DAM y la hoja resumen. ¿De acuerdo?
-3. **Alcance v1:** 1 contenedor FCL y solo USD. ¿Suficiente?
-4. **Ritmo:** ¿revisión al final de cada fase, o por bloques? (F8a ya tiene pausa obligatoria.)
-5. **Material del curso:** formatos, tasas o criterios de tu profesor para cerrar puntos PV.
+7. Stack: página HTML local. Confirmado.
+8. Idioma: **etiquetas bilingües español/inglés en cada campo** (ej. "Peso bruto / Gross weight"), sin traducir el documento completo. La DAM, solo en español.
+9. Versión 1: un contenedor FCL y solo USD.
+10. Casos: los dos propuestos; el caso 1 con 3 ítems.
+11. Ritmo: revisión al final de **cada** fase.
+12. Material del curso: no hay por ahora.
+13. Añadido: aviso didáctico A01 (FAS, FOB, CFR o CIF con contenedor → recomendación ICC de FCA, CPT o CIP). Solo informa, no bloquea.
+14. F0b (fuentes SUNAT) queda para una sesión nueva; no bloquea F1–F7.

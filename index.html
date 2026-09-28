@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentos marítimos didácticos</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <!-- Marca de agua: se repite en cada hoja impresa (css/estilos.css). -->
+  <div class="marca-agua" aria-hidden="true">DOCUMENTO DIDÁCTICO<br>NO VÁLIDO PARA TRÁMITES REALES</div>
+
+  <header class="cabecera">
+    <h1>Documentos del transporte marítimo internacional <span class="en">/ Ocean shipping documents</span></h1>
+    <p class="subtitulo">Herramienta didáctica para cursos de Negocios Internacionales (Perú) · Incoterms® 2020</p>
+  </header>
+
+  <section class="aviso" role="note" aria-labelledby="aviso-titulo">
+    <h2 id="aviso-titulo">Aviso didáctico <span class="en">/ Educational notice</span></h2>
+    <p><strong>Todo lo que genera esta herramienta es DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES.</strong>
+      Los documentos no reemplazan una declaración ante SUNAT, un conocimiento de embarque emitido por una naviera,
+      una póliza de seguro ni un certificado de origen. Los ejemplos usan datos ficticios.</p>
+    <p class="en">Everything this tool produces is for teaching only and has no legal or customs validity.</p>
+  </section>
+
+  <section class="marcas" aria-labelledby="marcas-titulo">
+    <h2 id="marcas-titulo">Cómo leer las marcas <span class="en">/ How to read the marks</span></h2>
+    <ul class="lista-marcas">
+      <li><span class="marca marca-h">H</span> Hecho con fuente en la carpeta (documento y sección).</li>
+      <li><span class="marca marca-hx">H*</span> Conocimiento general; no verificado con las fuentes de la carpeta.</li>
+      <li><span class="marca marca-s">SUPUESTO</span> Decisión de diseño o dato ficticio.</li>
+      <li><span class="marca marca-pv">POR VERIFICAR</span> Dato normativo que no se afirma sin fuente oficial.</li>
+    </ul>
+  </section>
+
+  <section class="estado" aria-labelledby="estado-titulo">
+    <h2 id="estado-titulo">Estado de la construcción</h2>
+    <p>Fase <strong>F1</strong>: estructura y aviso. El formulario y los documentos se agregan en las fases siguientes (ver <code>PLAN.md</code>, §10).</p>
+    <ol class="fases">
+      <li class="hecha">F1 · Estructura y aviso didáctico</li>
+      <li>F2 · Datos, ejemplos y Guardar/Abrir</li>
+      <li>F3 · Cálculos y página de pruebas</li>
+      <li>F4 · Validaciones</li>
+      <li>F5 · Formulario</li>
+      <li>F6 · Factura, lista de empaque y hoja resumen</li>
+      <li>F7 · Instrucciones de embarque, B/L y VGM</li>
+      <li>F8a · DAM Formato A (pausa de revisión)</li>
+      <li>F8b · DAM Formato B · F8c · DAM Formato C</li>
+      <li>F9 · Seguro y certificado de origen</li>
+      <li>F10 · Impresión final y guía</li>
+    </ol>
+  </section>
+
+  <!-- Hoja de prueba A4: permite comprobar la marca de agua y el encabezado al imprimir. -->
+  <section class="hoja" aria-labelledby="hoja-titulo">
+    <p class="hoja-encabezado">DOCUMENTO DIDÁCTICO – NO VÁLIDO PARA TRÁMITES REALES</p>
+    <h2 id="hoja-titulo">Hoja de prueba de impresión <span class="en">/ Print test sheet</span></h2>
+    <p>Esta hoja solo sirve para comprobar el formato A4, el encabezado y la marca de agua. Desaparecerá cuando existan los documentos reales (F6).</p>
+    <p class="hoja-pie">Referencia: — · Generado: <span id="fecha-generacion">—</span></p>
+  </section>
+
+  <script>
+    // Único script de F1: escribe la fecha de generación en el pie de la hoja.
+    document.getElementById("fecha-generacion").textContent =
+      new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  </script>
+</body>
+</html>

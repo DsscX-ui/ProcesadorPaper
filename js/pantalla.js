@@ -1,5 +1,6 @@
-/* Pantalla: botones de ejemplo, Nueva, Guardar y Abrir, y vista de solo lectura de los datos
-   cargados, agrupada según el diccionario. El formulario editable llega en F5.
+/* Pantalla: botones de ejemplo, Nueva, Guardar y Abrir; vista de solo lectura de los datos
+   cargados (agrupada según el diccionario) y panel didáctico "Resultados del cálculo".
+   No calcula: lee el resultado de Calculos.calcular y le da formato. El formulario editable llega en F5.
    Regla de carga: la vista nueva se construye completa FUERA del documento; solo si todo sale bien
    se reemplaza la operación anterior. Si algo falla, la pantalla anterior se conserva.
    Los datos del usuario se insertan siempre con textContent (nunca innerHTML).
@@ -169,6 +170,220 @@
     return frag;
   }
 
+  // ---------------------------------------------------------------- Resultados del cálculo
+  // Solo lee el objeto "resultado" de Calculos.calcular y le da formato; no calcula nada.
+  var Fm = Calculos.formato;
+
+  // Tabla con columnas numéricas alineadas a la derecha. filas: listas de textos o nodos.
+  // opciones.total: última fila resaltada; opciones.titulo: leyenda (caption).
+  function tablaResultados(encabezados, filas, opciones) {
+    opciones = opciones || {};
+    // Zona desplazable enfocable: en pantallas estrechas se recorre con el teclado (flechas).
+    var envoltura = el("div", "tabla-desplazable");
+    envoltura.tabIndex = 0;
+    envoltura.setAttribute("role", "region");
+    envoltura.setAttribute("aria-label", "Tabla: " + encabezados.slice(0, 3).join(", ") + "…");
+    var t = el("table", "datos resultados");
+    if (opciones.titulo) { t.appendChild(el("caption", null, opciones.titulo)); }
+    var thead = el("thead"), trh = el("tr");
+    encabezados.forEach(function (h, i) {
+      var th = el("th", i > 0 && opciones.numericas !== false ? "num" : null, h);
+      th.scope = "col";
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+    t.appendChild(thead);
+    var tb = el("tbody");
+    filas.forEach(function (f, k) {
+      var tr = el("tr", opciones.total && k === filas.length - 1 ? "fila-total" : null);
+      f.forEach(function (celda, i) {
+        var td = el("td", i > 0 && opciones.numericas !== false ? "num" : null);
+        if (celda && celda.nodeType) { td.appendChild(celda); } else { td.textContent = celda == null ? "—" : String(celda); }
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    envoltura.appendChild(t);
+    return envoltura;
+  }
+
+  // Párrafo de explicación: texto + marcas opcionales (["H", "IT C 5.9"], ["S"], ["PV", "PV-04"]…).
+  function explicacion(texto, marcas) {
+    var p = el("p", "formula");
+    p.appendChild(document.createTextNode(texto));
+    (marcas || []).forEach(function (m) {
+      p.appendChild(document.createTextNode(" "));
+      p.appendChild(etiquetaMarca(m[0]));
+      if (m[1]) { p.appendChild(el("span", "nota", " " + m[1])); }
+    });
+    return p;
+  }
+
+  function bloque(titulo) {
+    var d = el("div", "bloque-resultado");
+    d.appendChild(el("h3", null, titulo));
+    return d;
+  }
+
+  function construirResultados(op, r) {
+    var frag = document.createDocumentFragment();
+    var imp = r.tipo === "importacion";
+
+    if (r.avisos.length) {
+      var av = el("div", "avisos-calculo");
+      av.appendChild(el("p", null, "Avisos del cálculo (las validaciones completas llegan en F4):"));
+      var ul = el("ul");
+      r.avisos.forEach(function (a) { ul.appendChild(el("li", null, a.codigo + " · " + a.texto)); });
+      av.appendChild(ul);
+      frag.appendChild(av);
+    }
+
+    // --- 1. Carga
+    var b1 = bloque("1. Carga: bultos, pesos, volumen y VGM");
+    b1.appendChild(tablaResultados(
+      ["Ítem", "Cantidad", "Bultos", "N° de bultos", "Peso neto (kg)", "Peso bruto (kg)", "m³ por bulto", "Volumen (m³)"],
+      r.items.map(function (it) {
+        return [String(it.numero), Fm.cantidad(it.cantidad), String(it.bultos),
+          it.bultos ? it.bultoDesde + "–" + it.bultoHasta : "—",
+          Fm.kg(it.pesoNeto), Fm.kg(it.pesoBruto), Fm.m3(it.volumenBulto), Fm.m3(it.volumen)];
+      }).concat([["Total", "", String(r.totales.bultos), r.totales.numeracion.replace("-", "–"),
+        Fm.kg(r.totales.pesoNeto), Fm.kg(r.totales.pesoBruto), "", Fm.m3(r.totales.volumen)]]),
+      { total: true }));
+    b1.appendChild(explicacion("Bultos = cantidad ÷ unidades por bulto. Pesos = bultos × peso por bulto. " +
+      "Volumen = largo × ancho × alto (cm) ÷ 1 000 000 × bultos. Los bultos se numeran de forma correlativa: así coinciden la lista de empaque, el B/L y las marcas.", [["S", "PLAN §6.2"]]));
+    b1.appendChild(explicacion("VGM = peso bruto " + Fm.kg(r.vgm.pesoBruto) + " + estiba y trincaje " + Fm.kg(r.vgm.estiba) +
+      " + tara " + Fm.kg(r.vgm.tara) + " = " + Fm.kg(r.vgm.total) + " kg.", [["H*", "SOLAS VI/2"]]));
+    frag.appendChild(b1);
+
+    // --- 2. Incoterm, seguro y flete en el B/L
+    var b2 = bloque("2. Incoterm, seguro y flete en el B/L");
+    var regla = r.reglaIncoterm;
+    if (regla) {
+      b2.appendChild(explicacion(regla.codigo + " (grupo " + regla.grupo + "): el riesgo pasa " + regla.riesgo.toLowerCase() +
+        ". Flete principal: lo paga el " + regla.fletePrincipal.toLowerCase() + ". Seguro obligatorio: " + regla.seguro + ".", [["H*", "Incoterms® 2020"]]));
+    }
+    b2.appendChild(explicacion("Flete en el B/L: " + (r.fleteBl.declarado || "sin dato") + "; lo usual para este Incoterm es " +
+      (r.fleteBl.sugerido || "—") + (r.fleteBl.coincide ? " (coincide)." : ". No coincide: la advertencia A05 lo señalará en F4."), [["S", "práctica marítima (D8)"]]));
+    if (r.seguro.hay) {
+      b2.appendChild(explicacion("Suma asegurada = " + Fm.comercial(r.seguro.base) + " × " + Fm.pct(r.seguro.coberturaPct) + " = USD " +
+        Fm.comercial(r.seguro.sumaAsegurada) + ". Prima = " + Fm.comercial(r.seguro.sumaAsegurada) + " × " + Fm.pct(r.seguro.tasaPrimaPct) +
+        " = USD " + Fm.comercial(r.seguro.prima) + ". " + r.seguro.baseExplicacion, [["S", "PLAN §6.4"]]));
+    } else {
+      b2.appendChild(explicacion("Sin seguro contratado." + (imp ? " En importación se usa el % de la tabla de SUNAT (PV-06)." : ""), imp ? [["PV", "PV-06"]] : []));
+    }
+    frag.appendChild(b2);
+
+    if (imp) {
+      construirImportacion(frag, r);
+    } else {
+      construirExportacion(frag, r);
+    }
+
+    // --- Cuadres
+    var bc = bloque("Por qué cuadran las cifras");
+    bc.appendChild(tablaResultados(["Comprobación", "Suma", "Debe ser", "¿Cuadra?"],
+      r.cuadres.map(function (c) { return [c.texto, Fm.damAC(c.a), Fm.damAC(c.b), c.ok ? "✔ Sí" : "✘ NO (E19)"]; })));
+    bc.appendChild(explicacion("En cada reparto la última parte recibe el residuo del redondeo; por eso las sumas cuadran al milésimo.", [["S", "PLAN §6.1"]]));
+    frag.appendChild(bc);
+    return frag;
+  }
+
+  function construirImportacion(frag, r) {
+    // --- 3. FOB (IT C 5.9)
+    var b3 = bloque("3. FOB total según el Incoterm (Formato B, sección 8)");
+    var filas = r.fob.terminos.map(function (t) {
+      return [t.casilla + " " + t.nombre, (t.signo > 0 ? "+ " : "− ") + Fm.comercial(t.valor)];
+    });
+    filas.push(["FOB total", Fm.comercial(r.fob.total)]);
+    b3.appendChild(tablaResultados(["Casilla", "USD"], filas, { total: true }));
+    b3.appendChild(explicacion("Fórmula de " + r.fob.formulaIncoterm + ": se parte del precio de la factura (8.1.1) y se quitan los conceptos que el Incoterm incluye después del embarque.",
+      [["H", "IT C 5.9"]]));
+    frag.appendChild(b3);
+
+    // --- 4. Ítems (Formato B)
+    var b4 = bloque("4. Por ítem (Formato B): FOB y ajustes");
+    b4.appendChild(tablaResultados(["Ítem", "Valor en factura", "FOB del ítem", "FOB unitario (B 5.9)", "¿Objeto de ajuste?", "Ajuste del ítem", "Ajuste unitario (B 5.10)", "Serie"],
+      r.items.map(function (it) {
+        return [String(it.numero), Fm.comercial(it.valor), Fm.damAC(it.fob), Fm.damB(it.fobUnitario), it.objetoAjuste ? "Sí" : "No",
+          Fm.damAC(it.ajuste), Fm.damB(it.ajusteUnitario), String(it.serie)];
+      })));
+    b4.appendChild(explicacion("FOB del ítem = FOB total × valor del ítem ÷ valor de la factura; el último ítem recibe el residuo. FOB unitario = FOB del ítem ÷ cantidad, con 6 decimales.",
+      [["H", "IT C 5.9"]]));
+    b4.appendChild(explicacion("Ajuste total (8.1.2 a 8.1.4 y 8.2) = USD " + Fm.damAC(r.ajustes.total) +
+      ". Se reparte solo entre los ítems objeto de ajuste, según su valor" +
+      (r.ajustes.itemsAjustados.length ? " (ítems " + r.ajustes.itemsAjustados.join(", ") + ")." : "."), [["H", "IT C 5.10"]]));
+    frag.appendChild(b4);
+
+    // --- 5. Series (Formato A)
+    var b5 = bloque("5. Por serie (Formato A): valor en aduana");
+    var va = r.valorAduana;
+    b5.appendChild(tablaResultados(["Serie", "Ítems", "Subpartida", "Bultos", "Peso bruto", "% peso", "FOB (7.30)", "% FOB", "Flete (7.31)", "Seguro (7.32)", "Ajuste (7.33)", "Valor en aduana (7.34)"],
+      r.series.map(function (s) {
+        return [s.numero + "/" + r.series.length, s.items.map(function (i) { return i + 1; }).join(", "), s.subpartida, String(s.bultos),
+          Fm.kg(s.pesoBruto), Fm.numero(s.pctPesoBruto, 2) + " %", Fm.damAC(s.fob), Fm.numero(s.pctFob, 2) + " %",
+          Fm.damAC(s.flete), Fm.damAC(s.seguro), Fm.damAC(s.ajuste), Fm.damAC(s.valorAduana)];
+      }).concat([["Total", "", "", String(r.totales.bultos), Fm.kg(r.totales.pesoBruto), "100.00 %", Fm.damAC(va.fob), "100.00 %",
+        Fm.damAC(va.flete), Fm.damAC(va.seguro), Fm.damAC(va.ajuste), Fm.damAC(va.total)]]),
+      { total: true }));
+    b5.appendChild(explicacion("Los ítems se agrupan en series si comparten subpartida, país de origen y los demás datos de IT A 7.1. " +
+      "Valor en aduana de la serie (7.34) = FOB + flete + seguro + ajuste; la fila Total corresponde a las casillas A 6.1 a 6.5.", [["H", "IT A 7.1, 7.34, 6.5"]]));
+    b5.appendChild(explicacion("El flete se reparte por peso bruto y el " + (r.seguroOrigen === "prima" ? "seguro" : "seguro de la tabla") +
+      " por FOB. Compara las columnas «% peso» y «% FOB»: cuando son muy distintas, cambiar el criterio cambia mucho el valor en aduana de cada serie.",
+      [["S"], ["PV", "PV-04"]]));
+    frag.appendChild(b5);
+
+    // --- 6. Liquidación (Formato C)
+    var b6 = bloque("6. Liquidación de tributos (Formato C)");
+    var l = r.liquidacion;
+    b6.appendChild(tablaResultados(["Serie", "Valor en aduana", "Tasa AV", "Ad valorem (C 4.1)", "Sobretasa + específico + ISC", "Base del IGV", "IGV (C 4.6)", "IPM (C 4.5)", "Antidumping (C 4.7)", "Total"],
+      r.series.map(function (s) {
+        var x = s.liquidacion;
+        return [String(s.numero), Fm.damAC(s.valorAduana), Fm.pct(x.tasaAV), Fm.damAC(x.adValorem),
+          Fm.damAC(x.otrosDerechos), Fm.damAC(x.baseIgv), Fm.damAC(x.igv), Fm.damAC(x.ipm),
+          Fm.damAC(x.antidumping), Fm.damAC(x.total)];
+      }).concat([["Total", Fm.damAC(va.total), "", Fm.damAC(l.adValorem), Fm.damAC(l.otrosDerechos),
+        Fm.damAC(l.baseIgv), Fm.damAC(l.igv), Fm.damAC(l.ipm), Fm.damAC(l.antidumping), Fm.damAC(l.total)]]),
+      { total: true }));
+    b6.appendChild(explicacion("Ad valorem = valor en aduana × tasa (tasas del caso: dato del usuario, PV-11). Base del IGV = valor en aduana + ad valorem + sobretasa + específico + ISC; el antidumping queda fuera.",
+      [["S"], ["PV", "PV-11, PV-17"]]));
+    b6.appendChild(explicacion("IGV = " + Fm.pct(l.igvPct) + " × base; IPM = " + Fm.pct(l.ipmPct) + " × base. El servicio de despacho (C 4.8) no se calcula.",
+      [["H*", "Ley del IGV"], ["PV", "PV-02"]]));
+    var p = r.percepcion;
+    b6.appendChild(explicacion("Percepción del IGV (fuera del Formato C) = " + Fm.pct(p.tasa) + " × (valor en aduana + tributos " + Fm.damAC(p.base) +
+      ") = USD " + Fm.damAC(p.monto) + ". Un solo valor por operación: la tasa depende del importador y, en algunos casos, de la mercancía.",
+      [["PV", "PV-01 (D2, D6)"]]));
+    var so = r.soles;
+    b6.appendChild(explicacion("Pago en soles al tipo de cambio venta " + Fm.numero(so.tipoCambio, 3) + ": tributos S/ " + Fm.comercial(so.tributos) +
+      " + percepción S/ " + Fm.comercial(so.percepcion) + " = S/ " + Fm.comercial(so.total) + ".", [["H", "IT D rubro 5"], ["PV", "PV-07, PV-08"]]));
+    frag.appendChild(b6);
+  }
+
+  function construirExportacion(frag, r) {
+    var e = r.exportacion;
+    var b3 = bloque("3. Valor FOB de exportación (DAM de salida, rubro 6)");
+    b3.appendChild(tablaResultados(["Casilla", "USD"], [
+      ["S 6.1 Valor según la cláusula de venta", Fm.damAC(e.s61)],
+      ["S 6.3 Otros gastos deducibles", "− " + Fm.damAC(e.s63)],
+      ["S 6.4 Total ajustes", "+ " + Fm.damAC(e.s64)],
+      ["S 6.5 Valor neto de entrega (FOB)", Fm.damAC(e.s65)]
+    ], { total: true }));
+    b3.appendChild(explicacion("S 6.5 = S 6.1 − S 6.3 + S 6.4. Se deduce en ventas CFR o CIF y se ajusta en EXW; en FOB no hay diferencias. S 6.5 debe ser igual a la suma de S 7.30.",
+      [["H", "IT B 6.1–6.5"]]));
+    frag.appendChild(b3);
+
+    var b5 = bloque("4. Por serie (DAM de salida)");
+    b5.appendChild(tablaResultados(["Serie", "Ítems", "Subpartida", "País de destino", "Bultos", "Peso neto", "Peso bruto", "FOB (S 7.30)"],
+      r.series.map(function (s) {
+        return [s.numero + "/" + r.series.length, s.items.map(function (i) { return i + 1; }).join(", "), s.subpartida, s.paisDestino || "—",
+          String(s.bultos), Fm.kg(s.pesoNeto), Fm.kg(s.pesoBruto), Fm.damAC(s.fob)];
+      }).concat([["Total", "", "", "", String(r.totales.bultos), Fm.kg(r.totales.pesoNeto), Fm.kg(r.totales.pesoBruto), Fm.damAC(e.s65)]]),
+      { total: true }));
+    b5.appendChild(explicacion("En exportación las series agrupan ítems con igual subpartida y país de destino. Las casillas S 7.31 a 7.34 no se llenan.",
+      [["H", "IT B 7.1, 7.27, 7.31–7.34"]]));
+    frag.appendChild(b5);
+  }
+
   function textoResumen(op) {
     var tipo = NORMATIVA.opcion("tipoOperacion", op.generales.operacion.tipo);
     return (op.meta.referencia || "(sin referencia)") + " · " +
@@ -189,10 +404,11 @@
 
   // Prepara todo lo nuevo y, solo si no hubo errores, reemplaza lo anterior.
   function cargar(op, texto) {
-    var nueva, vista, resumen, huella;
+    var nueva, vista, resultados, resumen, huella;
     try {
       nueva = Modelo.clonar(op);
       vista = construirDatos(nueva);
+      resultados = construirResultados(nueva, Calculos.calcular(nueva));
       resumen = textoResumen(nueva);
       huella = Modelo.huella(nueva);
     } catch (e) {
@@ -203,6 +419,8 @@
     operacion = nueva;
     $("vista-datos").textContent = "";
     $("vista-datos").appendChild(vista);
+    $("vista-resultados").textContent = "";
+    $("vista-resultados").appendChild(resultados);
     $("resumen").textContent = resumen;
     $("huella").textContent = huella;
     mensaje(texto.replace("{huella}", huella), "ok");
@@ -250,6 +468,7 @@
     });
     pintarRevision();
     $("vista-datos").appendChild(el("p", "vacio", "No hay una operación cargada. Usa un ejemplo, «Nueva» o «Abrir JSON»."));
+    $("vista-resultados").appendChild(el("p", "vacio", "Carga una operación para ver sus cálculos."));
   }
 
   if (document.readyState === "loading") {

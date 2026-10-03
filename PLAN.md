@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2 y **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11). Fase siguiente: **F3** (cálculos y página de pruebas). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11) y **F3** (cálculos y `pruebas.html`: 175 de 175 pruebas correctas). Fase siguiente: **F4** (validaciones). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -404,7 +404,9 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 - **Método de redondeo:** mitad hacia arriba [S]; el método oficial es PV-08.
 - Los cálculos internos se hacen con enteros (centavos o milésimos) para evitar errores de coma flotante [S].
 - **Prorrateos:** cada parte se redondea y la diferencia se asigna a la última, para que la suma cuadre exacta [S].
-- Pesos en kg con 2 decimales; volumen en m³ con 3 decimales [S].
+- Pesos en kg con 2 decimales; volumen en m³ con 3 decimales [S]. El volumen por bulto se redondea a 3 decimales y el de la línea es ese valor × bultos, para que la lista de empaque cuadre a la vista.
+- **Implementación (F3):** cada cifra es un decimal fijo (entero + cantidad de decimales); productos y divisiones con `BigInt`. La mitad se redondea alejándose de cero [S; PV-08]. Si la base de un prorrateo es 0, se reparte en partes iguales y se informa [S].
+- **Formato de números en pantalla y documentos** [S]: punto decimal y **espacio fino** como separador de miles ("20 040.00"; negativos con "−"). Es el formato de los ejemplos de este plan y evita confundir coma y punto entre países. Las cantidades enteras van sin decimales ("3 000").
 
 ### 6.2 Mercancía y embalaje
 
@@ -431,6 +433,7 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 - **Valor en aduana** = FOB + flete + seguro + ajustes (suma de las casillas 6.1 a 6.4) [H: IT A 6.5]. Por serie: 7.30 + 7.31 + 7.32 + 7.33 [H: IT A 7.34].
 - **Flete:** desde el puerto de embarque hasta el puerto de destino [H: IT A 6.2]. Si el flete real del B/L difiere del de la factura, la diferencia va a 8.1.6 o a 8.5.5 [H: IT C 8.3.1]. En v1 se asume que coinciden [S].
 - **Seguro:** la prima pagada. Si no hay póliza, se usa la "Tabla de Porcentajes Promedio de Seguro" [H: IT C 8.4]; sus porcentajes son PV-06.
+- **Exportación, FOB por ítem:** S 6.5 se reparte según el valor de cada ítem, con el mismo criterio de IT C 5.9 [S]; S 7.30 = Σ FOB de los ítems de la serie.
 - **Exportación:** valor según la cláusula de venta (S 6.1) − otros gastos deducibles (S 6.3; en CFR o CIF) + ajustes (S 6.4; en EXW) = **valor neto de entrega, que es el FOB** (S 6.5). Su suma debe ser igual a la de S 7.30 [H: IT B 6.1–6.5].
 
 ### 6.4 Seguro
@@ -473,8 +476,8 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 | C 4.7 | Antidumping o compensatorio | Dato | PV-17 |
 | C 4.8 | Servicio de despacho | No se calcula; se muestra "POR VERIFICAR" | PV-02 |
 | C 4.9 | Interés compensatorio | No aplica en v1 [S] | — |
-| Fuera del C | **Percepción del IGV** | tasa × (VA + tributos) | PV-01 (no figura entre las casillas del Formato C) |
-| C rubro 5 | Pago en soles | monto en USD × tipo de cambio venta de la fecha de pago | [H: IT D rubro 5]; fuente del tipo de cambio: PV-07 |
+| Fuera del C | **Percepción del IGV** | tasa × (VA + tributos del Formato C, incluido el antidumping); un valor por operación (D2) | PV-01 (no figura entre las casillas del Formato C); antidumping en la base: PV-17 |
+| C rubro 5 | Pago en soles | monto en USD × tipo de cambio venta de la fecha de pago, con 2 decimales [S; PV-08] | [H: IT D rubro 5]; fuente del tipo de cambio: PV-07 |
 
 ### 6.7 VGM
 
@@ -843,9 +846,9 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 |---|---|---|
 | F0 | Este plan (v2) | Lo apruebas o corriges |
 | F0b | **Verificación de fuentes**, cuando esté habilitado `www.sunat.gob.pe`: comparar las copias de la carpeta (PV-30) y descargar a `fuentes/` las tablas generales, DESPA-PG.01 y DESPA-PG.02, con fecha. Luego actualizar §8.3. | Revisas la tabla PV actualizada, con citas a los archivos de `fuentes/`. Idealmente, antes de F8a. |
-| F1 | Estructura de carpetas + `index.html` con el aviso didáctico | Doble clic → se abre la página con el aviso |
-| F2 | `diccionario.js`, `normativa.js` (listas con marca H/H\*/PV), modelo, ejemplos y botones Guardar/Abrir | Cargas un ejemplo, lo guardas y lo reabres: datos idénticos |
-| F3 | `calculos.js` + `pruebas.html`, con controles negativos (RUC, ISO 6346, IMEI sintético) | Todo en verde; las cifras coinciden con §9 |
+| F1 ✔ | Estructura de carpetas + `index.html` con el aviso didáctico | Doble clic → se abre la página con el aviso |
+| F2 ✔ | `diccionario.js`, `normativa.js` (listas con marca H/H\*/PV), modelo, ejemplos y botones Guardar/Abrir | Cargas un ejemplo, lo guardas y lo reabres: datos idénticos |
+| F3 ✔ | `calculos.js` + `incoterms.js` + `pruebas.html`, con controles negativos (RUC, ISO 6346, IMEI sintético); panel "Resultados del cálculo" en `index.html` | Todo en verde (175/175); las cifras coinciden con §9 |
 | F4 | Validaciones + panel de errores y advertencias | Cada caso muestra solo sus advertencias esperadas; si alteras un dato a propósito, sale el error esperado |
 | F5 | Formulario completo: ítems variables, secciones condicionales, ayuda por campo y marcas H\*/PV visibles | Cambias una cantidad y los totales se actualizan; ves las etiquetas H\* y PV |
 | F6 | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |

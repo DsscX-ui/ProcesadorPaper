@@ -168,3 +168,49 @@ table.datos tr.detalle p { margin: 2px 0; }
   body { padding: 12px; }
   h1 { font-size: 1.25rem; }
 }
+
+/* F3: página de pruebas (pruebas.html). Verde/rojo con texto, no solo color. */
+.contador { font-size: 1.4rem; font-weight: 700; margin: 0 0 6px; }
+.contador.todo-ok { color: #1a7f37; }
+.contador.con-fallas { color: #b42318; }
+.indice-pruebas { margin: 8px 0 0; padding-left: 1.2em; columns: 2; }
+.indice-pruebas a.ok { color: #1a7f37; }
+.indice-pruebas a.error { color: #b42318; }
+table.pruebas td { overflow-wrap: anywhere; }
+table.pruebas td.num { font-variant-numeric: tabular-nums; }
+table.pruebas tr.prueba-ok td.estado { color: #1a7f37; font-weight: 600; }
+table.pruebas tr.prueba-falla td { background: #fdecea; }
+table.pruebas tr.prueba-falla td.estado { color: #b42318; font-weight: 700; }
+@media (max-width: 600px) {
+  .indice-pruebas { columns: 1; }
+}
+
+/* F3: panel "Resultados del cálculo" en index.html. */
+.bloque-resultado { border-top: 1px solid var(--borde); padding-top: 8px; margin-top: 12px; }
+.bloque-resultado h3 { font-size: 1rem; margin: 4px 0 6px; }
+.tabla-desplazable { overflow-x: auto; max-width: 100%; }
+table.resultados { font-size: 0.85rem; }
+table.resultados caption { text-align: left; font-weight: 600; padding: 4px 0; }
+table.resultados th.num, table.resultados td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.resultados td.num { white-space: nowrap; }
+table.resultados th { vertical-align: bottom; }
+table.resultados tr.fila-total td { font-weight: 700; border-top: 2px solid var(--texto); }
+.formula { margin: 6px 0; padding: 6px 10px; background: #f8fafc; border-left: 3px solid #93c5fd; font-size: 0.9rem; }
+.formula .marca { min-width: 0; font-size: 0.72rem; margin-right: 0; }
+.avisos-calculo { background: var(--aviso-fondo); border: 1px solid var(--aviso-borde); border-radius: 6px; padding: 6px 12px; }
+.avisos-calculo p { margin: 4px 0; font-weight: 600; }
+.avisos-calculo ul { margin: 4px 0; }
+@media (max-width: 600px) {
+  /* En móvil las tablas de resultados conservan sus columnas y se desplazan dentro de su caja. */
+  table.resultados { display: table; width: 100%; }
+  table.resultados tbody { display: table-row-group; }
+  table.resultados thead { position: static; width: auto; height: auto; overflow: visible; clip: auto; display: table-header-group; }
+  table.resultados tr { display: table-row; padding: 0; }
+  table.resultados td, table.resultados th { display: table-cell; padding: 3px 5px; }
+  table.resultados td.num::before { content: none; }
+}
+@media print { .resultados-calculo { display: none; } }
+@media (max-width: 600px) {
+  table.pruebas td:nth-child(2)::before { content: "Esperado: "; font-weight: 600; }
+  table.pruebas td:nth-child(3)::before { content: "Obtenido: "; font-weight: 600; }
+}

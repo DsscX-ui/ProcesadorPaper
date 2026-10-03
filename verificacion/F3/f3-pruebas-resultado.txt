@@ -1,0 +1,198 @@
+Resultado de pruebas.html (Chrome headless, 03-10-2026): 175 pruebas correctas, 0 fallas.
+
+1. Decimal fijo, redondeo y prorrateo (§6.1) (17 de 17)
+  0.1 + 0.2 = 0.3 (sin error de coma flotante) | 0.3 | 0.3 | ✔ Correcta
+  1.005 a 2 decimales (mitad hacia arriba) | 1.01 | 1.01 | ✔ Correcta
+  1.004 a 2 decimales | 1.00 | 1.00 | ✔ Correcta
+  −1.005 a 2 decimales (se aleja de cero) | −1.01 | −1.01 | ✔ Correcta
+  0.05 × 50 % = 0.025 → 0.03 | 0.03 | 0.03 | ✔ Correcta
+  2 ÷ 3 con 3 decimales | 0.667 | 0.667 | ✔ Correcta
+  División entre cero devuelve vacío | null | null | ✔ Correcta
+  100.00 en 3 partes iguales: parte 1 | 33.33 | 33.33 | ✔ Correcta
+  100.00 en 3 partes iguales: parte 2 | 33.33 | 33.33 | ✔ Correcta
+  100.00 en 3 partes iguales: parte 3 (residuo) | 33.34 | 33.34 | ✔ Correcta
+  La suma de las partes cuadra | 100.00 | 100.00 | ✔ Correcta
+  Base cero: se reparte en partes iguales | 5.00 | 5.00 | ✔ Correcta
+  Base cero: la herramienta lo informa | true | true | ✔ Correcta
+  Flete 1 850 por peso bruto: serie 1 | 1 668.152 | 1 668.152 | ✔ Correcta
+  Flete 1 850 por peso bruto: serie 2 (residuo) | 181.848 | 181.848 | ✔ Correcta
+  Prorrateo de un monto negativo: parte 1 | −3.33 | −3.33 | ✔ Correcta
+  Prorrateo de un monto negativo: parte 2 (residuo) | −6.67 | −6.67 | ✔ Correcta
+
+2. Formato de números (§6.1) (7 de 7)
+  Comercial (2 decimales) | 20 040.00 | 20 040.00 | ✔ Correcta
+  DAM, Formatos A y C (3 decimales) | 18 123.870 | 18 123.870 | ✔ Correcta
+  DAM, Formato B (6 decimales) | 21.705231 | 21.705231 | ✔ Correcta
+  Millones | 1 234 567.89 | 1 234 567.89 | ✔ Correcta
+  Negativo | −1 850.00 | −1 850.00 | ✔ Correcta
+  Cantidad entera | 3 000 | 3 000 | ✔ Correcta
+  Porcentaje | 3.5 % | 3.5 % | ✔ Correcta
+
+3. Caso 1 — totales (§9.1, resultados esperados) (17 de 17)
+  Bultos | 390 | 390 | ✔ Correcta
+  Numeración de bultos | 1-390 | 1-390 | ✔ Correcta
+  Bultos del ítem 2: del 201 al 360 | 201-360 | 201-360 | ✔ Correcta
+  Peso neto (kg) | 1 960.00 | 1 960.00 | ✔ Correcta
+  Peso bruto (kg) | 2 289.00 | 2 289.00 | ✔ Correcta
+  Volumen (m³) | 25.440 | 25.440 | ✔ Correcta
+  Volumen por bulto, ítem 3 (m³) | 0.048 | 0.048 | ✔ Correcta
+  Valor de la factura, B 8.1.1 (USD) | 20 040.00 | 20 040.00 | ✔ Correcta
+  Suma asegurada 110 % (USD) | 22 044.00 | 22 044.00 | ✔ Correcta
+  Prima 0.30 % (USD) | 66.13 | 66.13 | ✔ Correcta
+  Tipo de seguro A 7.32 (póliza flotante) | 3 | 3 | ✔ Correcta
+  FOB total = 20 040.00 − 1 850.00 − 66.13 | 18 123.87 | 18 123.87 | ✔ Correcta
+  Valor en aduana A 6.5 | 20 040.000 | 20 040.000 | ✔ Correcta
+  VGM = 2 289 + 0 + 2 200 (kg) | 4 489.00 | 4 489.00 | ✔ Correcta
+  Flete en el B/L sugerido para CIF | prepaid | prepaid | ✔ Correcta
+  Flete en el B/L del caso coincide con el usual | true | true | ✔ Correcta
+  Sin avisos de cálculo | [] | [] | ✔ Correcta
+
+4. Caso 1 — Formato B por ítem (§9.1) (7 de 7)
+  Ítem 1: FOB del ítem | 3 527.100 | 3 527.100 | ✔ Correcta
+  Ítem 1: FOB unitario (B 5.9) | 17.635500 | 17.635500 | ✔ Correcta
+  Ítem 2: FOB del ítem | 3 472.837 | 3 472.837 | ✔ Correcta
+  Ítem 2: FOB unitario (B 5.9) | 21.705231 | 21.705231 | ✔ Correcta
+  Ítem 3: FOB del ítem (residuo) | 11 123.933 | 11 123.933 | ✔ Correcta
+  Ítem 3: FOB unitario (B 5.9) | 3.707978 | 3.707978 | ✔ Correcta
+  Ítem 3 = FOB total − ítem 1 − ítem 2 | 11 123.933 | 11 123.933 | ✔ Correcta
+
+5. Caso 1 — Formato A por serie (§9.1) (20 de 20)
+  Serie de cada ítem (1, 1, 2) | 1,1,2 | 1,1,2 | ✔ Correcta
+  Serie 1/2: bultos | 360 | 360 | ✔ Correcta
+  Serie 1/2: peso neto | 1 780.00 | 1 780.00 | ✔ Correcta
+  Serie 1/2: peso bruto | 2 064.00 | 2 064.00 | ✔ Correcta
+  Serie 1/2: FOB (7.30) | 6 999.937 | 6 999.937 | ✔ Correcta
+  Serie 1/2: flete (7.31) | 1 668.152 | 1 668.152 | ✔ Correcta
+  Serie 1/2: seguro (7.32) | 25.541 | 25.541 | ✔ Correcta
+  Serie 1/2: valor en aduana (7.34) | 8 693.630 | 8 693.630 | ✔ Correcta
+  Serie 2/2: bultos | 30 | 30 | ✔ Correcta
+  Serie 2/2: peso neto | 180.00 | 180.00 | ✔ Correcta
+  Serie 2/2: peso bruto | 225.00 | 225.00 | ✔ Correcta
+  Serie 2/2: FOB (7.30) | 11 123.933 | 11 123.933 | ✔ Correcta
+  Serie 2/2: flete (7.31) | 181.848 | 181.848 | ✔ Correcta
+  Serie 2/2: seguro (7.32) | 40.589 | 40.589 | ✔ Correcta
+  Serie 2/2: valor en aduana (7.34) | 11 346.370 | 11 346.370 | ✔ Correcta
+  Total FOB (A 6.1) | 18 123.870 | 18 123.870 | ✔ Correcta
+  Total flete (A 6.2) | 1 850.000 | 1 850.000 | ✔ Correcta
+  Total seguro (A 6.3) | 66.130 | 66.130 | ✔ Correcta
+  Total valor en aduana (A 6.5) | 20 040.000 | 20 040.000 | ✔ Correcta
+  Todos los cuadres internos (E19) correctos | true | true | ✔ Correcta
+
+6. Caso 1 — Formato C y percepción (§9.1) (19 de 19)
+  Serie 1: valor en aduana | 8 693.630 | 8 693.630 | ✔ Correcta
+  Serie 1: ad valorem (C 4.1) | 521.618 | 521.618 | ✔ Correcta
+  Serie 1: base del IGV | 9 215.248 | 9 215.248 | ✔ Correcta
+  Serie 1: IGV 16 % (C 4.6) | 1 474.440 | 1 474.440 | ✔ Correcta
+  Serie 1: IPM 2 % (C 4.5) | 184.305 | 184.305 | ✔ Correcta
+  Serie 2: valor en aduana | 11 346.370 | 11 346.370 | ✔ Correcta
+  Serie 2: ad valorem (C 4.1) | 0.000 | 0.000 | ✔ Correcta
+  Serie 2: base del IGV | 11 346.370 | 11 346.370 | ✔ Correcta
+  Serie 2: IGV 16 % (C 4.6) | 1 815.419 | 1 815.419 | ✔ Correcta
+  Serie 2: IPM 2 % (C 4.5) | 226.927 | 226.927 | ✔ Correcta
+  Total ad valorem | 521.618 | 521.618 | ✔ Correcta
+  Total base del IGV | 20 561.618 | 20 561.618 | ✔ Correcta
+  Total IGV | 3 289.859 | 3 289.859 | ✔ Correcta
+  Total IPM | 411.232 | 411.232 | ✔ Correcta
+  Total de tributos (AV + IGV + IPM) | 4 222.709 | 4 222.709 | ✔ Correcta
+  Base de la percepción (VA + tributos) | 24 262.709 | 24 262.709 | ✔ Correcta
+  Percepción 3.5 % | 849.195 | 849.195 | ✔ Correcta
+  Pago en soles: tributos × 3.500 | 14 779.48 | 14 779.48 | ✔ Correcta
+  Pago en soles: percepción × 3.500 | 2 972.18 | 2 972.18 | ✔ Correcta
+
+7. Caso 2 — Exportación FOB (§9.2) (19 de 19)
+  Bultos (S 13.2) | 140 | 140 | ✔ Correcta
+  Peso neto (kg) | 1 470.00 | 1 470.00 | ✔ Correcta
+  Peso bruto (kg) | 1 588.00 | 1 588.00 | ✔ Correcta
+  Volumen ítem 1 (m³) | 6.720 | 6.720 | ✔ Correcta
+  Volumen ítem 2 (m³) | 6.480 | 6.480 | ✔ Correcta
+  Volumen total (m³) | 13.200 | 13.200 | ✔ Correcta
+  S 6.1 (valor según la cláusula de venta) | 39 550.000 | 39 550.000 | ✔ Correcta
+  S 6.5 (FOB) | 39 550.000 | 39 550.000 | ✔ Correcta
+  Serie 1/2: FOB (S 7.30) | 20 800.000 | 20 800.000 | ✔ Correcta
+  Serie 1/2: bultos | 80 | 80 | ✔ Correcta
+  Serie 1/2: peso neto | 720.00 | 720.00 | ✔ Correcta
+  Serie 1/2: peso bruto | 784.00 | 784.00 | ✔ Correcta
+  Serie 2/2: FOB (S 7.30) | 18 750.000 | 18 750.000 | ✔ Correcta
+  Serie 2/2: bultos | 60 | 60 | ✔ Correcta
+  Serie 2/2: peso neto | 750.00 | 750.00 | ✔ Correcta
+  Serie 2/2: peso bruto | 804.00 | 804.00 | ✔ Correcta
+  VGM = 1 588 + 0 + 2 200 (kg) | 3 788.00 | 3 788.00 | ✔ Correcta
+  Flete en el B/L sugerido para FOB | collect | collect | ✔ Correcta
+  Cuadres internos (Σ S 7.30 = S 6.5) | true | true | ✔ Correcta
+
+8. FOB total según el Incoterm (IT C 5.9, §6.3) (17 de 17)
+  EXW: FOB total | 20 145.00 | 20 145.00 | ✔ Correcta
+  FCA: FOB total | 20 045.00 | 20 045.00 | ✔ Correcta
+  FAS: FOB total | 20 045.00 | 20 045.00 | ✔ Correcta
+  FOB: FOB total | 20 045.00 | 20 045.00 | ✔ Correcta
+  CFR: FOB total | 18 195.00 | 18 195.00 | ✔ Correcta
+  CIF: FOB total | 18 128.87 | 18 128.87 | ✔ Correcta
+  CPT: FOB total | 18 195.00 | 18 195.00 | ✔ Correcta
+  CIP: FOB total | 18 128.87 | 18 128.87 | ✔ Correcta
+  DAP: FOB total | 17 985.00 | 17 985.00 | ✔ Correcta
+  DPU: FOB total | 17 985.00 | 17 985.00 | ✔ Correcta
+  DDP: FOB total | 17 935.00 | 17 935.00 | ✔ Correcta
+  DAP con seguro: el seguro NO se resta del FOB (A18) | 17 985.00 | 17 985.00 | ✔ Correcta
+  DAP con seguro: base de la suma asegurada = FOB + flete | 19 835.00 | 19 835.00 | ✔ Correcta
+  Flete en el B/L sugerido: EXW | collect | collect | ✔ Correcta
+  Flete en el B/L sugerido: DDP | prepaid | prepaid | ✔ Correcta
+  Importación sin seguro: tabla SUNAT 1 % sobre FOB (PV-06) | 200.450 | 200.450 | ✔ Correcta
+  Importación sin seguro: tipo de seguro 1 (no asegurada) | 1 | 1 | ✔ Correcta
+
+9. Ajustes por ítem (IT C 5.10, §6.5) (14 de 14)
+  Ajuste total (8.1.2 + 8.1.3 + 8.1.4 + 8.2.x) | 360.000 | 360.000 | ✔ Correcta
+  Ítem 1: 360 × 3 900 / 16 200 | 86.667 | 86.667 | ✔ Correcta
+  Ítem 2: no es objeto de ajuste | 0.000 | 0.000 | ✔ Correcta
+  Ítem 3: residuo 360 − 86.667 | 273.333 | 273.333 | ✔ Correcta
+  Ítem 1: ajuste unitario (B 5.10) | 0.433335 | 0.433335 | ✔ Correcta
+  Ítem 3: ajuste unitario (B 5.10) | 0.091111 | 0.091111 | ✔ Correcta
+  Serie 1: ajuste (A 7.33) | 86.667 | 86.667 | ✔ Correcta
+  Serie 1: valor en aduana | 8 780.297 | 8 780.297 | ✔ Correcta
+  Serie 2: valor en aduana | 11 619.703 | 11 619.703 | ✔ Correcta
+  Valor en aduana total = 20 040 + 360 | 20 400.000 | 20 400.000 | ✔ Correcta
+  El FOB no cambia con los ajustes | 18 123.87 | 18 123.87 | ✔ Correcta
+  Ningún ítem marcado: se reparte entre todos (ítem 1) | 70.060 | 70.060 | ✔ Correcta
+  Ningún ítem marcado: ítem 2 | 68.982 | 68.982 | ✔ Correcta
+  Ningún ítem marcado: se informa (C02) | C02 | C02 | ✔ Correcta
+
+10. Casos borde (13 de 13)
+  Operación vacía: calcular no falla | sin errores | sin errores | ✔ Correcta
+  Operación vacía: avisa Incoterm vacío (E02), sin seguro (A15) y sin tipo de cambio (E15) | E02,A15,E15 | E02,A15,E15 | ✔ Correcta
+  Cantidad no múltiplo de unidades por bulto: 3 050 ÷ 100 → 31 bultos | 31 | 31 | ✔ Correcta
+  …y se informa (E06) | E06 | E06 | ✔ Correcta
+  Peso bruto 0: el flete se reparte en partes iguales (serie 1) | 925.000 | 925.000 | ✔ Correcta
+  Peso bruto 0: Σ flete sigue cuadrando | 1 850.000 | 1 850.000 | ✔ Correcta
+  Cantidad 0: FOB unitario 0 (sin dividir entre cero) | 0.000000 | 0.000000 | ✔ Correcta
+  Cantidad 0: los cuadres internos siguen correctos | true | true | ✔ Correcta
+  Tasas distintas dentro de una serie: se informa (E16) | E16 | E16 | ✔ Correcta
+  División no exacta: flete 1 850.01 → serie 1 | 1 668.161 | 1 668.161 | ✔ Correcta
+  División no exacta: serie 2 recibe el residuo | 181.849 | 181.849 | ✔ Correcta
+  El resultado es inmutable (congelado) | true | true | ✔ Correcta
+  Intentar modificar el resultado falla | bloqueado | bloqueado | ✔ Correcta
+
+11. Controles: RUC, contenedor, IMEI y UN/LOCODE (25 de 25)
+  RUC ficticio del plan 20000000001 cumple el módulo 11 | true | true | ✔ Correcta
+  RUC ficticio del plan 20000000010 cumple el módulo 11 | true | true | ✔ Correcta
+  RUC ficticio del plan 20000000028 cumple el módulo 11 | true | true | ✔ Correcta
+  RUC ficticio del plan 20000000036 cumple el módulo 11 | true | true | ✔ Correcta
+  RUC ficticio del plan 20000000044 cumple el módulo 11 | true | true | ✔ Correcta
+  RUC 20000000002: dígito erróneo (inválido) | false | false | ✔ Correcta
+  RUC 20000000002: dígito esperado | 1 | 1 | ✔ Correcta
+  RUC de 10 dígitos (inválido) | false | false | ✔ Correcta
+  RUC con letras (inválido) | false | false | ✔ Correcta
+  RUC con prefijo 30: se informa el prefijo no usual | false | false | ✔ Correcta
+  Contenedor EJMU 261014 7 (caso 1) válido | true | true | ✔ Correcta
+  Contenedor EJMU 260002 5 (caso 2) válido | true | true | ✔ Correcta
+  Contenedor CSQU 305438 3 (ejemplo clásico de ISO 6346) válido | true | true | ✔ Correcta
+  Contenedor EJMU 261014 8: dígito erróneo (inválido) | false | false | ✔ Correcta
+  Contenedor EJMU 261014 8: dígito esperado | 7 | 7 | ✔ Correcta
+  Contenedor con formato erróneo (inválido) | false | false | ✔ Correcta
+  IMEI sintético 350000000000014 válido (Luhn) | true | true | ✔ Correcta
+  IMEI sintético 350000000000022 válido (Luhn) | true | true | ✔ Correcta
+  IMEI sintético 350000000000015: dígito erróneo (inválido) | false | false | ✔ Correcta
+  IMEI de 14 dígitos (inválido) | false | false | ✔ Correcta
+  UN/LOCODE PECLL válido | true | true | ✔ Correcta
+  UN/LOCODE CNNGB es de China | true | true | ✔ Correcta
+  UN/LOCODE PECL (4 caracteres, inválido) | false | false | ✔ Correcta
+  UN/LOCODE PE1LL (el dígito 1 no se usa, inválido) | false | false | ✔ Correcta
+  UN/LOCODE CLSAI no es de Perú (inválido) | false | false | ✔ Correcta

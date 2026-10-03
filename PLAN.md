@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11) y **F3** (cálculos y `pruebas.html`: 175 de 175 pruebas correctas). Fase siguiente: **F4** (validaciones). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`) y **F4** (validaciones y panel «Revisión de la operación»; `pruebas.html`: 256 de 256 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -406,7 +406,7 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 - **Prorrateos:** cada parte se redondea y la diferencia se asigna a la última, para que la suma cuadre exacta [S].
 - Pesos en kg con 2 decimales; volumen en m³ con 3 decimales [S]. El volumen por bulto se redondea a 3 decimales y el de la línea es ese valor × bultos, para que la lista de empaque cuadre a la vista.
 - **Implementación (F3):** cada cifra es un decimal fijo (entero + cantidad de decimales); productos y divisiones con `BigInt`. La mitad se redondea alejándose de cero [S; PV-08]. Si la base de un prorrateo es 0, se reparte en partes iguales y se informa [S].
-- **Formato de números en pantalla y documentos** [S]: punto decimal y **espacio fino** como separador de miles ("20 040.00"; negativos con "−"). Es el formato de los ejemplos de este plan y evita confundir coma y punto entre países. Las cantidades enteras van sin decimales ("3 000").
+- **Formato de números en pantalla y documentos** [S] (decisión D10): **coma de miles y punto decimal**: "20,040.00" (documentos comerciales), "18,123.870" (DAM, Formatos A y C), "21.705231" (Formato B); negativos con "−". Es la convención que el estudiante ve en las facturas comerciales en USD y en la DAM impresa. Las cantidades enteras van sin decimales ("3,000"). Las tablas de este plan conservan el espacio como separador por legibilidad; la herramienta usa la coma.
 
 ### 6.2 Mercancía y embalaje
 
@@ -476,7 +476,7 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 | C 4.7 | Antidumping o compensatorio | Dato | PV-17 |
 | C 4.8 | Servicio de despacho | No se calcula; se muestra "POR VERIFICAR" | PV-02 |
 | C 4.9 | Interés compensatorio | No aplica en v1 [S] | — |
-| Fuera del C | **Percepción del IGV** | tasa × (VA + tributos del Formato C, incluido el antidumping); un valor por operación (D2) | PV-01 (no figura entre las casillas del Formato C); antidumping en la base: PV-17 |
+| Fuera del C | **Percepción del IGV** | tasa × (VA + tributos del Formato C, incluido el antidumping); un valor por operación (D2) | PV-01 (no figura entre las casillas del Formato C); antidumping en la base: [H\*: Ley 29173, sin fuente en la carpeta] y PV-17, visibles en la herramienta (D11) |
 | C rubro 5 | Pago en soles | monto en USD × tipo de cambio venta de la fecha de pago, con 2 decimales [S; PV-08] | [H: IT D rubro 5]; fuente del tipo de cambio: PV-07 |
 
 ### 6.7 VGM
@@ -554,6 +554,17 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | A18 | DAP o DPU: se informa que el seguro no se resta del FOB [H: IT C 5.9] |
 | A19 | Resumen: cantidad de datos con marca [H\*] y PV en la DAM |
 | A20 | Despacho anticipado sin fecha de término de descarga: la casilla A 3.4 queda en PV-26 |
+
+**Implementación (F4, `js/validaciones.js`)**
+
+- Las validaciones **solo leen** los datos y el resultado de `calculos.js`; comparan con listas y umbrales de `normativa.js`. Cada aviso trae ID, qué pasa, por qué importa, cómo corregirlo, ruta(s) del dato, fuente y marca (H, H\*, S o PV); si la regla es PV, el mensaje dice "POR VERIFICAR".
+- **E01** usa el diccionario: el campo es obligatorio si aplica a la operación (`solo`), se cumple su condición (`obl`) y lo usa algún documento que se generará (`docs`; SEG solo con seguro y CO solo con trato preferencial). Un dato vacío **a propósito y marcado PV** en la operación (ej. criterio de origen del caso 2, PV-12) no es error: lo cuenta A19. La falta de tipo de cambio la informa E15 (no E01). El **modelo** del producto es obligatorio solo en importación (B 5.14); en exportación no tiene casilla [S].
+- **E17** aplica desde la fecha de formulación 05-10-2026 (RS129, `normativa.js`), con el modelo de equipos de D9.
+- **E18** revisa los campos de código cuya lista es cerrada (marca H del instructivo o S del alcance v1); las listas abiertas o pendientes (H\*, PV) no se revisan.
+- **A07** usa 30 480 kg como peso bruto máximo referencial de los tres tipos de contenedor [H\*: ISO 668; PV-16]. **A10** no se activa mientras el umbral de PV-03 no tenga cifra con fuente (`normativa.js`: `null`); `pruebas.html` comprueba la lógica con un umbral ficticio.
+- Los avisos del cálculo de D12 se muestran como advertencias **C01** (FOB repartido en partes iguales) y **C02** (ajustes sin ítems marcados).
+- `Validaciones.hayErrores(revision)` es la función que consultarán los documentos (F6+) para bloquearse si hay errores.
+- Panel **«Revisión de la operación»** en `index.html`: contador (errores bloquean, advertencias no), lista por severidad y por regla, y botón «Ir al dato» que abre el grupo, centra, enfoca y resalta la fila.
 
 ---
 
@@ -849,7 +860,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | F1 ✔ | Estructura de carpetas + `index.html` con el aviso didáctico | Doble clic → se abre la página con el aviso |
 | F2 ✔ | `diccionario.js`, `normativa.js` (listas con marca H/H\*/PV), modelo, ejemplos y botones Guardar/Abrir | Cargas un ejemplo, lo guardas y lo reabres: datos idénticos |
 | F3 ✔ | `calculos.js` + `incoterms.js` + `pruebas.html`, con controles negativos (RUC, ISO 6346, IMEI sintético); panel "Resultados del cálculo" en `index.html` | Todo en verde (175/175); las cifras coinciden con §9 |
-| F4 | Validaciones + panel de errores y advertencias | Cada caso muestra solo sus advertencias esperadas; si alteras un dato a propósito, sale el error esperado |
+| F4 ✔ | Validaciones + panel de errores y advertencias | Cada caso muestra solo sus advertencias esperadas; si alteras un dato a propósito, sale el error esperado |
 | F5 | Formulario completo: ítems variables, secciones condicionales, ayuda por campo y marcas H\*/PV visibles | Cambias una cantidad y los totales se actualizan; ves las etiquetas H\* y PV |
 | F6 | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |
 | F7 | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
@@ -896,6 +907,9 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | D7 | Rubro 7 del Formato B | 7.4 = "Sí" en el caso 1 [S]; 7.2, 7.3 y 7.6 vacías (condicionales); el resto "No" como supuesto del ejemplo, no como regla. |
 | D8 | Flete *prepaid*/*collect* | Campo editable `fleteBl` con valor sugerido según el Incoterm (§6.8); A05 avisa si difiere. Caso 1: *prepaid*; caso 2: *collect*. |
 | D9 | IMEI | Un registro por equipo: `equipos: [{serie, imeis: [..]}]`; E17 compara el número de equipos con la cantidad y revisa la unicidad de series e IMEI. |
+| D10 | Formato de números | Coma de miles y punto decimal: `20,040.00`; DAM A/C `18,123.870`; B `21.705231` (§6.1). |
+| D11 | Antidumping en la base de la percepción | Se mantiene incluido, con marca H\* (Ley 29173, sin fuente en la carpeta) y PV-17 visibles. En los casos vale 0. |
+| D12 | Supuestos de F3 | Aceptados como [S]: FOB por ítem en exportación por valor; soles con 2 decimales; tabla SUNAT sobre FOB; ajustes sin ítems marcados → todos con aviso (C01/C02 en F4); base 0 → partes iguales con aviso. |
 
 **Correcciones de la auditoría de F2 aplicadas en F2.1**
 
@@ -906,3 +920,85 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - La revisión del diccionario dice "Correspondencia diccionario–modelo: correcta" (no acredita la cobertura del plan).
 - Accesibilidad: botón "Abrir JSON" real, foco visible, ayuda por campo con botón "?" (teclado y toque); en móvil la casilla DAM y la fuente se ven debajo de cada dato.
 - La huella se describe como comprobación rápida, no como garantía; la prueba Guardar→Abrir compara además el contenido completo.
+
+**Pendientes de la re-auditoría de F2.1, resueltos en F4**
+
+- F21-M1: matriz de cobertura §4/§5 → rutas del diccionario en el **anexo A**; `DICCIONARIO.revisarCobertura()` la comprueba (cada campo cubierto por un requisito y cada requisito con campos) y el resultado se ve en `index.html` y en `pruebas.html`.
+- F21-B1: las notas de las marcas respetan el límite de 5 000 caracteres al abrir un archivo.
+
+---
+
+## Anexo A. Matriz de cobertura del plan (§4 y §5 → diccionario)
+
+Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingresa; **derivado** = lo calcula `calculos.js`; *reservado* = se mostrará en una fase posterior. `x.*` cubre todas las rutas que empiezan por `x.`; `items[]` = cada ítem.
+
+| §4 | Fila de §5 | Requisito | Rutas del diccionario | Estado |
+|---|---|---|---|---|
+| — | — | Identificación del archivo (control interno, no es requisito del §4) | `formato`, `version`, `meta.descripcion`, `meta.ficticio` | dato |
+| A1 | Tipo de operación | Tipo de operación | `generales.operacion.tipo` | dato |
+| A1 | Referencia interna | Referencia interna | `meta.referencia` | dato |
+| A1 | — | Modalidad de carga (FCL) | `generales.operacion.modalidadCarga` | dato |
+| A2 | Vendedor / proveedor / exportador | Vendedor: datos, condición, RUC y UBIGEO | `generales.partes.vendedor.*` | dato |
+| A2 | Comprador / importador | Comprador: datos, RUC y UBIGEO | `generales.partes.comprador.*` | dato |
+| A2 | Comprador / importador | Código de documento (4 = RUC) | — | **derivado**: Fijo en v1 (IT A 1.2); se mostrará en la DAM (F8a) |
+| A2 | Consignatario y notify | Consignatario y parte a notificar | `generales.partes.consignatario.*`, `generales.partes.notify.*` | dato |
+| A2 | Naviera | Naviera | `generales.partes.naviera.*` | dato |
+| A2 | Agente marítimo | Agente marítimo | `generales.partes.agenteMaritimo.*` | dato |
+| A2 | Agente de aduana, N° de orden | Agente de aduana (declarante) | `generales.partes.agenteAduana.*` | dato |
+| A2 | Depósito temporal | Depósito temporal | `generales.partes.depositoTemporal.*` | dato |
+| A2 | Entidad financiera, modalidad y medio de pago | Entidad financiera | `generales.partes.entidadFinanciera.*` | dato |
+| A2 | — | Aseguradora | `generales.partes.aseguradora.*` | dato |
+| A2 | Acuerdo, criterio, N° de CO | Productor y entidad emisora del CO | `generales.partes.productor.*`, `generales.partes.entidadCO.*` | dato |
+| A3 | Puerto de embarque | Puerto de embarque (nombre y UN/LOCODE) | `generales.ruta.puertoEmbarque.*` | dato |
+| A3 | Puerto de descarga | Puerto de descarga (nombre y UN/LOCODE) | `generales.ruta.puertoDescarga.*` | dato |
+| A3 | País de adquisición / embarque / destino | País de adquisición | `generales.ruta.paisAdquisicion` | dato |
+| A3 | País de adquisición / embarque / destino | País de embarque (B 5.8) | — | *reservado*: Se deriva del UN/LOCODE de embarque en el Formato B (F8b) |
+| A3 | País de adquisición / embarque / destino | País de destino (S 7.27) | — | **derivado**: calculos.js: series[].paisDestino |
+| A3 | — | Lugar de recepción y de entrega | `generales.ruta.lugarRecepcion`, `generales.ruta.lugarEntrega` | dato |
+| A4 | Incoterm + lugar + versión | Incoterm y lugar convenido | `generales.comercial.incoterm`, `generales.comercial.lugarConvenido` | dato |
+| A4 | Incoterm + lugar + versión | Versión del Incoterm (4 = 2020) | — | *reservado*: Fija en v1 (IT C 5.4); se mostrará en el Formato B (F8b) |
+| A4 | Moneda | Moneda | `generales.comercial.moneda` | dato |
+| A4 | N° y fecha de factura | N° y fecha de factura | `generales.comercial.facturaNumero`, `generales.comercial.facturaFecha` | dato |
+| A4 | Entidad financiera, modalidad y medio de pago | Modalidad y condiciones de pago | `generales.comercial.modalidadPago`, `generales.comercial.condicionesPago` | dato |
+| A4 | Entidad financiera, modalidad y medio de pago | Medio de pago y pago diferido | `generales.comercial.medioPago`, `generales.comercial.pagoDiferido.*` | dato |
+| A4 | — | N° de contrato u orden de compra | `generales.comercial.contrato` | dato |
+| A5 | Aduana, destinación, modalidad, tipo de despacho | Aduana, modalidad y tipo de despacho | `generales.aduana.aduana`, `generales.aduana.modalidadDespacho`, `generales.aduana.tipoDespacho` | dato |
+| A5 | Aduana, destinación, modalidad, tipo de despacho | Destinación (10 / 40) | — | *reservado*: Se deriva del tipo de operación; se mostrará en la DAM (F8a) |
+| A5 | Agente de aduana, N° de orden | N° de orden y fecha de formulación | `generales.aduana.numeroOrden`, `generales.aduana.fechaFormulacion` | dato |
+| A5 | Tipo de cambio | Tipo de cambio, fecha y fuente | `generales.aduana.tipoCambio`, `generales.aduana.tipoCambioFecha`, `generales.aduana.tipoCambioFuente` | dato |
+| A5 | Región de destino | Región de destino | `generales.aduana.regionDestino` | dato |
+| A6 | Declaración del valor | Nivel comercial, naturaleza, forma de envío y tipo de valor | `generales.valor.nivelComercial`, `generales.valor.naturaleza`, `generales.valor.formaEnvio`, `generales.valor.tipoValor` | dato |
+| A6 | Declaración del valor | Intermediario (rubro 6) | `generales.valor.intermediario.*` | dato |
+| A6 | Declaración del valor | Condiciones de la transacción (rubro 7) | `generales.valor.rubro7.*` | dato |
+| B1 | Nombre, descripción, marca, modelo | Nombre, descripción, marca y modelo | `especificos.items[].nombre`, `especificos.items[].descripcion`, `especificos.items[].marca`, `especificos.items[].modelo` | dato |
+| B1 | Subpartida + dígito verificador | Subpartida nacional y casilla «verificada» | `especificos.items[].subpartida`, `especificos.items[].subpartidaVerificada` | dato |
+| B1 | Subpartida + dígito verificador | Dígito verificador de la subpartida | — | *reservado*: Queda vacío con PV-27 en la DAM (F8a) |
+| B1 | País de origen | País de origen (y UBIGEO de fabricación en exportación) | `especificos.items[].paisOrigen`, `especificos.items[].ubigeoOrigen` | dato |
+| B1 | Estado | Estado | `especificos.items[].estado` | dato |
+| B1 | Cantidad y unidad comercial / física | Cantidad, unidad comercial y unidad física | `especificos.items[].cantidad`, `especificos.items[].unidadComercial`, `especificos.items[].unidadFisica` | dato |
+| B1 | Precio unitario y valor | Precio unitario | `especificos.items[].precioUnitario` | dato |
+| B1 | Números de serie e IMEI | Equipos: serie e IMEI (D9) | `especificos.items[].equipos` | dato |
+| B1 | Ajustes | Ítem objeto de ajuste | `especificos.items[].objetoAjuste` | dato |
+| B2 | Tipo, clase y N° de bultos | Clase de bulto y unidades por bulto | `especificos.items[].claseBulto`, `especificos.items[].unidadesPorBulto` | dato |
+| B2 | Peso neto / Peso bruto | Pesos neto y bruto por bulto | `especificos.items[].pesoNetoBulto`, `especificos.items[].pesoBrutoBulto` | dato |
+| B2 | Medidas y volumen | Medidas del bulto | `especificos.items[].largoCm`, `especificos.items[].anchoCm`, `especificos.items[].altoCm` | dato |
+| B2 | Marcas | Marcas de embarque | `especificos.marcasEmbarque` | dato |
+| B3 | Contenedor y precinto | Tipo, número y precinto del contenedor | `especificos.contenedor.tipo`, `especificos.contenedor.numero`, `especificos.contenedor.precinto` | dato |
+| B3 | Contenedor y precinto | Unidad de carga (02) | — | *reservado*: Fija en v1 (IT A 7.37 k); se mostrará en la DAM (F8a) |
+| B3 | Tara y VGM | Tara, estiba y datos de la declaración VGM | `especificos.contenedor.tara`, `especificos.contenedor.estibaTrincaje`, `especificos.contenedor.vgmMetodo`, `especificos.contenedor.vgmResponsable`, `especificos.contenedor.vgmFecha` | dato |
+| B4 | Nave y viaje | Nave, viaje, booking y manifiesto | `especificos.transporte.nave`, `especificos.transporte.viaje`, `especificos.transporte.booking`, `especificos.transporte.manifiesto` | dato |
+| B4 | N° de B/L | Datos del B/L (número, tipo, originales, emisión, cláusulas, embarcador) | `especificos.transporte.blNumero`, `especificos.transporte.blTipo`, `especificos.transporte.blOriginales`, `especificos.transporte.blLugarEmision`, `especificos.transporte.blFechaEmision`, `especificos.transporte.fechaShippedOnBoard`, `especificos.transporte.clausulaSlac`, `especificos.transporte.clausulaStc`, `especificos.transporte.shipper` | dato |
+| B4 | Flete | Flete en el B/L, prepaid o collect (D8) | `especificos.transporte.fleteBl` | dato: El valor sugerido lo calcula calculos.js: fleteBl.sugerido |
+| B4 | Fechas de embarque / llegada / descarga | Fechas de embarque, término de embarque, ETA y término de descarga | `especificos.transporte.fechaEmbarque`, `especificos.transporte.fechaTerminoEmbarque`, `especificos.transporte.eta`, `especificos.transporte.fechaTerminoDescarga` | dato |
+| B5 | Póliza, cláusulas, % de cobertura | Seguro: póliza, cláusulas, cobertura, prima, siniestros y tabla SUNAT | `especificos.seguro.*` | dato |
+| B5 | Prima / seguro | Tipo de seguro (A 7.32), suma asegurada y prima | — | **derivado**: calculos.js: seguro.tipoSeguro, seguro.sumaAsegurada, seguro.prima |
+| B6 | Acuerdo, criterio, N° de CO | Trato preferencial, acuerdo, criterio y certificado de origen | `especificos.origen.*` | dato |
+| B6 | Tributos, TPI | Código TPI | `especificos.items[].tpi` | dato |
+| B7 | Flete | Flete internacional | `especificos.valoracion.flete` | dato |
+| B7 | Ajustes | Sección 8 del Formato B: gastos, ajustes, adiciones y deducciones | `especificos.valoracion.gastosExw815`, `especificos.valoracion.otros816`, `especificos.valoracion.ajuste812`, `especificos.valoracion.ajuste813`, `especificos.valoracion.descuentosNoAceptables814`, `especificos.valoracion.comisiones821`, `especificos.valoracion.envases822`, `especificos.valoracion.materiales8231`, `especificos.valoracion.herramientas8232`, `especificos.valoracion.consumidos8233`, `especificos.valoracion.ingenieria8234`, `especificos.valoracion.canones824`, `especificos.valoracion.reversion825`, `especificos.valoracion.gastosDestino832`, `especificos.valoracion.posteriores851`, `especificos.valoracion.montaje852`, `especificos.valoracion.tributos853`, `especificos.valoracion.intereses854`, `especificos.valoracion.otros855` | dato |
+| B7 | Precio unitario y valor | Exportación: otros gastos deducibles y ajustes (S 6.3, S 6.4) | `especificos.valoracion.expOtrosDeducibles`, `especificos.valoracion.expAjustes` | dato |
+| B8 | Tributos, TPI | Tasas y montos de tributos por ítem y código «Tipo» | `especificos.items[].tasaAV`, `especificos.items[].sobretasa`, `especificos.items[].derechoEspecifico`, `especificos.items[].isc`, `especificos.items[].antidumping`, `especificos.items[].tipoA720` | dato |
+| B8 | Tributos, TPI | Tasa de percepción del IGV (por operación, D2) | `especificos.tributos.tasaPercepcion` | dato |
+| C | Tipo, clase y N° de bultos | Bultos, numeración, pesos, volumen y VGM | — | **derivado**: calculos.js: items[], totales, vgm |
+| C | Precio unitario y valor | Series, FOB por ítem y unitario, ajustes, flete y seguro por serie, valor en aduana | — | **derivado**: calculos.js: items[].fob, series[], valorAduana, exportacion |
+| C | Tributos, TPI | Liquidación, percepción y pago en soles | — | **derivado**: calculos.js: liquidacion, percepcion, soles |

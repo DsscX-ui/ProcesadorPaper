@@ -291,6 +291,11 @@ var Modelo = (function () {
         errores.push("marcas." + k + ": debe ser { marca: S | H | H* | PV, nota: texto }");
         continue;
       }
+      // La nota es un texto más: mismo límite que cualquier texto de la operación (F21-B1).
+      if (v.nota.length > LIMITES.largoTexto) {
+        errores.push("marcas." + k + ".nota: el texto supera " + LIMITES.largoTexto + " caracteres");
+        continue;
+      }
       var dato = leer(datos, k);
       if (dato === undefined || (dato !== null && typeof dato === "object" && !Array.isArray(dato))) {
         errores.push("marcas." + k + ": la ruta no corresponde a un dato de la operación");

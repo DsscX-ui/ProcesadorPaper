@@ -55,6 +55,16 @@
     <div id="vista-datos"></div>
   </section>
 
+  <section class="revision" aria-labelledby="rev-titulo">
+    <h2 id="rev-titulo">Revisión de la operación <span class="en">/ Operation check</span></h2>
+    <p class="ayuda-seccion">La herramienta revisa los datos y los cálculos con las reglas de <code>PLAN.md</code> §7.
+      Los <strong>errores</strong> (E01–E19) bloquean la generación de documentos; las <strong>advertencias</strong> (A01–A20) no bloquean, pero explican algo que conviene revisar.
+      Cada aviso dice qué pasa, por qué importa y cómo corregirlo, con su fuente y su marca; el botón <strong>Ir al dato</strong> abre el grupo y resalta la fila.
+      En esta fase los datos aún no se editan en pantalla (llega en F5): para corregir, edita el <code>.json</code> y vuelve a abrirlo.</p>
+    <p id="revision-contador" class="rev-contador" role="status" aria-live="polite">Carga una operación para revisarla.</p>
+    <div id="vista-revision"></div>
+  </section>
+
   <section class="resultados-calculo" aria-labelledby="res-titulo">
     <h2 id="res-titulo">Resultados del cálculo <span class="en">/ Calculation results</span></h2>
     <p class="ayuda-seccion">Lo que la herramienta calcula a partir de los datos de la operación cargada, paso a paso y con la fórmula de cada cifra.
@@ -65,12 +75,12 @@
 
   <section class="estado" aria-labelledby="estado-titulo">
     <h2 id="estado-titulo">Estado de la construcción</h2>
-    <p>Fase <strong>F3</strong>: cálculos (con enteros y un único módulo) y página de pruebas. El formulario y los documentos se agregan en las fases siguientes (ver <code>PLAN.md</code>, §10).</p>
+    <p>Fase <strong>F4</strong> hecha: validaciones (errores E01–E19 y advertencias A01–A20) y panel «Revisión de la operación». Sigue <strong>F5</strong>: formulario completo. Los documentos se agregan después (ver <code>PLAN.md</code>, §10).</p>
     <ol class="fases">
       <li class="hecha">F1 · Estructura y aviso didáctico</li>
       <li class="hecha">F2 · Datos, ejemplos y Guardar/Abrir (F2.1: correcciones de la auditoría)</li>
       <li class="hecha">F3 · Cálculos y página de pruebas (<a href="pruebas.html">abrir pruebas</a>)</li>
-      <li>F4 · Validaciones</li>
+      <li class="hecha">F4 · Validaciones y panel de errores y advertencias</li>
       <li>F5 · Formulario</li>
       <li>F6 · Factura, lista de empaque y hoja resumen</li>
       <li>F7 · Instrucciones de embarque, B/L y VGM</li>
@@ -95,6 +105,7 @@
   <script src="js/calculos.js"></script>
   <script src="js/diccionario.js"></script>
   <script src="js/ejemplos.js"></script>
+  <script src="js/validaciones.js"></script>
   <script src="js/pantalla.js"></script>
   <script>
     // Fecha de generación en el pie de la hoja de prueba.

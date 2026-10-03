@@ -162,7 +162,7 @@ var DICCIONARIO = (function () {
   d("B1", I + "nombre", "Nombre del producto", "Product name", "texto", "H", "IT C 5.12", { docs: "FC PL BL DAM SEG CO", cas: ["B 5.12", ""], ayuda: "Nombre común de la mercancía." });
   d("B1", I + "descripcion", "Descripción", "Description", "texto", "H", "IT A 7.35, IT B 7.35", { docs: "FC PL DAM CO", cas: ["A 7.35, B 5.19", "S 7.35"], ayuda: "Denominación, presentación, material, uso y otras características (IT A 7.35). En exportación, en español." });
   d("B1", I + "marca", "Marca", "Brand", "texto", "H", "IT C 5.13", { docs: "FC PL DAM", cas: ["B 5.13", ""], ayuda: "Marca comercial." });
-  d("B1", I + "modelo", "Modelo", "Model", "texto", "H", "IT C 5.14", { docs: "FC PL DAM", cas: ["B 5.14", ""], ayuda: "Código o nombre del modelo." });
+  d("B1", I + "modelo", "Modelo", "Model", "texto", "H", "IT C 5.14", { obl: "importación", docs: "FC PL DAM", cas: ["B 5.14", ""], ayuda: "Código o nombre del modelo. Obligatorio en importación (casilla B 5.14 del Formato B); en exportación no tiene casilla y es opcional [S]." });
   d("B1", I + "subpartida", "Subpartida nacional", "HS code (10 digits)", "texto", "H", "IT A 7.19; arancel: PV-10", { docs: "FC BL DAM CO", cas: ["A 7.19", "S 7.19"], ayuda: "10 dígitos; los 6 primeros son del Sistema Armonizado." });
   d("B1", I + "subpartidaVerificada", "Subpartida verificada", "HS code verified", "sino", "S", "—", { docs: "HR", ayuda: "Marca si la subpartida se comprobó en el arancel; si no, sale POR VERIFICAR (A08)." });
   d("B1", I + "paisOrigen", "País de origen", "Country of origin", "codigo", "H", "IT A 7.26, IT C 5.7", { lista: "pais", docs: "FC DAM CO", cas: ["A 7.26, B 5.7", ""], ayuda: "País donde se fabricó la mercancía." });
@@ -310,5 +310,104 @@ var DICCIONARIO = (function () {
     return { total: campos.length, sinEntrada: sinEntrada, sinDato: sinDato, porMarca: porMarca };
   }
 
-  return { grupos: GRUPOS, campos: campos, buscar: buscar, casilla: casilla, revisarContraModelo: revisarContraModelo };
+  // ---------------------------------------------------------------- Cobertura del plan (F21-M1)
+  // Matriz requisito del plan (§4 y fila de §5) → rutas del diccionario. "x.*" cubre todas las rutas que
+  // empiezan por "x.". Estado: "dato" (se ingresa), "derivado" (lo calcula js/calculos.js; se indica dónde)
+  // o "reservado" (se mostrará en una fase posterior). La misma tabla está en PLAN.md, anexo A.
+  // [§4, fila de §5, requisito, rutas, estado, nota]
+  var R = "generales.", PA = "generales.partes.", IT = "especificos.items[].", EX = "especificos.";
+  var COBERTURA = [
+    ["—", "—", "Identificación del archivo (control interno, no es requisito del §4)", ["formato", "version", "meta.descripcion", "meta.ficticio"], "dato", ""],
+    ["A1", "Tipo de operación", "Tipo de operación", [R + "operacion.tipo"], "dato", ""],
+    ["A1", "Referencia interna", "Referencia interna", ["meta.referencia"], "dato", ""],
+    ["A1", "—", "Modalidad de carga (FCL)", [R + "operacion.modalidadCarga"], "dato", ""],
+    ["A2", "Vendedor / proveedor / exportador", "Vendedor: datos, condición, RUC y UBIGEO", [PA + "vendedor.*"], "dato", ""],
+    ["A2", "Comprador / importador", "Comprador: datos, RUC y UBIGEO", [PA + "comprador.*"], "dato", ""],
+    ["A2", "Comprador / importador", "Código de documento (4 = RUC)", [], "derivado", "Fijo en v1 (IT A 1.2); se mostrará en la DAM (F8a)"],
+    ["A2", "Consignatario y notify", "Consignatario y parte a notificar", [PA + "consignatario.*", PA + "notify.*"], "dato", ""],
+    ["A2", "Naviera", "Naviera", [PA + "naviera.*"], "dato", ""],
+    ["A2", "Agente marítimo", "Agente marítimo", [PA + "agenteMaritimo.*"], "dato", ""],
+    ["A2", "Agente de aduana, N° de orden", "Agente de aduana (declarante)", [PA + "agenteAduana.*"], "dato", ""],
+    ["A2", "Depósito temporal", "Depósito temporal", [PA + "depositoTemporal.*"], "dato", ""],
+    ["A2", "Entidad financiera, modalidad y medio de pago", "Entidad financiera", [PA + "entidadFinanciera.*"], "dato", ""],
+    ["A2", "—", "Aseguradora", [PA + "aseguradora.*"], "dato", ""],
+    ["A2", "Acuerdo, criterio, N° de CO", "Productor y entidad emisora del CO", [PA + "productor.*", PA + "entidadCO.*"], "dato", ""],
+    ["A3", "Puerto de embarque", "Puerto de embarque (nombre y UN/LOCODE)", [R + "ruta.puertoEmbarque.*"], "dato", ""],
+    ["A3", "Puerto de descarga", "Puerto de descarga (nombre y UN/LOCODE)", [R + "ruta.puertoDescarga.*"], "dato", ""],
+    ["A3", "País de adquisición / embarque / destino", "País de adquisición", [R + "ruta.paisAdquisicion"], "dato", ""],
+    ["A3", "País de adquisición / embarque / destino", "País de embarque (B 5.8)", [], "reservado", "Se deriva del UN/LOCODE de embarque en el Formato B (F8b)"],
+    ["A3", "País de adquisición / embarque / destino", "País de destino (S 7.27)", [], "derivado", "calculos.js: series[].paisDestino"],
+    ["A3", "—", "Lugar de recepción y de entrega", [R + "ruta.lugarRecepcion", R + "ruta.lugarEntrega"], "dato", ""],
+    ["A4", "Incoterm + lugar + versión", "Incoterm y lugar convenido", [R + "comercial.incoterm", R + "comercial.lugarConvenido"], "dato", ""],
+    ["A4", "Incoterm + lugar + versión", "Versión del Incoterm (4 = 2020)", [], "reservado", "Fija en v1 (IT C 5.4); se mostrará en el Formato B (F8b)"],
+    ["A4", "Moneda", "Moneda", [R + "comercial.moneda"], "dato", ""],
+    ["A4", "N° y fecha de factura", "N° y fecha de factura", [R + "comercial.facturaNumero", R + "comercial.facturaFecha"], "dato", ""],
+    ["A4", "Entidad financiera, modalidad y medio de pago", "Modalidad y condiciones de pago", [R + "comercial.modalidadPago", R + "comercial.condicionesPago"], "dato", ""],
+    ["A4", "Entidad financiera, modalidad y medio de pago", "Medio de pago y pago diferido", [R + "comercial.medioPago", R + "comercial.pagoDiferido.*"], "dato", ""],
+    ["A4", "—", "N° de contrato u orden de compra", [R + "comercial.contrato"], "dato", ""],
+    ["A5", "Aduana, destinación, modalidad, tipo de despacho", "Aduana, modalidad y tipo de despacho", [R + "aduana.aduana", R + "aduana.modalidadDespacho", R + "aduana.tipoDespacho"], "dato", ""],
+    ["A5", "Aduana, destinación, modalidad, tipo de despacho", "Destinación (10 / 40)", [], "reservado", "Se deriva del tipo de operación; se mostrará en la DAM (F8a)"],
+    ["A5", "Agente de aduana, N° de orden", "N° de orden y fecha de formulación", [R + "aduana.numeroOrden", R + "aduana.fechaFormulacion"], "dato", ""],
+    ["A5", "Tipo de cambio", "Tipo de cambio, fecha y fuente", [R + "aduana.tipoCambio", R + "aduana.tipoCambioFecha", R + "aduana.tipoCambioFuente"], "dato", ""],
+    ["A5", "Región de destino", "Región de destino", [R + "aduana.regionDestino"], "dato", ""],
+    ["A6", "Declaración del valor", "Nivel comercial, naturaleza, forma de envío y tipo de valor", [R + "valor.nivelComercial", R + "valor.naturaleza", R + "valor.formaEnvio", R + "valor.tipoValor"], "dato", ""],
+    ["A6", "Declaración del valor", "Intermediario (rubro 6)", [R + "valor.intermediario.*"], "dato", ""],
+    ["A6", "Declaración del valor", "Condiciones de la transacción (rubro 7)", [R + "valor.rubro7.*"], "dato", ""],
+    ["B1", "Nombre, descripción, marca, modelo", "Nombre, descripción, marca y modelo", [IT + "nombre", IT + "descripcion", IT + "marca", IT + "modelo"], "dato", ""],
+    ["B1", "Subpartida + dígito verificador", "Subpartida nacional y casilla «verificada»", [IT + "subpartida", IT + "subpartidaVerificada"], "dato", ""],
+    ["B1", "Subpartida + dígito verificador", "Dígito verificador de la subpartida", [], "reservado", "Queda vacío con PV-27 en la DAM (F8a)"],
+    ["B1", "País de origen", "País de origen (y UBIGEO de fabricación en exportación)", [IT + "paisOrigen", IT + "ubigeoOrigen"], "dato", ""],
+    ["B1", "Estado", "Estado", [IT + "estado"], "dato", ""],
+    ["B1", "Cantidad y unidad comercial / física", "Cantidad, unidad comercial y unidad física", [IT + "cantidad", IT + "unidadComercial", IT + "unidadFisica"], "dato", ""],
+    ["B1", "Precio unitario y valor", "Precio unitario", [IT + "precioUnitario"], "dato", ""],
+    ["B1", "Números de serie e IMEI", "Equipos: serie e IMEI (D9)", [IT + "equipos"], "dato", ""],
+    ["B1", "Ajustes", "Ítem objeto de ajuste", [IT + "objetoAjuste"], "dato", ""],
+    ["B2", "Tipo, clase y N° de bultos", "Clase de bulto y unidades por bulto", [IT + "claseBulto", IT + "unidadesPorBulto"], "dato", ""],
+    ["B2", "Peso neto / Peso bruto", "Pesos neto y bruto por bulto", [IT + "pesoNetoBulto", IT + "pesoBrutoBulto"], "dato", ""],
+    ["B2", "Medidas y volumen", "Medidas del bulto", [IT + "largoCm", IT + "anchoCm", IT + "altoCm"], "dato", ""],
+    ["B2", "Marcas", "Marcas de embarque", [EX + "marcasEmbarque"], "dato", ""],
+    ["B3", "Contenedor y precinto", "Tipo, número y precinto del contenedor", [EX + "contenedor.tipo", EX + "contenedor.numero", EX + "contenedor.precinto"], "dato", ""],
+    ["B3", "Contenedor y precinto", "Unidad de carga (02)", [], "reservado", "Fija en v1 (IT A 7.37 k); se mostrará en la DAM (F8a)"],
+    ["B3", "Tara y VGM", "Tara, estiba y datos de la declaración VGM", [EX + "contenedor.tara", EX + "contenedor.estibaTrincaje", EX + "contenedor.vgmMetodo", EX + "contenedor.vgmResponsable", EX + "contenedor.vgmFecha"], "dato", ""],
+    ["B4", "Nave y viaje", "Nave, viaje, booking y manifiesto", [EX + "transporte.nave", EX + "transporte.viaje", EX + "transporte.booking", EX + "transporte.manifiesto"], "dato", ""],
+    ["B4", "N° de B/L", "Datos del B/L (número, tipo, originales, emisión, cláusulas, embarcador)", [EX + "transporte.blNumero", EX + "transporte.blTipo", EX + "transporte.blOriginales", EX + "transporte.blLugarEmision", EX + "transporte.blFechaEmision", EX + "transporte.fechaShippedOnBoard", EX + "transporte.clausulaSlac", EX + "transporte.clausulaStc", EX + "transporte.shipper"], "dato", ""],
+    ["B4", "Flete", "Flete en el B/L, prepaid o collect (D8)", [EX + "transporte.fleteBl"], "dato", "El valor sugerido lo calcula calculos.js: fleteBl.sugerido"],
+    ["B4", "Fechas de embarque / llegada / descarga", "Fechas de embarque, término de embarque, ETA y término de descarga", [EX + "transporte.fechaEmbarque", EX + "transporte.fechaTerminoEmbarque", EX + "transporte.eta", EX + "transporte.fechaTerminoDescarga"], "dato", ""],
+    ["B5", "Póliza, cláusulas, % de cobertura", "Seguro: póliza, cláusulas, cobertura, prima, siniestros y tabla SUNAT", [EX + "seguro.*"], "dato", ""],
+    ["B5", "Prima / seguro", "Tipo de seguro (A 7.32), suma asegurada y prima", [], "derivado", "calculos.js: seguro.tipoSeguro, seguro.sumaAsegurada, seguro.prima"],
+    ["B6", "Acuerdo, criterio, N° de CO", "Trato preferencial, acuerdo, criterio y certificado de origen", [EX + "origen.*"], "dato", ""],
+    ["B6", "Tributos, TPI", "Código TPI", [IT + "tpi"], "dato", ""],
+    ["B7", "Flete", "Flete internacional", [EX + "valoracion.flete"], "dato", ""],
+    ["B7", "Ajustes", "Sección 8 del Formato B: gastos, ajustes, adiciones y deducciones", [EX + "valoracion.gastosExw815", EX + "valoracion.otros816", EX + "valoracion.ajuste812", EX + "valoracion.ajuste813", EX + "valoracion.descuentosNoAceptables814", EX + "valoracion.comisiones821", EX + "valoracion.envases822", EX + "valoracion.materiales8231", EX + "valoracion.herramientas8232", EX + "valoracion.consumidos8233", EX + "valoracion.ingenieria8234", EX + "valoracion.canones824", EX + "valoracion.reversion825", EX + "valoracion.gastosDestino832", EX + "valoracion.posteriores851", EX + "valoracion.montaje852", EX + "valoracion.tributos853", EX + "valoracion.intereses854", EX + "valoracion.otros855"], "dato", ""],
+    ["B7", "Precio unitario y valor", "Exportación: otros gastos deducibles y ajustes (S 6.3, S 6.4)", [EX + "valoracion.expOtrosDeducibles", EX + "valoracion.expAjustes"], "dato", ""],
+    ["B8", "Tributos, TPI", "Tasas y montos de tributos por ítem y código «Tipo»", [IT + "tasaAV", IT + "sobretasa", IT + "derechoEspecifico", IT + "isc", IT + "antidumping", IT + "tipoA720"], "dato", ""],
+    ["B8", "Tributos, TPI", "Tasa de percepción del IGV (por operación, D2)", [EX + "tributos.tasaPercepcion"], "dato", ""],
+    ["C", "Tipo, clase y N° de bultos", "Bultos, numeración, pesos, volumen y VGM", [], "derivado", "calculos.js: items[], totales, vgm"],
+    ["C", "Precio unitario y valor", "Series, FOB por ítem y unitario, ajustes, flete y seguro por serie, valor en aduana", [], "derivado", "calculos.js: items[].fob, series[], valorAduana, exportacion"],
+    ["C", "Tributos, TPI", "Liquidación, percepción y pago en soles", [], "derivado", "calculos.js: liquidacion, percepcion, soles"]
+  ].map(function (f) { return { seccion: f[0], filaTrazabilidad: f[1], requisito: f[2], rutas: f[3], estado: f[4], nota: f[5] }; });
+
+  function cubre(patron, ruta) {
+    return patron.slice(-2) === ".*" ? ruta.indexOf(patron.slice(0, -1)) === 0 : patron === ruta;
+  }
+
+  // Comprueba la matriz: toda entrada del diccionario está cubierta por un requisito del plan y
+  // todo patrón de la matriz corresponde a algún campo. Los requisitos derivados y reservados se cuentan aparte.
+  function revisarCobertura() {
+    var rutas = campos.map(function (c) { return c.ruta; });
+    var sinRequisito = rutas.filter(function (r) {
+      return !COBERTURA.some(function (e) { return e.rutas.some(function (p) { return cubre(p, r); }); });
+    });
+    var patronesHuerfanos = [];
+    COBERTURA.forEach(function (e) {
+      e.rutas.forEach(function (p) { if (!rutas.some(function (r) { return cubre(p, r); })) { patronesHuerfanos.push(p); } });
+      if (e.estado === "dato" && !e.rutas.length) { patronesHuerfanos.push("(sin rutas) " + e.requisito); }
+    });
+    var cuenta = { dato: 0, derivado: 0, reservado: 0 };
+    COBERTURA.forEach(function (e) { cuenta[e.estado] = (cuenta[e.estado] || 0) + 1; });
+    return { requisitos: COBERTURA.length, campos: rutas.length, sinRequisito: sinRequisito, patronesHuerfanos: patronesHuerfanos, porEstado: cuenta };
+  }
+
+  return { grupos: GRUPOS, campos: campos, buscar: buscar, casilla: casilla, revisarContraModelo: revisarContraModelo,
+    cobertura: COBERTURA, revisarCobertura: revisarCobertura };
 })();

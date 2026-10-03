@@ -1,0 +1,13 @@
+OK    [1280px] Caso 1 → A01, A08, A19, A20 · errores 0 · desborde false · «✔ Sin errores · 6 advertencias (A01, A08, A19, A20), que no bloquean. Los documentos se podrán generar.»
+OK    [1280px] Caso 2 → A01, A08, A19 · errores 0 · desborde false · «✔ Sin errores · 4 advertencias (A01, A08, A19), que no bloquean. Los documentos se podrán generar.»
+OK    [1280px] Alterada → E05, E09, E13, A01, A05, A08, A16, A19, A20 · errores 3 · desborde false · «✘ 3 errores (E05, E09, E13) y 8 advertencias (A01, A05, A08, A16, A19, A20). Los errores bloquean los documentos: corrígelos antes de generarlos.»
+OK    [1280px] «Ir al dato: Ítem 2 · Peso bruto por bulto (kg)» (Enter) → fila especificos.items.1.pesoBrutoBulto, resaltada true, grupo abierto true, visible true
+OK    [1280px] Contador accesible: status/polite
+OK    [1280px] Errores de consola: ninguno
+OK    [390px] Caso 1 → A01, A08, A19, A20 · errores 0 · desborde false · «✔ Sin errores · 6 advertencias (A01, A08, A19, A20), que no bloquean. Los documentos se podrán generar.»
+OK    [390px] Caso 2 → A01, A08, A19 · errores 0 · desborde false · «✔ Sin errores · 4 advertencias (A01, A08, A19), que no bloquean. Los documentos se podrán generar.»
+OK    [390px] Alterada → E05, E09, E13, A01, A05, A08, A16, A19, A20 · errores 3 · desborde false · «✘ 3 errores (E05, E09, E13) y 8 advertencias (A01, A05, A08, A16, A19, A20). Los errores bloquean los documentos: corrígelos antes de generarlos.»
+OK    [390px] «Ir al dato: Ítem 2 · Peso bruto por bulto (kg)» (Enter) → fila especificos.items.1.pesoBrutoBulto, resaltada true, grupo abierto true, visible true
+OK    [390px] Contador accesible: status/polite
+OK    [390px] Errores de consola: ninguno
+RESULTADO: todo correcto

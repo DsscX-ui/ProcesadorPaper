@@ -1,0 +1,38 @@
+Cargado caso 1: 7945E0E3 | OP-2026-001 · Importación · 3 ítem(s) · 37 dato(s) con marca propia | filas 508
+OK    no-json.json                 → El archivo no es un JSON válido (revisa comas, comillas y llaves). No se cambió lo que había en pantalla.
+OK    vacio.json                   → El archivo no es un JSON válido (revisa comas, comillas y llaves). No se cambió lo que había en pantalla.
+OK    array.json                   → El archivo no contiene una operación (se esperaba un bloque { … }). No se cambió lo que había en pantalla.
+OK    null.json                    → El archivo no contiene una operación (se esperaba un bloque { … }). No se cambió lo que había en pantalla.
+OK    otra-herramienta.json        → El archivo no es una operación de esta herramienta (falta o no coincide el campo 'formato'). No se cambió lo que había en pantalla.
+OK    version-1.json               → El archivo es de la versión 1 y esta herramienta lee la versión 2. Vuelve a crear la operación con esta versión. No se cambió lo que había en pantalla
+OK    solo-generales.json          → Al archivo le faltan bloques obligatorios o no son bloques: meta, marcas. No se cambió lo que había en pantalla.
+OK    sin-marcas.json              → Al archivo le faltan bloques obligatorios o no son bloques: marcas. No se cambió lo que había en pantalla.
+OK    falta-hoja.json              → El archivo no tiene la estructura esperada (1 problema(s)): generales.comercial.incoterm: falta. No se cambió lo que había en pantalla.
+OK    referencia-numero.json       → El archivo no tiene la estructura esperada (1 problema(s)): meta.referencia: se esperaba texto y llegó número. No se cambió lo que había en pantalla.
+OK    equipos-texto.json           → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items.0.equipos: se esperaba una lista y llegó texto. No se cambió lo que habí
+OK    cantidad-texto.json          → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items.0.cantidad: se esperaba un número o vacío y llegó texto. No se cambió lo
+OK    item-null.json               → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items.0: elemento vacío (null). No se cambió lo que había en pantalla.
+OK    items-no-lista.json          → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items: se esperaba una lista y llegó bloque. No se cambió lo que había en pant
+OK    prop-desconocida.json        → El archivo no tiene la estructura esperada (1 problema(s)): generales.inventado: campo desconocido. No se cambió lo que había en pantalla.
+OK    prop-desconocida-item.json   → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items.0.extra: campo desconocido. No se cambió lo que había en pantalla.
+OK    tipo-operacion-num.json      → El archivo no tiene la estructura esperada (1 problema(s)): generales.operacion.tipo: se esperaba texto y llegó número. No se cambió lo que había en p
+OK    bloque-null.json             → El archivo no tiene la estructura esperada (1 problema(s)): generales.partes: se esperaba un bloque y llegó vacío (null). No se cambió lo que había en
+OK    sino-texto.json              → El archivo no tiene la estructura esperada (1 problema(s)): especificos.seguro.hay: se esperaba sí/no (true/false) y llegó texto. No se cambió lo que 
+OK    equipo-mal.json              → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items.0.equipos.0.imeis.0: se esperaba texto y llegó número. No se cambió lo q
+OK    equipo-null.json             → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items.0.equipos.0: elemento vacío (null). No se cambió lo que había en pantall
+OK    marca-mala.json              → El archivo no tiene la estructura esperada (1 problema(s)): marcas.meta.referencia: debe ser { marca: S | H | H* | PV, nota: texto }. No se cambió lo 
+OK    marca-ruta-inexistente.json  → El archivo no tiene la estructura esperada (1 problema(s)): marcas.no.existe: la ruta no corresponde a un dato de la operación. No se cambió lo que ha
+OK    marca-html.json              → El archivo no tiene la estructura esperada (1 problema(s)): marcas.meta.referencia: debe ser { marca: S | H | H* | PV, nota: texto }. No se cambió lo 
+OK    texto-largo.json             → El archivo no tiene la estructura esperada (1 problema(s)): meta.descripcion: el texto supera 5000 caracteres. No se cambió lo que había en pantalla.
+OK    marca-nota-larga.json        → El archivo no tiene la estructura esperada (1 problema(s)): marcas.meta.referencia.nota: el texto supera 5000 caracteres. No se cambió lo que había en
+OK    items-201.json               → El archivo no tiene la estructura esperada (1 problema(s)): especificos.items: tiene 201 elementos; el máximo es 200. No se cambió lo que había en pan
+OK    profundo.json                → El archivo no contiene una operación (se esperaba un bloque { … }). No se cambió lo que había en pantalla.
+OK    gigante.json                 → El archivo pesa 2.2 MB; el máximo es 2 MB. No se cambió lo que había en pantalla.
+OK    profundo-en-objeto.json      → El archivo está anidado en más de 12 niveles; no es una operación de esta herramienta. No se cambió lo que había en pantalla.
+OK    proto.json                   → El archivo no tiene la estructura esperada (1 problema(s)): generales.__proto__: campo desconocido. No se cambió lo que había en pantalla.
+OK    Guardar→Abrir OP-2026-001 huella 7945E0E3 contenido idéntico: true
+OK    Guardar→Abrir OP-2026-002 huella C17FBFFE contenido idéntico: true
+OK    Archivo válido de 200 ítems abierto en 364 ms
+OK    Botón Abrir enfocable con teclado
+ERRORES DE CONSOLA: ninguno
+RESULTADO: todo correcto

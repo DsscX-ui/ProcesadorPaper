@@ -1,6 +1,7 @@
 /* Pantalla: botones de ejemplo, Nueva, Guardar y Abrir; vista de solo lectura de los datos
-   cargados (agrupada según el diccionario) y panel didáctico "Resultados del cálculo".
-   No calcula: lee el resultado de Calculos.calcular y le da formato. El formulario editable llega en F5.
+   cargados (agrupada según el diccionario), panel "Revisión de la operación" (errores y advertencias
+   de Validaciones, F4) y panel didáctico "Resultados del cálculo".
+   No calcula ni valida: lee el resultado de Calculos.calcular y de Validaciones.validar y les da formato. El formulario editable llega en F5.
    Regla de carga: la vista nueva se construye completa FUERA del documento; solo si todo sale bien
    se reemplaza la operación anterior. Si algo falla, la pantalla anterior se conserva.
    Los datos del usuario se insertan siempre con textContent (nunca innerHTML).
@@ -72,6 +73,9 @@
     var tipoOp = op.generales.operacion.tipo;
     var idDetalle = "ayuda-" + (++contadorAyuda);
     var tr = el("tr");
+    // Destino de los enlaces del panel «Revisión de la operación» (F4).
+    tr.setAttribute("data-ruta", ruta);
+    tr.tabIndex = -1;
 
     var tdCampo = el("td", "campo");
     var boton = el("button", "btn-ayuda", "?");
@@ -144,6 +148,7 @@
       var campos = DICCIONARIO.campos.filter(function (c) { return c.grupo === g.id && aplica(op, c); });
       if (!campos.length) { return; }
       var det = el("details");
+      det.id = "grupo-" + g.id;
       if (i < 2) { det.open = true; }
       var sum = el("summary");
       sum.appendChild(el("span", null, g.es));
@@ -230,15 +235,6 @@
     var frag = document.createDocumentFragment();
     var imp = r.tipo === "importacion";
 
-    if (r.avisos.length) {
-      var av = el("div", "avisos-calculo");
-      av.appendChild(el("p", null, "Avisos del cálculo (las validaciones completas llegan en F4):"));
-      var ul = el("ul");
-      r.avisos.forEach(function (a) { ul.appendChild(el("li", null, a.codigo + " · " + a.texto)); });
-      av.appendChild(ul);
-      frag.appendChild(av);
-    }
-
     // --- 1. Carga
     var b1 = bloque("1. Carga: bultos, pesos, volumen y VGM");
     b1.appendChild(tablaResultados(
@@ -251,7 +247,7 @@
         Fm.kg(r.totales.pesoNeto), Fm.kg(r.totales.pesoBruto), "", Fm.m3(r.totales.volumen)]]),
       { total: true }));
     b1.appendChild(explicacion("Bultos = cantidad ÷ unidades por bulto. Pesos = bultos × peso por bulto. " +
-      "Volumen = largo × ancho × alto (cm) ÷ 1 000 000 × bultos. Los bultos se numeran de forma correlativa: así coinciden la lista de empaque, el B/L y las marcas.", [["S", "PLAN §6.2"]]));
+      "Volumen = largo × ancho × alto (cm) ÷ 1,000,000 × bultos. Los bultos se numeran de forma correlativa: así coinciden la lista de empaque, el B/L y las marcas.", [["S", "PLAN §6.2"]]));
     b1.appendChild(explicacion("VGM = peso bruto " + Fm.kg(r.vgm.pesoBruto) + " + estiba y trincaje " + Fm.kg(r.vgm.estiba) +
       " + tara " + Fm.kg(r.vgm.tara) + " = " + Fm.kg(r.vgm.total) + " kg.", [["H*", "SOLAS VI/2"]]));
     frag.appendChild(b1);
@@ -264,7 +260,7 @@
         ". Flete principal: lo paga el " + regla.fletePrincipal.toLowerCase() + ". Seguro obligatorio: " + regla.seguro + ".", [["H*", "Incoterms® 2020"]]));
     }
     b2.appendChild(explicacion("Flete en el B/L: " + (r.fleteBl.declarado || "sin dato") + "; lo usual para este Incoterm es " +
-      (r.fleteBl.sugerido || "—") + (r.fleteBl.coincide ? " (coincide)." : ". No coincide: la advertencia A05 lo señalará en F4."), [["S", "práctica marítima (D8)"]]));
+      (r.fleteBl.sugerido || "—") + (r.fleteBl.coincide ? " (coincide)." : ". No coincide: ver la advertencia A05 en «Revisión de la operación»."), [["S", "práctica marítima (D8)"]]));
     if (r.seguro.hay) {
       b2.appendChild(explicacion("Suma asegurada = " + Fm.comercial(r.seguro.base) + " × " + Fm.pct(r.seguro.coberturaPct) + " = USD " +
         Fm.comercial(r.seguro.sumaAsegurada) + ". Prima = " + Fm.comercial(r.seguro.sumaAsegurada) + " × " + Fm.pct(r.seguro.tasaPrimaPct) +
@@ -282,6 +278,8 @@
 
     // --- Cuadres
     var bc = bloque("Por qué cuadran las cifras");
+    bc.id = "bloque-cuadres";
+    bc.tabIndex = -1;
     bc.appendChild(tablaResultados(["Comprobación", "Suma", "Debe ser", "¿Cuadra?"],
       r.cuadres.map(function (c) { return [c.texto, Fm.damAC(c.a), Fm.damAC(c.b), c.ok ? "✔ Sí" : "✘ NO (E19)"]; })));
     bc.appendChild(explicacion("En cada reparto la última parte recibe el residuo del redondeo; por eso las sumas cuadran al milésimo.", [["S", "PLAN §6.1"]]));
@@ -353,6 +351,9 @@
     b6.appendChild(explicacion("Percepción del IGV (fuera del Formato C) = " + Fm.pct(p.tasa) + " × (valor en aduana + tributos " + Fm.damAC(p.base) +
       ") = USD " + Fm.damAC(p.monto) + ". Un solo valor por operación: la tasa depende del importador y, en algunos casos, de la mercancía.",
       [["PV", "PV-01 (D2, D6)"]]));
+    b6.appendChild(explicacion("La base de la percepción incluye el antidumping (USD " + Fm.damAC(l.antidumping) + " en esta operación), " +
+      "a diferencia de la base del IGV. Se sigue la Ley 29173 sin fuente en la carpeta (decisión D11).",
+      [["H*", "Ley 29173"], ["PV", "PV-17"]]));
     var so = r.soles;
     b6.appendChild(explicacion("Pago en soles al tipo de cambio venta " + Fm.numero(so.tipoCambio, 3) + ": tributos S/ " + Fm.comercial(so.tributos) +
       " + percepción S/ " + Fm.comercial(so.percepcion) + " = S/ " + Fm.comercial(so.total) + ".", [["H", "IT D rubro 5"], ["PV", "PV-07, PV-08"]]));
@@ -384,6 +385,139 @@
     frag.appendChild(b5);
   }
 
+  // ---------------------------------------------------------------- Revisión de la operación (F4)
+  // Muestra los errores y advertencias de Validaciones.validar, agrupados por severidad y por regla.
+  // Cada ítem lleva botones que llevan al dato afectado en la vista de datos.
+
+  var TEXTO_SEVERIDAD = {
+    error: { titulo: "Errores", nota: "bloquean la generación de documentos", icono: "✘" },
+    advertencia: { titulo: "Advertencias", nota: "no bloquean; conviene leerlas", icono: "⚠" }
+  };
+  var MAX_ENLACES = 6;
+
+  // "✘ 3 errores (E05, E07) y 6 advertencias (A01, A08, A19, A20)…": cantidad de avisos y reglas.
+  function textoContador(rev) {
+    function ids(lista) {
+      var v = [];
+      lista.forEach(function (h) { if (v.indexOf(h.id) === -1) { v.push(h.id); } });
+      return v.length ? " (" + v.join(", ") + ")" : "";
+    }
+    var e = rev.errores.length, a = rev.advertencias.length;
+    var tA = a + (a === 1 ? " advertencia" : " advertencias") + ids(rev.advertencias);
+    if (e) {
+      return "✘ " + e + (e === 1 ? " error" : " errores") + ids(rev.errores) + " y " + tA +
+        ". Los errores bloquean los documentos: corrígelos antes de generarlos.";
+    }
+    return "✔ Sin errores · " + tA + ", que no bloquean. Los documentos se podrán generar.";
+  }
+
+  function botonIr(ruta) {
+    var texto = ruta.charAt(0) === "#" ? "Ir a: Por qué cuadran las cifras" : "Ir al dato: " + Validaciones.etiqueta(ruta);
+    var b = el("button", "btn-ir", texto);
+    b.type = "button";
+    b.addEventListener("click", function () { irAlDato(ruta); });
+    return b;
+  }
+
+  function parrafo(rotulo, texto) {
+    var p = el("p", "rev-texto");
+    p.appendChild(el("strong", null, rotulo + " "));
+    p.appendChild(document.createTextNode(texto));
+    return p;
+  }
+
+  function construirRevision(rev) {
+    var frag = document.createDocumentFragment();
+    ["error", "advertencia"].forEach(function (sev) {
+      var lista = sev === "error" ? rev.errores : rev.advertencias;
+      var ts = TEXTO_SEVERIDAD[sev];
+      var caja = el("div", "rev-grupo rev-" + sev);
+      var h = el("h3");
+      h.appendChild(el("span", "rev-icono", ts.icono + " ")).setAttribute("aria-hidden", "true");
+      h.appendChild(document.createTextNode(ts.titulo + " (" + lista.length + ")"));
+      h.appendChild(el("span", "nota", " — " + ts.nota));
+      caja.appendChild(h);
+      if (!lista.length) {
+        caja.appendChild(el("p", "vacio", sev === "error" ? "Ninguno. ✔" : "Ninguna."));
+        frag.appendChild(caja);
+        return;
+      }
+      // Agrupa por regla, conservando el orden de Validaciones (E01…E19, A01…A20, C01, C02).
+      var porId = [], indice = {};
+      lista.forEach(function (hz) {
+        if (!(hz.id in indice)) { indice[hz.id] = porId.length; porId.push([]); }
+        porId[indice[hz.id]].push(hz);
+      });
+      var ul = el("ul", "rev-reglas");
+      porId.forEach(function (grupo) {
+        var primero = grupo[0];
+        var li = el("li", "rev-regla");
+        var cab = el("p", "rev-cabecera");
+        cab.appendChild(el("span", "rev-id", primero.id));
+        cab.appendChild(el("strong", null, " " + primero.titulo));
+        if (grupo.length > 1) { cab.appendChild(document.createTextNode(" (" + grupo.length + ")")); }
+        li.appendChild(cab);
+        // Si todos comparten el «por qué» y el «cómo», se dicen una sola vez.
+        var mismoPorque = grupo.every(function (x) { return x.porque === primero.porque; });
+        var mismoComo = grupo.every(function (x) { return x.como === primero.como; });
+        var mismaFuente = grupo.every(function (x) { return x.fuente === primero.fuente && x.marca === primero.marca; });
+        var ol = el("ol", "rev-items");
+        grupo.forEach(function (hz) {
+          var it = el("li", "rev-item");
+          it.appendChild(el("p", "rev-que", hz.que));
+          if (!mismoPorque) { it.appendChild(parrafo("Por qué importa:", hz.porque)); }
+          if (!mismoComo && hz.como) { it.appendChild(parrafo("Cómo corregirlo:", hz.como)); }
+          if (!mismaFuente) { it.appendChild(fuenteDe(hz)); }
+          if (hz.rutas.length) {
+            var ir = el("div", "rev-ir");
+            hz.rutas.slice(0, MAX_ENLACES).forEach(function (r) { ir.appendChild(botonIr(r)); });
+            if (hz.rutas.length > MAX_ENLACES) { ir.appendChild(el("span", "nota", "… y " + (hz.rutas.length - MAX_ENLACES) + " dato(s) más")); }
+            it.appendChild(ir);
+          }
+          ol.appendChild(it);
+        });
+        li.appendChild(ol);
+        if (mismoPorque) { li.appendChild(parrafo("Por qué importa:", primero.porque)); }
+        if (mismoComo && primero.como) { li.appendChild(parrafo("Cómo corregirlo:", primero.como)); }
+        if (mismaFuente) { li.appendChild(fuenteDe(primero)); }
+        ul.appendChild(li);
+      });
+      caja.appendChild(ul);
+      frag.appendChild(caja);
+    });
+    return frag;
+  }
+
+  function fuenteDe(hz) {
+    var p = el("p", "nota rev-fuente");
+    p.appendChild(document.createTextNode("Fuente: "));
+    p.appendChild(etiquetaMarca(hz.marca));
+    p.appendChild(document.createTextNode(hz.fuente));
+    return p;
+  }
+
+  // Lleva al dato: abre su grupo <details>, lo centra en pantalla, lo enfoca y lo resalta.
+  function irAlDato(ruta) {
+    var destino = null;
+    if (ruta.charAt(0) === "#") {
+      destino = $(ruta.slice(1));
+    } else {
+      destino = $("vista-datos").querySelector('tr[data-ruta="' + CSS.escape(ruta) + '"]');
+      if (!destino) {
+        // Dato sin fila (ej. «no hay ítems»): se abre su grupo.
+        var c = ruta === "especificos.items" ? { grupo: "B1" } : DICCIONARIO.buscar(ruta);
+        var det = c && $("grupo-" + c.grupo);
+        if (det) { destino = det.querySelector("summary"); }
+      }
+    }
+    if (!destino) { return; }
+    for (var d = destino.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) { d.open = true; }
+    Array.prototype.forEach.call(document.querySelectorAll(".resaltado"), function (n) { n.classList.remove("resaltado"); });
+    destino.classList.add("resaltado");
+    destino.scrollIntoView({ block: "center" });
+    destino.focus({ preventScroll: true });
+  }
+
   function textoResumen(op) {
     var tipo = NORMATIVA.opcion("tipoOperacion", op.generales.operacion.tipo);
     return (op.meta.referencia || "(sin referencia)") + " · " +
@@ -393,22 +527,31 @@
 
   function pintarRevision() {
     var r = DICCIONARIO.revisarContraModelo();
-    var ok = !r.sinEntrada.length && !r.sinDato.length;
+    var cob = DICCIONARIO.revisarCobertura();
+    var okCob = !cob.sinRequisito.length && !cob.patronesHuerfanos.length;
+    var ok = !r.sinEntrada.length && !r.sinDato.length && okCob;
     var marcas = Object.keys(r.porMarca).sort().map(function (m) { return m + ": " + r.porMarca[m]; }).join(", ");
     $("revision-diccionario").textContent = "Correspondencia diccionario–modelo: " + (ok ? "correcta" : "REVISAR") +
       " · " + r.total + " campos (" + marcas + ")" +
       (r.sinEntrada.length ? " · datos del modelo sin entrada: " + r.sinEntrada.join(", ") : "") +
-      (r.sinDato.length ? " · entradas sin dato en el modelo: " + r.sinDato.join(", ") : "");
+      (r.sinDato.length ? " · entradas sin dato en el modelo: " + r.sinDato.join(", ") : "") +
+      " · Cobertura del plan (§4/§5, PLAN anexo A): " + (okCob ? "completa" : "REVISAR") + ", " + cob.requisitos + " requisitos (" +
+      cob.porEstado.dato + " con datos, " + cob.porEstado.derivado + " derivados, " + cob.porEstado.reservado + " reservados a fases posteriores)" +
+      (cob.sinRequisito.length ? " · campos sin requisito: " + cob.sinRequisito.join(", ") : "") +
+      (cob.patronesHuerfanos.length ? " · requisitos sin campo: " + cob.patronesHuerfanos.join(", ") : "");
     $("revision-diccionario").className = ok ? "ok" : "error";
   }
 
   // Prepara todo lo nuevo y, solo si no hubo errores, reemplaza lo anterior.
   function cargar(op, texto) {
-    var nueva, vista, resultados, resumen, huella;
+    var nueva, vista, resultados, revision, panel, resumen, huella;
     try {
       nueva = Modelo.clonar(op);
       vista = construirDatos(nueva);
-      resultados = construirResultados(nueva, Calculos.calcular(nueva));
+      var resultado = Calculos.calcular(nueva);
+      resultados = construirResultados(nueva, resultado);
+      revision = Validaciones.validar(nueva, resultado);
+      panel = construirRevision(revision);
       resumen = textoResumen(nueva);
       huella = Modelo.huella(nueva);
     } catch (e) {
@@ -421,6 +564,10 @@
     $("vista-datos").appendChild(vista);
     $("vista-resultados").textContent = "";
     $("vista-resultados").appendChild(resultados);
+    $("vista-revision").textContent = "";
+    $("vista-revision").appendChild(panel);
+    $("revision-contador").textContent = textoContador(revision);
+    $("revision-contador").className = "rev-contador " + (Validaciones.hayErrores(revision) ? "rev-con-errores" : "rev-sin-errores");
     $("resumen").textContent = resumen;
     $("huella").textContent = huella;
     mensaje(texto.replace("{huella}", huella), "ok");
@@ -469,6 +616,7 @@
     pintarRevision();
     $("vista-datos").appendChild(el("p", "vacio", "No hay una operación cargada. Usa un ejemplo, «Nueva» o «Abrir JSON»."));
     $("vista-resultados").appendChild(el("p", "vacio", "Carga una operación para ver sus cálculos."));
+    $("revision-contador").textContent = "Carga una operación para revisarla.";
   }
 
   if (document.readyState === "loading") {

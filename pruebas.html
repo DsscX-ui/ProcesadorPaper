@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pruebas de cálculo — Documentos marítimos didácticos</title>
+  <title>Pruebas de cálculo y validaciones — Documentos marítimos didácticos</title>
   <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
   <header class="cabecera">
-    <h1>Pruebas de cálculo <span class="en">/ Calculation tests</span></h1>
-    <p class="subtitulo">Comprueba <code>js/calculos.js</code> contra las cifras de <code>PLAN.md</code> §9.1 y §9.2, controles negativos y casos borde.
+    <h1>Pruebas de cálculo y validaciones <span class="en">/ Calculation and validation tests</span></h1>
+    <p class="subtitulo">Comprueba <code>js/calculos.js</code> contra las cifras de <code>PLAN.md</code> §9.1 y §9.2, controles negativos y casos borde, y <code>js/validaciones.js</code> (errores y advertencias de §7) con los casos y con mutaciones a propósito.
       Se abre con doble clic; no necesita internet. <a href="index.html">Volver a la herramienta</a></p>
   </header>
 
@@ -27,8 +27,10 @@
   <script src="js/incoterms.js"></script>
   <script src="js/ejemplos.js"></script>
   <script src="js/calculos.js"></script>
+  <script src="js/diccionario.js"></script>
+  <script src="js/validaciones.js"></script>
   <script>
-  /* Página de pruebas. Solo lee resultados de Calculos; no calcula nada por su cuenta.
+  /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
      Los valores esperados son textos decimales con todos sus decimales ("18123.870"). */
   (function () {
     "use strict";
@@ -94,13 +96,13 @@
     prueba("Prorrateo de un monto negativo: parte 2 (residuo)", "-6.67", pneg[1]);
 
     // ============================================================ Formato
-    grupo("2. Formato de números (§6.1)", "Punto decimal y espacio fino como separador de miles (“20 040.00”).");
-    prueba("Comercial (2 decimales)", "20 040.00", F.comercial(fx("20040")));
-    prueba("DAM, Formatos A y C (3 decimales)", "18 123.870", F.damAC(fx("18123.87")));
+    grupo("2. Formato de números (§6.1, D10)", "Coma de miles y punto decimal (“20,040.00”; DAM A/C “18,123.870”; DAM B “21.705231”).");
+    prueba("Comercial (2 decimales)", "20,040.00", F.comercial(fx("20040")));
+    prueba("DAM, Formatos A y C (3 decimales)", "18,123.870", F.damAC(fx("18123.87")));
     prueba("DAM, Formato B (6 decimales)", "21.705231", F.damB(fx("21.705231")));
-    prueba("Millones", "1 234 567.89", F.comercial(fx("1234567.891")));
-    prueba("Negativo", "−1 850.00", F.comercial(fx("-1850")));
-    prueba("Cantidad entera", "3 000", F.cantidad(fx("3000.000")));
+    prueba("Millones", "1,234,567.89", F.comercial(fx("1234567.891")));
+    prueba("Negativo", "−1,850.00", F.comercial(fx("-1850")));
+    prueba("Cantidad entera", "3,000", F.cantidad(fx("3000.000")));
     prueba("Porcentaje", "3.5 %", F.pct(fx("3.5000")));
 
     // ============================================================ Caso 1
@@ -119,7 +121,7 @@
     prueba("Suma asegurada 110 % (USD)", "22044.00", r1.seguro.sumaAsegurada);
     prueba("Prima 0.30 % (USD)", "66.13", r1.seguro.prima);
     prueba("Tipo de seguro A 7.32 (póliza flotante)", "3", r1.seguro.tipoSeguro);
-    prueba("FOB total = 20 040.00 − 1 850.00 − 66.13", "18123.87", r1.fob.total);
+    prueba("FOB total = 20,040.00 − 1,850.00 − 66.13", "18123.87", r1.fob.total);
     prueba("Valor en aduana A 6.5", "20040.000", r1.valorAduana.total);
     prueba("VGM = 2 289 + 0 + 2 200 (kg)", "4489.00", r1.vgm.total);
     prueba("Flete en el B/L sugerido para CIF", "prepaid", r1.fleteBl.sugerido);
@@ -176,6 +178,11 @@
     prueba("Percepción 3.5 %", "849.195", r1.percepcion.monto);
     prueba("Pago en soles: tributos × 3.500", "14779.48", r1.soles.tributos);
     prueba("Pago en soles: percepción × 3.500", "2972.18", r1.soles.percepcion);
+    var oad = ejemplo("caso1");
+    oad.especificos.items[2].antidumping = 100;
+    var rad = Calculos.calcular(oad);
+    prueba("Antidumping 100 (ítem 3): NO entra en la base del IGV", "20561.618", rad.liquidacion.baseIgv);
+    prueba("Antidumping 100 (ítem 3): SÍ entra en la base de la percepción (D11; H*, PV-17)", "24362.709", rad.percepcion.base);
 
     // ============================================================ Caso 2
     var r2 = Calculos.calcular(ejemplo("caso2"));
@@ -201,7 +208,7 @@
 
     // ============================================================ FOB según Incoterm
     grupo("8. FOB total según el Incoterm (IT C 5.9, §6.3)",
-      "Operación sintética: Vc 20 040.00; 8.1.5 = 100; 8.1.6 = 50; 8.3.1 = 1 850; 8.3.2 = 200; 8.4 = 66.13 (CIF/CIP); 8.5.1…8.5.5 = 10, 20, 30, 40, 5.");
+      "Operación sintética: Vc 20,040.00; 8.1.5 = 100; 8.1.6 = 50; 8.3.1 = 1,850; 8.3.2 = 200; 8.4 = 66.13 (CIF/CIP); 8.5.1…8.5.5 = 10, 20, 30, 40, 5.");
     function sintetica(inc, conSeguro) {
       var o = ejemplo("caso1");
       o.generales.comercial.incoterm = inc;
@@ -244,7 +251,7 @@
     prueba("Serie 1: ajuste (A 7.33)", "86.667", ra.series[0].ajuste);
     prueba("Serie 1: valor en aduana", "8780.297", ra.series[0].valorAduana);
     prueba("Serie 2: valor en aduana", "11619.703", ra.series[1].valorAduana);
-    prueba("Valor en aduana total = 20 040 + 360", "20400.000", ra.valorAduana.total);
+    prueba("Valor en aduana total = 20,040 + 360", "20400.000", ra.valorAduana.total);
     prueba("El FOB no cambia con los ajustes", "18123.87", ra.fob.total);
     oa.especificos.items.forEach(function (it) { it.objetoAjuste = false; });
     var rn = Calculos.calcular(oa);
@@ -312,6 +319,189 @@
     prueba("UN/LOCODE PECL (4 caracteres, inválido)", "false", String(C.locode("PECL").valido));
     prueba("UN/LOCODE PE1LL (el dígito 1 no se usa, inválido)", "false", String(C.locode("PE1LL").valido));
     prueba("UN/LOCODE CLSAI no es de Perú (inválido)", "false", String(C.locode("CLSAI", "PE").valido));
+
+    // ============================================================ Validaciones (F4)
+    var V = Validaciones;
+    var todosHallazgos = [];
+    function revisar(op, resultado) {
+      var rv = V.validar(op, resultado || Calculos.calcular(op));
+      todosHallazgos = todosHallazgos.concat(rv.hallazgos);
+      return rv;
+    }
+    // Una mutación a propósito sobre una copia del caso: debe aparecer el ID esperado.
+    function mutacion(id, base, descripcion, mutar, opciones) {
+      var op = ejemplo(base);
+      mutar(op);
+      var rv = revisar(op);
+      var presentes = V.ids(rv);
+      prueba(id + " · " + descripcion, id + " presente",
+        presentes.indexOf(id) !== -1 ? id + " presente" : "falta " + id + " (salió: " + presentes.join(", ") + ")");
+      return rv;
+    }
+    function ausente(id, base, descripcion, mutar) {
+      var op = ejemplo(base);
+      mutar(op);
+      var presentes = V.ids(revisar(op));
+      prueba(id + " · " + descripcion, id + " ausente", presentes.indexOf(id) === -1 ? id + " ausente" : id + " presente");
+    }
+    // Equipos sintéticos con IMEI válidos (Luhn) y series únicas (la regla del IMEI solo se prueba aquí, §9).
+    function equiposSinteticos(n) {
+      var lista = [];
+      for (var k = 0; k < n; k++) {
+        var cuerpo = "35000000000" + String(100 + k);
+        lista.push({ serie: "SN-" + (k + 1), imeis: [cuerpo + C.digitoLuhn(cuerpo)] });
+      }
+      return lista;
+    }
+    function celulares(op, equipos) {
+      var it = op.especificos.items[2];
+      it.subpartida = "8517.13.00.00"; it.cantidad = 3; it.unidadesPorBulto = 1;
+      it.equipos = equipos;
+    }
+
+    grupo("12. Validaciones: casos del plan y catálogo (§7, §9)",
+      "Caso 1: exactamente A01, A08, A19 y A20, sin errores. Caso 2: exactamente A01, A08 y A19, sin errores.");
+    var rv1 = revisar(ejemplo("caso1"));
+    var rv2 = revisar(ejemplo("caso2"));
+    prueba("Caso 1: advertencias esperadas", "A01,A08,A19,A20", V.ids(rv1).join(","));
+    prueba("Caso 1: errores", 0, rv1.errores.length);
+    prueba("Caso 1: hayErrores() = no (se podrán generar documentos)", "false", String(V.hayErrores(rv1)));
+    prueba("Caso 2: advertencias esperadas", "A01,A08,A19", V.ids(rv2).join(","));
+    prueba("Caso 2: errores", 0, rv2.errores.length);
+    prueba("Caso 2: hayErrores() = no", "false", String(V.hayErrores(rv2)));
+    prueba("Caso 1: A08 una vez por ítem (3)", 3, rv1.hallazgos.filter(function (h) { return h.id === "A08"; }).length);
+    prueba("Caso 1: A19 cuenta datos H* y PV de la DAM", "true",
+      String(/\d+ dato\(s\) con marca H\*.* \d+ dato\(s\) POR VERIFICAR/.test(rv1.hallazgos.filter(function (h) { return h.id === "A19"; })[0].que)));
+    prueba("Caso 2: el criterio de origen vacío y marcado POR VERIFICAR (PV-12) no es E01…", "true",
+      String(!rv2.hallazgos.some(function (h) { return h.id === "E01"; })));
+    prueba("…pero sin esa marca PV sí es E01 (lo exige el certificado de origen)", "true", String((function () {
+      var o = ejemplo("caso2");
+      delete o.marcas["especificos.origen.criterio"];
+      return revisar(o).hallazgos.some(function (h) { return h.id === "E01" && h.rutas[0] === "especificos.origen.criterio"; });
+    })()));
+    var vacia = revisar(Modelo.operacionVacia());
+    prueba("Operación vacía: hayErrores() = sí (bloquea documentos)", "true", String(V.hayErrores(vacia)));
+    prueba("Operación vacía: E01 avisa que no hay ítems", "true",
+      String(vacia.hallazgos.some(function (h) { return h.id === "E01" && h.rutas[0] === "especificos.items"; })));
+    var catE = V.orden.filter(function (id) { return id.charAt(0) === "E"; });
+    var catA = V.orden.filter(function (id) { return id.charAt(0) === "A"; });
+    prueba("Catálogo: errores E01–E19", "19", String(catE.length) + (catE[0] === "E01" && catE[18] === "E19" ? "" : " (desordenado)"));
+    prueba("Catálogo: advertencias A01–A20", "20", String(catA.length) + (catA[0] === "A01" && catA[19] === "A20" ? "" : " (desordenado)"));
+    prueba("Catálogo: cada regla tiene título, por qué, fuente y marca H/H*/S/PV", "[]", JSON.stringify(V.orden.filter(function (id) {
+      var r = V.reglas[id];
+      return !r.titulo || !r.porque || !r.fuente || ["H", "H*", "S", "PV"].indexOf(r.marca) === -1;
+    })));
+    prueba("Catálogo: las reglas con marca PV lo dicen en el mensaje («POR VERIFICAR»)", "[]", JSON.stringify(V.orden.filter(function (id) {
+      var r = V.reglas[id];
+      return r.marca === "PV" && r.porque.indexOf("POR VERIFICAR") === -1;
+    })));
+    prueba("E01: todas las condiciones de obligatoriedad del diccionario son conocidas", "[]",
+      JSON.stringify(DICCIONARIO.campos.filter(function (c) { return !V.condiciones[c.obl.toLowerCase()]; }).map(function (c) { return c.ruta; })));
+    var cob = DICCIONARIO.revisarCobertura();
+    prueba("Cobertura del plan (anexo A): campos del diccionario sin requisito", "[]", JSON.stringify(cob.sinRequisito));
+    prueba("Cobertura del plan (anexo A): requisitos sin campo", "[]", JSON.stringify(cob.patronesHuerfanos));
+    prueba("Abrir: una nota de marca de 5 001 caracteres se rechaza (F21-B1)", "true", String((function () {
+      var o = ejemplo("caso1");
+      o.marcas["meta.referencia"] = { marca: "S", nota: new Array(5002).join("x") };
+      return /nota: el texto supera/.test(Modelo.revisarArchivo(o));
+    })()));
+
+    grupo("13. Validaciones: un error por mutación (E01–E19)",
+      "Cada prueba altera a propósito un dato de una copia de un caso y comprueba que aparece el error esperado.");
+    mutacion("E01", "caso1", "vendedor sin razón social", function (o) { o.generales.partes.vendedor.razonSocial = ""; });
+    mutacion("E01", "caso2", "se pide trato preferencial y falta el acuerdo (lo usa el certificado de origen)", function (o) { o.especificos.origen.acuerdo = ""; });
+    ausente("E01", "caso2", "sin seguro, la aseguradora vacía no es obligatoria", function () {});
+    mutacion("E02", "caso1", "Incoterm «FOBX»", function (o) { o.generales.comercial.incoterm = "FOBX"; });
+    mutacion("E03", "caso1", "CIF con lugar convenido «Ningbo» (debe ser el puerto de destino)", function (o) { o.generales.comercial.lugarConvenido = "Ningbo"; });
+    mutacion("E04", "caso1", "CIF con cobertura del 100 %", function (o) { o.especificos.seguro.coberturaPct = 100; });
+    mutacion("E04", "caso1", "CIP con cláusulas ICC (C)", function (o) { o.generales.comercial.incoterm = "CIP"; });
+    mutacion("E05", "caso1", "ítem 1 con peso bruto 4.00 < neto 4.50", function (o) { o.especificos.items[0].pesoBrutoBulto = 4; });
+    mutacion("E06", "caso1", "ítem 3: 3 050 unidades en cajas de 100", function (o) { o.especificos.items[2].cantidad = 3050; });
+    mutacion("E07", "caso1", "ítem 1 con precio unitario 0", function (o) { o.especificos.items[0].precioUnitario = 0; });
+    mutacion("E08", "caso1", "subpartida de 8 dígitos", function (o) { o.especificos.items[0].subpartida = "8414.51.00"; });
+    mutacion("E09", "caso1", "contenedor EJMU 261014 8 (dígito de control erróneo)", function (o) { o.especificos.contenedor.numero = "EJMU2610148"; });
+    mutacion("E10", "caso1", "RUC del importador de 10 dígitos", function (o) { o.generales.partes.comprador.idFiscal = "2000000000"; });
+    mutacion("E10", "caso2", "RUC del exportador con letras", function (o) { o.generales.partes.vendedor.idFiscal = "2000000001A"; });
+    mutacion("E11", "caso1", "importación con puerto de descarga CLSAI (no peruano)", function (o) { o.generales.ruta.puertoDescarga.locode = "CLSAI"; });
+    mutacion("E11", "caso2", "UN/LOCODE mal formado «PE1LL»", function (o) { o.generales.ruta.puertoEmbarque.locode = "PE1LL"; });
+    mutacion("E12", "caso1", "flete 25 000 mayor que la factura CIF (FOB negativo)", function (o) { o.especificos.valoracion.flete = 25000; });
+    mutacion("E12", "caso2", "exportación con deducciones mayores que la factura", function (o) { o.especificos.valoracion.expOtrosDeducibles = 50000; });
+    mutacion("E13", "caso1", "ETA 01-10-2026, antes del embarque", function (o) { o.especificos.transporte.eta = "2026-10-01"; });
+    mutacion("E14", "caso1", "moneda EUR", function (o) { o.generales.comercial.moneda = "EUR"; });
+    mutacion("E15", "caso1", "importación sin tipo de cambio", function (o) { o.generales.aduana.tipoCambio = null; });
+    mutacion("E16", "caso1", "ítem 2 con tasa ad valorem 9 % en la serie 1", function (o) { o.especificos.items[1].tasaAV = 9; });
+    mutacion("E17", "caso1", "3 celulares 8517.13 con solo 2 equipos registrados", function (o) { celulares(o, equiposSinteticos(2)); });
+    mutacion("E17", "caso1", "celulares con IMEI repetido", function (o) { var e = equiposSinteticos(3); e[2].imeis = e[0].imeis.slice(); celulares(o, e); });
+    mutacion("E17", "caso1", "celular sin número de serie", function (o) { var e = equiposSinteticos(3); e[1].serie = ""; celulares(o, e); });
+    ausente("E17", "caso1", "3 celulares con 3 equipos completos y únicos (control)", function (o) { celulares(o, equiposSinteticos(3)); });
+    ausente("E17", "caso1", "DAM formulada el 04-10-2026, antes de la vigencia de RS 129 (control)", function (o) {
+      celulares(o, []); o.generales.aduana.fechaFormulacion = "2026-10-04"; });
+    mutacion("E18", "caso1", "modalidad de pago «5» (no existe en IT A 5.2)", function (o) { o.generales.comercial.modalidadPago = "5"; });
+    mutacion("E18", "caso1", "estado «30» (no existe en IT C 5.16)", function (o) { o.especificos.items[0].estado = "30"; });
+    (function () {
+      var op = ejemplo("caso1");
+      var r = JSON.parse(JSON.stringify(Calculos.calcular(op)));   // copia del resultado (el original está congelado)
+      r.cuadres[0].ok = false;
+      var rv = revisar(op, r);
+      prueba("E19 · resultado con un cuadre alterado a propósito (copia sintética)", "E19 presente",
+        V.ids(rv).indexOf("E19") !== -1 ? "E19 presente" : "falta E19");
+      prueba("E19 · hayErrores() = sí", "true", String(V.hayErrores(rv)));
+    })();
+
+    grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A20, C01–C02)",
+      "A01, A08, A19 y A20 ya salen en los casos. A10 no se activa mientras su umbral esté POR VERIFICAR (PV-03).");
+    ausente("A01", "caso1", "FCA (recomendado para contenedor) no da el aviso", function (o) { o.generales.comercial.incoterm = "FCA"; o.especificos.seguro.hay = false; o.especificos.transporte.fleteBl = "collect"; });
+    mutacion("A02", "caso2", "exportación en EXW", function (o) { o.generales.comercial.incoterm = "EXW"; });
+    mutacion("A03", "caso1", "importación en DDP", function (o) { o.generales.comercial.incoterm = "DDP"; });
+    mutacion("A04", "caso1", "importación en DAP (grupo D)", function (o) { o.generales.comercial.incoterm = "DAP"; });
+    mutacion("A05", "caso1", "CIF con flete collect en el B/L", function (o) { o.especificos.transporte.fleteBl = "collect"; });
+    mutacion("A06", "caso1", "bultos del ítem 1 de 500 cm de largo (120 m³)", function (o) { o.especificos.items[0].largoCm = 500; });
+    mutacion("A07", "caso1", "tara 30 000 kg (VGM 32,289 kg)", function (o) { o.especificos.contenedor.tara = 30000; });
+    mutacion("A09", "caso1", "RUC del importador 20000000002 (dígito módulo 11 erróneo)", function (o) { o.generales.partes.comprador.idFiscal = "20000000002"; });
+    ausente("A10", "caso1", "umbral de despacho simplificado sin cifra (PV-03): no se inventa", function () {});
+    (function () {
+      var umbral = NORMATIVA.valores.umbralDespachoSimplificadoUsd;
+      var antes = umbral.valor;
+      umbral.valor = 50000;   // umbral ficticio solo para probar la lógica; se restaura enseguida
+      try { mutacion("A10", "caso1", "con un umbral ficticio de USD 50,000 (solo en esta prueba)", function () {}); }
+      finally { umbral.valor = antes; }
+    })();
+    mutacion("A11", "caso1", "certificado de seguro del 20-10-2026, después del embarque", function (o) { o.especificos.seguro.fechaEmision = "2026-10-20"; });
+    mutacion("A12", "caso1", "CFR con seguro", function (o) { o.generales.comercial.incoterm = "CFR"; });
+    mutacion("A13", "caso2", "certificado de origen del 25-10-2026, después del embarque", function (o) { o.especificos.origen.certificadoFecha = "2026-10-25"; });
+    mutacion("A14", "caso1", "ítem 1 con origen PE y vendedor en CN", function (o) { o.especificos.items[0].paisOrigen = "PE"; });
+    mutacion("A15", "caso1", "CFR sin seguro: tabla de SUNAT", function (o) { o.generales.comercial.incoterm = "CFR"; o.especificos.seguro.hay = false; o.especificos.seguro.pctTablaSunat = 0.5; });
+    mutacion("A16", "caso1", "FOB 18,123.87 pagado en efectivo (01)", function (o) { o.generales.comercial.medioPago = "01"; });
+    mutacion("A17", "caso1", "IMEI con dígito Luhn erróneo", function (o) { var e = equiposSinteticos(3); e[0].imeis = ["350000000000015"]; celulares(o, e); });
+    mutacion("A18", "caso1", "importación en DPU", function (o) { o.generales.comercial.incoterm = "DPU"; });
+    mutacion("A20", "caso1", "(ya está en el caso 1: despacho anticipado sin fecha de término de descarga)", function () {});
+    ausente("A20", "caso1", "con fecha de término de descarga", function (o) { o.especificos.transporte.fechaTerminoDescarga = "2026-11-16"; });
+    mutacion("C01", "caso1", "todos los precios en 0: el FOB se reparte en partes iguales", function (o) { o.especificos.items.forEach(function (it) { it.precioUnitario = 0; }); });
+    mutacion("C02", "caso1", "ajuste 8.1.2 sin ítems objeto de ajuste", function (o) {
+      o.especificos.valoracion.ajuste812 = 10; o.especificos.items.forEach(function (it) { it.objetoAjuste = false; }); });
+
+    grupo("15. Validaciones: calidad de los mensajes",
+      "Revisa todos los hallazgos producidos en los grupos 12 a 14.");
+    prueba("Cada hallazgo dice qué pasa, por qué importa y cómo corregirlo", "[]", JSON.stringify(todosHallazgos.filter(function (h) {
+      return !h.que || !h.porque || !h.como;
+    }).map(function (h) { return h.id + ": " + h.que; }).slice(0, 5)));
+    prueba("Cada hallazgo trae fuente y marca H/H*/S/PV", "[]", JSON.stringify(todosHallazgos.filter(function (h) {
+      return !h.fuente || ["H", "H*", "S", "PV"].indexOf(h.marca) === -1;
+    }).map(function (h) { return h.id; }).slice(0, 5)));
+    prueba("Los hallazgos con marca PV dicen «POR VERIFICAR»", "[]", JSON.stringify(todosHallazgos.filter(function (h) {
+      return h.marca === "PV" && (h.que + " " + h.porque).indexOf("POR VERIFICAR") === -1;
+    }).map(function (h) { return h.id + ": " + h.que; }).slice(0, 5)));
+    prueba("Cada hallazgo apunta a un dato que existe (ruta del diccionario o bloque de la vista)", "[]", JSON.stringify(todosHallazgos.filter(function (h) {
+      return h.id !== "A19" && (!h.rutas.length || h.rutas.some(function (r) {
+        return r.charAt(0) !== "#" && r !== "especificos.items" && !DICCIONARIO.buscar(r);
+      }));
+    }).map(function (h) { return h.id + ": " + h.rutas.join(" "); }).slice(0, 5)));
+    prueba("Se probaron todos los errores E01–E19", "[]", JSON.stringify(catE.filter(function (id) {
+      return !todosHallazgos.some(function (h) { return h.id === id; });
+    })));
+    prueba("Se probaron todas las advertencias A01–A20", "[]", JSON.stringify(catA.filter(function (id) {
+      return !todosHallazgos.some(function (h) { return h.id === id; });
+    })));
 
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");

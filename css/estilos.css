@@ -143,7 +143,7 @@ table.datos tr.detalle p { margin: 2px 0; }
   body { background: #fff; padding: 0; }
   body > * { max-width: none; }
   /* Solo se imprimen las hojas de documentos. */
-  .cabecera, .aviso, .marcas, .estado, .operacion { display: none; }
+  .cabecera, .aviso, .marcas, .estado, .operacion, .revision { display: none; }
   section.hoja { border: none; padding: 0; margin: 0; min-height: auto; break-after: page; }
   .marca-agua {
     display: block;
@@ -214,3 +214,32 @@ table.resultados tr.fila-total td { font-weight: 700; border-top: 2px solid var(
   table.pruebas td:nth-child(2)::before { content: "Esperado: "; font-weight: 600; }
   table.pruebas td:nth-child(3)::before { content: "Obtenido: "; font-weight: 600; }
 }
+
+/* F4: panel «Revisión de la operación». Severidad con icono y texto, no solo color. */
+.rev-contador { font-weight: 700; margin: 4px 0 8px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--borde); }
+.rev-contador.rev-con-errores { color: #b42318; background: #fdecea; border-color: #f5b5ae; }
+.rev-contador.rev-sin-errores { color: #1a7f37; background: #eaf6ec; border-color: #a7d8b2; }
+.rev-grupo { border-top: 1px solid var(--borde); margin-top: 10px; padding-top: 6px; }
+.rev-grupo h3 { font-size: 1rem; margin: 4px 0 6px; }
+.rev-error h3 { color: #b42318; }
+.rev-advertencia h3 { color: #8a4b00; }
+.rev-reglas { list-style: none; margin: 0; padding: 0; }
+.rev-regla { margin: 8px 0; padding: 8px 10px; border: 1px solid var(--borde); border-left-width: 4px; border-radius: 6px; background: #fff; overflow-wrap: anywhere; }
+.rev-error .rev-regla { border-left-color: #b42318; }
+.rev-advertencia .rev-regla { border-left-color: var(--aviso-borde); }
+.rev-cabecera { margin: 0 0 4px; }
+.rev-id { display: inline-block; font-family: ui-monospace, Consolas, monospace; font-weight: 700; padding: 0 6px; border-radius: 4px; background: #eef2f7; border: 1px solid var(--borde); }
+.rev-items { margin: 4px 0; padding-left: 1.4em; }
+.rev-item { margin: 4px 0 8px; }
+.rev-que { margin: 0; font-weight: 600; }
+.rev-texto { margin: 3px 0; font-size: 0.92rem; }
+.rev-fuente { margin: 3px 0 0; }
+.rev-fuente .marca { min-width: 0; font-size: 0.72rem; }
+.rev-ir { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.btn-ir { font-size: 0.85rem; padding: 2px 10px; background: #e0ecff; border-color: #93c5fd; text-align: left; }
+.btn-ir::before { content: "→ "; }
+.btn-ir:hover { background: #cfe0fd; }
+/* Dato al que llevó un enlace del panel: resaltado visible (también sin color: borde grueso). */
+tr.resaltado td { background: #fff3b0 !important; }
+tr.resaltado { outline: 3px solid #1d4ed8; outline-offset: -3px; }
+summary.resaltado, .bloque-resultado.resaltado { outline: 3px solid #1d4ed8; outline-offset: 2px; }

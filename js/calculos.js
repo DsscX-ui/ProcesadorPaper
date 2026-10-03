@@ -108,10 +108,10 @@ var Calculos = (function () {
     return { partes: partes, iguales: iguales };
   }
 
-  // ------------------------------------------------------------------ Formato de números (es-PE)
-  // Decisión de formato (PLAN.md §6.1): punto decimal y espacio fino como separador de miles
-  // ("20 040.00"). Evita confundir coma y punto entre países y es el formato de los ejemplos del plan.
-  var SEP_MILES = " ";
+  // ------------------------------------------------------------------ Formato de números
+  // Decisión D10 (PLAN.md §6.1 y §11): coma de miles y punto decimal ("20,040.00"; DAM A/C "18,123.870";
+  // DAM B "21.705231"). Es la convención de las facturas comerciales en USD y de la DAM impresa en el Perú.
+  var SEP_MILES = ",";
 
   // Texto canónico sin separador de miles ("18123.870"): para comparar en las pruebas.
   function decimal(x, dec) {
@@ -260,10 +260,11 @@ var Calculos = (function () {
       var precio = aFijo(it.precioUnitario, 6);
       var valor = multiplicar(cant, precio, 2);                 // valor de línea, 2 decimales
       var porBulto = aFijo(it.unidadesPorBulto, 3);
-      var bultos = 0;
+      var bultos = 0, bultosExactos = true;
       if (porBulto.v > 0) {
         var exacto = dividirFijo(cant, porBulto, 3);
         if (exacto.v % 1000 !== 0) {
+          bultosExactos = false;
           avisar("E06", "Ítem " + (i + 1) + ": la cantidad no es múltiplo de las unidades por bulto; se redondea hacia arriba.");
         }
         bultos = Math.ceil(exacto.v / 1000);
@@ -285,7 +286,8 @@ var Calculos = (function () {
         pesoBruto: multiplicar(aFijo(it.pesoBrutoBulto, 2), nB, 2),
         volumenBulto: volBulto,
         volumen: multiplicar(volBulto, nB, 3),
-        objetoAjuste: it.objetoAjuste === true
+        objetoAjuste: it.objetoAjuste === true,
+        bultosExactos: bultosExactos            // false: la cantidad no es múltiplo de las unidades por bulto (E06)
       };
     });
 
@@ -484,7 +486,7 @@ var Calculos = (function () {
       var distintas = its.some(function (it) { return !igual(aFijo(it.tasaAV, 4), tasaAV) || it.tpi !== its[0].tpi || it.tipoA720 !== its[0].tipoA720; });
       if (distintas) { avisar("E16", "Serie " + s.numero + ": sus ítems tienen distinta tasa o código de tributos; se usa la del primer ítem."); }
       function sumaItems(campo) { return sumar(its.map(function (it) { return aFijo(it[campo], 3); }).concat([fx(0, 3)])); }
-      var l = { tasaAV: tasaAV };
+      var l = { tasaAV: tasaAV, tributosDistintos: distintas };   // tributosDistintos: E16
       l.adValorem = porcentaje(s.valorAduana, tasaAV, 3);
       l.sobretasa = sumaItems("sobretasa");
       l.derechoEspecifico = sumaItems("derechoEspecifico");
@@ -506,7 +508,8 @@ var Calculos = (function () {
     };
 
     // Percepción del IGV: un valor por operación (D2, D6), fuera del Formato C (PV-01).
-    // Base = valor en aduana + tributos del Formato C (incluye antidumping; PV-17).
+    // Base = valor en aduana + tributos del Formato C, incluido el antidumping (D11: [H*] Ley 29173,
+    // sin fuente en la carpeta; PV-17).
     var tasaPer = aFijo(op.especificos.tributos.tasaPercepcion, 4);
     var basePer = sumar(valorAduana.total, liq.total);
     var percepcion = { tasa: tasaPer, base: basePer, monto: porcentaje(basePer, tasaPer, 3) };

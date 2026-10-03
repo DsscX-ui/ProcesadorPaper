@@ -287,7 +287,13 @@ var NORMATIVA = (function () {
       marca: "H",
       fuente: "RS129 art. 1 y 1.ª disposición complementaria final"
     },
-    capacidadReferencialM3: { valor: { "22G1": 33, "42G1": 67, "45G1": 76 }, marca: "PV", fuente: "PV-16" }
+    capacidadReferencialM3: { valor: { "22G1": 33, "42G1": 67, "45G1": 76 }, marca: "PV", fuente: "PV-16" },
+    // A07. Peso bruto máximo referencial (contenedor + carga). 30 480 kg es el valor clásico de ISO 668 [H*];
+    // el máximo real figura en la placa CSC de cada contenedor (PV-16).
+    pesoBrutoMaximoReferencialKg: { valor: { "22G1": 30480, "42G1": 30480, "45G1": 30480 }, marca: "PV", fuente: "PV-16; ISO 668 [H*]" },
+    // A10. Umbral de despacho simplificado: sin fuente en la carpeta (PV-03). Mientras valga null,
+    // la advertencia A10 no se activa (no se inventa la cifra).
+    umbralDespachoSimplificadoUsd: { valor: null, unidad: "USD FOB", marca: "PV", fuente: "PV-03" }
   };
 
   return {

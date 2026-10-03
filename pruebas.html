@@ -664,6 +664,28 @@
         e04y01(function (o) { o.generales.comercial.incoterm = "CFR"; o.especificos.seguro.poliza = ""; }));
     })();
 
+    // ============================================================ Pendientes de las re-auditorías (F4.2)
+    grupo("F4.2 (F41-B1). E03: solo se quitan el prefijo «Puerto de/del», «Port of» y el país al final",
+      "Las palabras internas del nombre se conservan: «Callao of», «Callao Puerto» y «Port Callao of the» ya no pasan.");
+    [["Callao of", true], ["Callao Puerto", true], ["Port Callao of the", true], ["Of Callao", true], ["Puerto Callao", true],
+      ["Perú", true], ["Puerto de Callao", false], ["Port of Callao, Peru", false], ["Callao PE", false], ["callao", false]
+    ].forEach(function (e) {
+      prueba("CIF con lugar convenido «" + e[0] + "» → " + (e[1] ? "E03" : "sin E03"), e[1] ? "E03 presente" : "E03 ausente",
+        idsDe(conLugar(e[0])).indexOf("E03") !== -1 ? "E03 presente" : "E03 ausente");
+    });
+
+    grupo("F4.2 (F31-B1). Decimales contados desde la mantisa y el exponente",
+      "1e-21 y 1e-25 tienen 21 y 25 decimales: ya no se convierten en 0 antes de contarlos.");
+    [1e-21, 1e-25, 1.5e-21].forEach(function (v) {
+      var o = ejemplo("caso1");
+      o.especificos.items[0].cantidad = v;
+      prueba("Cantidad " + v + ": revisarNumero la rechaza", "true", String(/más de 3 decimales/.test(Modelo.revisarNumero("cantidad", v))));
+      prueba("Cantidad " + v + ": Abrir la rechaza", "true", String(/más de 3 decimales/.test(Modelo.revisarArchivo(o))));
+      prueba("Cantidad " + v + ": calcular la rechaza", "true", String(/más de 3 decimales/.test(lanza(function () { Calculos.calcular(o); }))));
+    });
+    prueba("0.001 (3 decimales) sigue siendo válida", "", Modelo.revisarNumero("cantidad", 0.001));
+    prueba("1e21 se rechaza por el máximo, no por decimales", "true", String(/supera el máximo/.test(Modelo.revisarNumero("cantidad", 1e21))));
+
     grupo("15. Validaciones: calidad de los mensajes",
       "Revisa todos los hallazgos producidos en los grupos 12 a 14.");
     prueba("Cada hallazgo dice qué pasa, por qué importa y cómo corregirlo", "[]", JSON.stringify(todosHallazgos.filter(function (h) {

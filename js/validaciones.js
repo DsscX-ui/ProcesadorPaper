@@ -168,18 +168,29 @@ var Validaciones = (function () {
     return String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
   }
 
-  // E03 (F4-M1): el lugar convenido coincide con el puerto si, palabra por palabra, es su nombre completo
-  // o su UN/LOCODE exacto. Se admiten solo estas variantes explícitas: «Puerto de/del …», «Port of …» y el
-  // país del puerto al final («Callao, Perú», «Callao PE»). «Otrocallao» o «Callao Norte» no coinciden.
-  var PALABRAS_DE_RELLENO = ["puerto", "port", "de", "del", "of", "el", "the"];
+  // E03 (F4-M1, F41-B1): el lugar convenido coincide con el puerto si, palabra por palabra, es su nombre
+  // completo o su UN/LOCODE exacto. Solo se admiten estas variantes explícitas: el prefijo «Puerto de …»,
+  // «Puerto del …» o «Port of …» AL INICIO, y el país del puerto (nombre o código) AL FINAL («Callao, Perú»,
+  // «Callao PE»). Las palabras internas no se tocan: «Callao Norte», «Callao of» o «Port Callao of the» no coinciden.
+  var PREFIJOS_LUGAR = [["puerto", "del"], ["puerto", "de"], ["port", "of"]];
   function palabrasLugar(texto, pais) {
-    var nombrePais = pais ? normalizar((NORMATIVA.opcion("pais", pais) || {}).texto || "") : "";
-    return normalizar(texto).replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(function (p, i, todas) {
-      if (!p || PALABRAS_DE_RELLENO.indexOf(p) !== -1) { return false; }
-      // El país solo se descarta como última palabra, nunca como el nombre entero.
-      var ultima = i === todas.length - 1 && todas.length > 1;
-      return !(ultima && (p === nombrePais || p === normalizar(pais)));
-    }).join(" ");
+    var p = normalizar(texto).replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(Boolean);
+    for (var k = 0; k < PREFIJOS_LUGAR.length; k++) {
+      var pre = PREFIJOS_LUGAR[k];
+      if (p.length > pre.length && pre.every(function (w, i) { return p[i] === w; })) { p = p.slice(pre.length); break; }
+    }
+    // El país solo se descarta al final y nunca como el nombre entero.
+    var finales = [];
+    if (pais) {
+      var nombrePais = normalizar((NORMATIVA.opcion("pais", pais) || {}).texto || "").replace(/[^a-z0-9]+/g, " ").trim();
+      if (nombrePais) { finales.push(nombrePais.split(" ")); }
+      finales.push([normalizar(pais)]);
+    }
+    for (var f = 0; f < finales.length; f++) {
+      var suf = finales[f], n = p.length - suf.length;
+      if (n > 0 && suf.every(function (w, i) { return p[n + i] === w; })) { p = p.slice(0, n); break; }
+    }
+    return p.join(" ");
   }
   function lugarCoincide(lugar, puerto) {
     var pais = String(puerto.locode || "").slice(0, 2).toUpperCase();

@@ -47,12 +47,13 @@ Al cargar una operación, la herramienta la revisa con las reglas de `PLAN.md` �
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"328 de 328 pruebas correctas"** en verde.
+2. Arriba debe decir **"349 de 349 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
    tipo de cambio ausente, repartos con base cero, límites numéricos y explicación de la percepción); los grupos
-   F4-M1 a F4-B1, de la auditoría de F4 (lugar convenido, series de celulares repetidas y seguro incompleto en CIF/CIP).
+   F4-M1 a F4-B1, de la auditoría de F4 (lugar convenido, series de celulares repetidas y seguro incompleto en CIF/CIP);
+   los grupos F4.2, de los pendientes de las re-auditorías (variantes del lugar convenido y números como 1e-21).
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -70,6 +71,6 @@ Ctrl+P → Destino: **Guardar como PDF** → Tamaño: **A4**.
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1 y F4.1 (correcciones de las auditorías de F3 y F4). Siguiente: F5 (formulario completo).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4). Siguiente: F5 (formulario completo).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

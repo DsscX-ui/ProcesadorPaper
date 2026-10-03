@@ -41,12 +41,14 @@ var Modelo = (function () {
   };
   var MAX_FACTURA_USD = 1000000000;
 
-  // Cantidad de decimales con que está escrito un número (0.3 → 1; 1e-7 → 7).
+  // Cantidad de decimales con que está escrito un número (0.3 → 1; 1e-7 → 7; 1.5e-21 → 22).
+  // Se cuentan desde la mantisa y el exponente de String(n), sin redondear antes (F31-B1):
+  // toFixed(20) convertía 1e-21 en 0 y lo dejaba pasar.
   function decimalesDe(n) {
-    var s = String(Math.abs(n));
-    if (s.indexOf("e") !== -1) { s = Math.abs(n).toFixed(20).replace(/0+$/, ""); }
-    var frac = s.split(".")[1];
-    return frac ? frac.length : 0;
+    var m = /^(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(String(Math.abs(n)));
+    if (!m) { return Infinity; }
+    var frac = m[2] || "", exp = m[3] ? Number(m[3]) : 0;
+    return Math.max(0, frac.length - exp);
   }
 
   // Revisa un dato numérico contra su límite. Devuelve "" si está bien o el problema en español.

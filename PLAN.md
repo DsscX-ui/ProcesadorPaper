@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3) y **F4.1** (correcciones de la auditoría de F4; `pruebas.html`: 328 de 328 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) y **F4.2** (pendientes menores de las re-auditorías; `pruebas.html`: 349 de 349 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -546,7 +546,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | A07 | VGM mayor que el peso bruto máximo referencial del contenedor (PV-16) |
 | A08 | Subpartida no marcada como verificada: se muestra "POR VERIFICAR" |
 | A09 | RUC con prefijo distinto de 10 o 20, o que no cumple el dígito verificador módulo 11 [H\*; PV-18] |
-| A10 | FOB dentro de un umbral de despacho simplificado (PV-03). No confundir con los umbrales de medios de pago de IT C, rubro 4, «Otros datos» a): FOB > US$ 500 obliga a usar medios de pago (A16); US$ 2 000 separa las consecuencias (reembarque o multa) de no usarlos [H]. |
+| A10 | FOB dentro de un umbral de despacho simplificado (PV-03). No confundir con los umbrales de medios de pago de IT C, rubro 4, «Otros datos» a): FOB > US$ 500 (o S/ 2 000) obliga a usar medios de pago (A16). Las consecuencias de no usarlos dependen del régimen y del momento: en importación para el consumo con FOB > US$ 2 000 (o S/ 7 000), antes del levante, reembarque o multa a elección del importador; después del levante, multa; en ambos casos, además, efectos tributarios. En el tramo inferior y en otros regímenes, los efectos tributarios de los supuestos de la tabla del instructivo [H: IT C, rubro 4, «Otros datos» a), tabla de supuestos] (F4.2). |
 | A11 | Fecha del certificado de seguro posterior al embarque (referencia: art. 28(e) de UCP 600 [H\*]) |
 | A12 | Seguro en un Incoterm que no lo exige: se informa quién lo contrata |
 | A13 | Certificado de origen con fecha posterior al embarque (PV-12) |
@@ -946,8 +946,15 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - F4-M1: E03 ya no acepta el nombre del puerto como parte de otra palabra («Puerto de Otrocallao»). El lugar convenido debe ser, palabra por palabra, el nombre completo del puerto o su UN/LOCODE exacto; solo se admiten las variantes «Puerto de/del …», «Port of …» y el país del puerto al final («Callao, Perú»).
 - F4-M2 y F4-M3: E17 comprueba la unicidad de series e IMEI con `Set` (una serie «constructor» ya no es un duplicado) y sin espacios exteriores («ABC» y « ABC » son la misma serie). Las mayúsculas se respetan: «abc» y «ABC» son distintas mientras no se decida otra cosa.
 - F4-B1: en CIF y CIP, cada dato del seguro que falta (póliza, certificado, fecha, cláusulas, cobertura, tasa de prima, lugar de pago de siniestros, aseguradora) es **E04** y no se repite como E01; un dato vacío marcado PV sigue sin ser error (D13).
-- F4-B2: la explicación de A10 cita los dos umbrales de medios de pago de la copia local de IT C, rubro 4, «Otros datos» a): US$ 500 (obligación de usar medios de pago, A16) y US$ 2 000 (consecuencias: reembarque o multa). La cifra US$ 2 000 sí figura en el instructivo, pero solo para las consecuencias.
+- F4-B2: la explicación de A10 cita los dos umbrales de medios de pago de la copia local de IT C, rubro 4, «Otros datos» a): US$ 500 (obligación de usar medios de pago, A16) y US$ 2 000 (consecuencias). La cifra US$ 2 000 sí figura en el instructivo, pero solo para las consecuencias, que F4.2 precisa en §7 (régimen y momento del levante).
 - Regresiones en `pruebas.html` (grupos F4-M1, F4-M2 y F4-M3, F4-B1).
+
+**Pendientes de las re-auditorías de F3.1 y F4.1, resueltos en F4.2**
+
+- F31-B1: los decimales de un número se cuentan desde la mantisa y el exponente de su escritura (`1e-21` tiene 21 decimales), sin redondearlo antes; `1e-21` y `1e-25` ya no eluden el límite al abrir ni al calcular.
+- F41-B1: E03 solo quita el prefijo «Puerto de …», «Puerto del …» o «Port of …» al inicio y el país del puerto (nombre o código) al final; las palabras internas se conservan («Callao of», «Callao Puerto» y «Port Callao of the» dan E03).
+- F41-B2: la explicación de A10 (§7) distingue régimen y momento del levante en las consecuencias de no usar medios de pago.
+- Regresiones en `pruebas.html` (grupos F4.2).
 
 **Pendientes de la re-auditoría de F2.1, resueltos en F4**
 

@@ -1,0 +1,11 @@
+OK    [1280px] Tipo de cambio vacío → «Pago en soles: no calculado» y ningún «S/ 0.00»
+OK    [1280px] Pesos brutos 0 → explicación del flete en partes iguales (C01)
+OK    [1280px] Panel: E05,E07,E15,A01,A08,A19,A20,C01
+OK    [1280px] Sin desborde horizontal
+OK    [1280px] Errores de consola: ninguno
+OK    [390px] Tipo de cambio vacío → «Pago en soles: no calculado» y ningún «S/ 0.00»
+OK    [390px] Pesos brutos 0 → explicación del flete en partes iguales (C01)
+OK    [390px] Panel: E05,E07,E15,A01,A08,A19,A20,C01
+OK    [390px] Sin desborde horizontal
+OK    [390px] Errores de consola: ninguno
+RESULTADO: todo correcto

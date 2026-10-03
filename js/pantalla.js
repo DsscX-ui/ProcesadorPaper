@@ -306,10 +306,12 @@
         return [String(it.numero), Fm.comercial(it.valor), Fm.damAC(it.fob), Fm.damB(it.fobUnitario), it.objetoAjuste ? "Sí" : "No",
           Fm.damAC(it.ajuste), Fm.damB(it.ajusteUnitario), String(it.serie)];
       })));
-    b4.appendChild(explicacion("FOB del ítem = FOB total × valor del ítem ÷ valor de la factura; el último ítem recibe el residuo. FOB unitario = FOB del ítem ÷ cantidad, con 6 decimales.",
-      [["H", "IT C 5.9"]]));
+    b4.appendChild(explicacion(r.repartosIguales.fob ?
+      "FOB del ítem: como el valor de la factura es 0, el FOB total se reparte en partes iguales (advertencia C01); el último ítem recibe el residuo. FOB unitario = FOB del ítem ÷ cantidad, con 6 decimales." :
+      "FOB del ítem = FOB total × valor del ítem ÷ valor de la factura; el último ítem recibe el residuo. FOB unitario = FOB del ítem ÷ cantidad, con 6 decimales.",
+      r.repartosIguales.fob ? [["H", "IT C 5.9"], ["S", "D12"]] : [["H", "IT C 5.9"]]));
     b4.appendChild(explicacion("Ajuste total (8.1.2 a 8.1.4 y 8.2) = USD " + Fm.damAC(r.ajustes.total) +
-      ". Se reparte solo entre los ítems objeto de ajuste, según su valor" +
+      ". Se reparte solo entre los ítems objeto de ajuste, " + (r.repartosIguales.ajustes ? "en partes iguales porque su valor facturado suma 0 (C01)" : "según su valor") +
       (r.ajustes.itemsAjustados.length ? " (ítems " + r.ajustes.itemsAjustados.join(", ") + ")." : "."), [["H", "IT C 5.10"]]));
     frag.appendChild(b4);
 
@@ -326,8 +328,9 @@
       { total: true }));
     b5.appendChild(explicacion("Los ítems se agrupan en series si comparten subpartida, país de origen y los demás datos de IT A 7.1. " +
       "Valor en aduana de la serie (7.34) = FOB + flete + seguro + ajuste; la fila Total corresponde a las casillas A 6.1 a 6.5.", [["H", "IT A 7.1, 7.34, 6.5"]]));
-    b5.appendChild(explicacion("El flete se reparte por peso bruto y el " + (r.seguroOrigen === "prima" ? "seguro" : "seguro de la tabla") +
-      " por FOB. Compara las columnas «% peso» y «% FOB»: cuando son muy distintas, cambiar el criterio cambia mucho el valor en aduana de cada serie.",
+    b5.appendChild(explicacion("El flete se reparte " + (r.repartosIguales.flete ? "en partes iguales, porque el peso bruto total es 0 (C01)," : "por peso bruto") +
+      " y el " + (r.seguroOrigen === "prima" ? "seguro" : "seguro de la tabla") +
+      (r.repartosIguales.seguro ? " en partes iguales, porque el FOB de las series suma 0 (C01)." : " por FOB.") + " Compara las columnas «% peso» y «% FOB»: cuando son muy distintas, cambiar el criterio cambia mucho el valor en aduana de cada serie.",
       [["S"], ["PV", "PV-04"]]));
     frag.appendChild(b5);
 
@@ -348,15 +351,20 @@
     b6.appendChild(explicacion("IGV = " + Fm.pct(l.igvPct) + " × base; IPM = " + Fm.pct(l.ipmPct) + " × base. El servicio de despacho (C 4.8) no se calcula.",
       [["H*", "Ley del IGV"], ["PV", "PV-02"]]));
     var p = r.percepcion;
-    b6.appendChild(explicacion("Percepción del IGV (fuera del Formato C) = " + Fm.pct(p.tasa) + " × (valor en aduana + tributos " + Fm.damAC(p.base) +
-      ") = USD " + Fm.damAC(p.monto) + ". Un solo valor por operación: la tasa depende del importador y, en algunos casos, de la mercancía.",
+    // F3-M5: la base se descompone (valor en aduana + tributos = base) y lleva junto la marca del antidumping (D11).
+    b6.appendChild(explicacion("Percepción del IGV (fuera del Formato C): base = valor en aduana " + Fm.damAC(p.valorAduana) +
+      " + tributos " + Fm.damAC(p.tributos) + " = " + Fm.damAC(p.base) + "; percepción = " + Fm.pct(p.tasa) + " × " + Fm.damAC(p.base) +
+      " = USD " + Fm.damAC(p.monto) + ". Un solo valor por operación: la tasa depende del importador y, en algunos casos, de la mercancía.",
       [["PV", "PV-01 (D2, D6)"]]));
-    b6.appendChild(explicacion("La base de la percepción incluye el antidumping (USD " + Fm.damAC(l.antidumping) + " en esta operación), " +
-      "a diferencia de la base del IGV. Se sigue la Ley 29173 sin fuente en la carpeta (decisión D11).",
-      [["H*", "Ley 29173"], ["PV", "PV-17"]]));
+    b6.appendChild(explicacion("Los tributos de esa base incluyen el antidumping (USD " + Fm.damAC(p.antidumping) + " en esta operación), " +
+      "a diferencia de la base del IGV: incluye antidumping, según la Ley 29173, sin fuente en la carpeta (decisión D11).",
+      [["H*", "Ley 29173"], ["PV", "PV-17: verificar"]]));
     var so = r.soles;
-    b6.appendChild(explicacion("Pago en soles al tipo de cambio venta " + Fm.numero(so.tipoCambio, 3) + ": tributos S/ " + Fm.comercial(so.tributos) +
-      " + percepción S/ " + Fm.comercial(so.percepcion) + " = S/ " + Fm.comercial(so.total) + ".", [["H", "IT D rubro 5"], ["PV", "PV-07, PV-08"]]));
+    b6.appendChild(so.disponible ?
+      explicacion("Pago en soles al tipo de cambio venta " + Fm.numero(so.tipoCambio, 3) + ": tributos S/ " + Fm.comercial(so.tributos) +
+        " + percepción S/ " + Fm.comercial(so.percepcion) + " = S/ " + Fm.comercial(so.total) + ".", [["H", "IT D rubro 5"], ["PV", "PV-07, PV-08"]]) :
+      explicacion("Pago en soles: no calculado, falta un tipo de cambio válido (vacío, 0 o negativo; error E15). No significa que no haya nada que pagar.",
+        [["H", "IT D rubro 5"]]));
     frag.appendChild(b6);
   }
 
@@ -371,6 +379,9 @@
     ], { total: true }));
     b3.appendChild(explicacion("S 6.5 = S 6.1 − S 6.3 + S 6.4. Se deduce en ventas CFR o CIF y se ajusta en EXW; en FOB no hay diferencias. S 6.5 debe ser igual a la suma de S 7.30.",
       [["H", "IT B 6.1–6.5"]]));
+    b3.appendChild(explicacion(r.repartosIguales.fob ?
+      "FOB por ítem: como el valor de la factura es 0, S 6.5 se reparte en partes iguales entre los ítems (advertencia C01)." :
+      "FOB por ítem: S 6.5 se reparte según el valor de cada ítem; el último recibe el residuo.", [["S", "PLAN §6.3, D12"]]));
     frag.appendChild(b3);
 
     var b5 = bloque("4. Por serie (DAM de salida)");

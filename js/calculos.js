@@ -25,6 +25,18 @@ var Calculos = (function () {
   }
 
   function fx(v, d) { return { v: v, d: d }; }
+
+  // Paso de BigInt a Number solo dentro del rango de enteros exactos (±2^53 − 1). Fuera de él la cifra
+  // perdería precisión en silencio, así que se rechaza con un mensaje claro (F3-M4). Los límites de
+  // entrada de Modelo.limitesNumero evitan llegar aquí con datos razonables.
+  var MAX_SEGURO = BigInt(Number.MAX_SAFE_INTEGER);
+  function aNumero(b) {
+    if (b > MAX_SEGURO || b < -MAX_SEGURO) {
+      throw new Error("Una cifra sale del rango que la herramienta calcula con exactitud (" +
+        "más de 9,007,199,254,740,991 en su unidad mínima). Revisa montos, cantidades y precios (límites: PLAN §6.1)");
+    }
+    return Number(b);
+  }
   var CERO = fx(0, 0);
 
   function esCero(x) { return x.v === 0; }
@@ -40,7 +52,7 @@ var Calculos = (function () {
     var entero = BigInt((m[2] || "0") + (frac + "0".repeat(d)).slice(0, d));
     if (frac.length > d && Number(frac.charAt(d)) >= 5) { entero += BigInt(1); }
     if (m[1] === "-") { entero = -entero; }
-    return fx(Number(entero), d);
+    return fx(aNumero(entero), d);
   }
 
   function numeroATexto(n) {
@@ -53,8 +65,8 @@ var Calculos = (function () {
   // Cambia la cantidad de decimales (redondea si se quitan).
   function escalar(x, d) {
     if (d === x.d) { return x; }
-    if (d > x.d) { return fx(Number(BigInt(x.v) * pot10(d - x.d)), d); }
-    return fx(Number(dividir(BigInt(x.v), pot10(x.d - d))), d);
+    if (d > x.d) { return fx(aNumero(BigInt(x.v) * pot10(d - x.d)), d); }
+    return fx(aNumero(dividir(BigInt(x.v), pot10(x.d - d))), d);
   }
 
   function sumar() {
@@ -63,7 +75,7 @@ var Calculos = (function () {
     var d = lista.reduce(function (m, x) { return Math.max(m, x.d); }, 0);
     var v = BigInt(0);
     lista.forEach(function (x) { v += BigInt(escalar(x, d).v); });
-    return fx(Number(v), d);
+    return fx(aNumero(v), d);
   }
 
   function restar(a, b) { return sumar(a, fx(-b.v, b.d)); }
@@ -71,18 +83,18 @@ var Calculos = (function () {
 
   // a × b, redondeado a d decimales.
   function multiplicar(a, b, d) {
-    return fx(Number(dividir(BigInt(a.v) * BigInt(b.v) * pot10(d), pot10(a.d + b.d))), d);
+    return fx(aNumero(dividir(BigInt(a.v) * BigInt(b.v) * pot10(d), pot10(a.d + b.d))), d);
   }
 
   // a × porcentaje / 100, redondeado a d decimales.
   function porcentaje(a, pct, d) {
-    return fx(Number(dividir(BigInt(a.v) * BigInt(pct.v) * pot10(d), pot10(a.d + pct.d) * BigInt(100))), d);
+    return fx(aNumero(dividir(BigInt(a.v) * BigInt(pct.v) * pot10(d), pot10(a.d + pct.d) * BigInt(100))), d);
   }
 
   // a ÷ b, redondeado a d decimales.
   function dividirFijo(a, b, d) {
     if (b.v === 0) { return null; }
-    return fx(Number(dividir(BigInt(a.v) * pot10(d + b.d), BigInt(b.v) * pot10(a.d))), d);
+    return fx(aNumero(dividir(BigInt(a.v) * pot10(d + b.d), BigInt(b.v) * pot10(a.d))), d);
   }
 
   function igual(a, b) { var d = Math.max(a.d, b.d); return escalar(a, d).v === escalar(b, d).v; }
@@ -103,7 +115,7 @@ var Calculos = (function () {
     for (var i = 0; i < n; i++) {
       var parte = i < n - 1 ? dividir(T * w[i], W) : T - acumulado;
       acumulado += parte;
-      partes.push(fx(Number(parte), total.d));
+      partes.push(fx(aNumero(parte), total.d));
     }
     return { partes: partes, iguales: iguales };
   }
@@ -241,9 +253,20 @@ var Calculos = (function () {
 
   function pctNormativa(nombre) { return aFijo(NORMATIVA.valores[nombre].valor, 4); }
 
+  // Rechaza datos numéricos fuera de los límites de entrada (F3-M4): mejor un mensaje claro que una cifra inexacta.
+  function revisarEntrada(op) {
+    Modelo.hojas(op, "").forEach(function (h) {
+      if (typeof h.valor !== "number") { return; }
+      var problema = Modelo.revisarNumero(h.ruta.split(".").pop(), h.valor);
+      if (problema) { throw new Error("Dato fuera de rango en " + h.ruta + ": " + problema); }
+    });
+  }
+
   function calcular(op) {
     var avisos = [];
-    function avisar(codigo, texto) { avisos.push({ codigo: codigo, texto: texto }); }
+    // concepto: para los repartos en partes iguales (C01) indica qué se repartió (fob, flete, seguro, ajustes).
+    function avisar(codigo, texto, concepto) { avisos.push({ codigo: codigo, texto: texto, concepto: concepto || "" }); }
+    revisarEntrada(op);
 
     var tipo = op.generales.operacion.tipo;
     var esImportacion = tipo === "importacion";
@@ -262,12 +285,15 @@ var Calculos = (function () {
       var porBulto = aFijo(it.unidadesPorBulto, 3);
       var bultos = 0, bultosExactos = true;
       if (porBulto.v > 0) {
-        var exacto = dividirFijo(cant, porBulto, 3);
-        if (exacto.v % 1000 !== 0) {
-          bultosExactos = false;
-          avisar("E06", "Ítem " + (i + 1) + ": la cantidad no es múltiplo de las unidades por bulto; se redondea hacia arriba.");
+        // Con los enteros exactos (milésimos) de cantidad y unidades por bulto, sin redondear antes (F3-M1).
+        var nC = BigInt(cant.v), nP = BigInt(porBulto.v);
+        if (nC > 0) {
+          bultosExactos = nC % nP === BigInt(0);
+          bultos = aNumero((nC + nP - BigInt(1)) / nP);          // techo de la división
+          if (!bultosExactos) {
+            avisar("E06", "Ítem " + (i + 1) + ": la cantidad no es múltiplo de las unidades por bulto; se redondea hacia arriba.");
+          }
         }
-        bultos = Math.ceil(exacto.v / 1000);
       } else if (cant.v > 0) {
         avisar("E07", "Ítem " + (i + 1) + ": faltan las unidades por bulto.");
       }
@@ -290,6 +316,12 @@ var Calculos = (function () {
         bultosExactos: bultosExactos            // false: la cantidad no es múltiplo de las unidades por bulto (E06)
       };
     });
+
+    // Tope del valor total de la factura (F3-M4): con él todas las cifras monetarias quedan en rango seguro.
+    var sumaFactura = items.reduce(function (acc, x) { return acc + BigInt(x.valor.v); }, BigInt(0));
+    if (sumaFactura > BigInt(Modelo.maxFacturaUsd) * BigInt(100) || sumaFactura < -BigInt(Modelo.maxFacturaUsd) * BigInt(100)) {
+      throw new Error("El valor total de la factura supera USD 1,000,000,000, el máximo que admite la herramienta (PLAN §6.1)");
+    }
 
     var totales = {
       valorFactura: sumar(items.map(function (x) { return x.valor; }).concat([fx(0, 2)])),
@@ -355,7 +387,8 @@ var Calculos = (function () {
       vgm: vgm,
       fleteBl: fleteBl,
       seguro: seguro,
-      avisos: avisos
+      avisos: avisos,
+      repartosIguales: {}    // concepto → true si se repartió en partes iguales por base cero (C01)
     };
 
     if (!regla) { avisar("E02", "Incoterm vacío o fuera de los 11 de Incoterms® 2020; se usa la fórmula de FOB."); }
@@ -392,6 +425,14 @@ var Calculos = (function () {
     });
   }
 
+  // F3-M3: si un reparto de un monto no nulo entre 2 o más partes cayó a partes iguales (base cero),
+  // se avisa (C01) y se anota en r.repartosIguales para que la pantalla explique el criterio real.
+  function vigilarReparto(rep, total, concepto, texto, r, avisar) {
+    var iguales = rep.iguales && rep.partes.length > 1 && total.v !== 0;
+    r.repartosIguales[concepto] = iguales;
+    if (iguales) { avisar("C01", texto, concepto); }
+  }
+
   function sumaDe(lista, campo, d) {
     return sumar(lista.map(function (x) { return x[campo]; }).concat([fx(0, d)]));
   }
@@ -406,9 +447,7 @@ var Calculos = (function () {
     if (fob.total.v <= 0 && items.length) { avisar("E12", "El FOB derivado es menor o igual que cero."); }
     var fobTotal = escalar(fob.total, 3);
     var repFob = prorratear(fobTotal, items.map(function (x) { return x.valor; }));
-    if (repFob.iguales && items.length && fobTotal.v !== 0) {
-      avisar("C01", "El valor de la factura es 0: el FOB se reparte en partes iguales entre los ítems.");
-    }
+    vigilarReparto(repFob, fobTotal, "fob", "El valor de la factura es 0: el FOB se reparte en partes iguales entre los ítems.", r, avisar);
     items.forEach(function (it, i) {
       it.fob = repFob.partes[i];
       it.fobUnitario = dividirFijo(it.fob, it.cantidad, 6) || fx(0, 6);
@@ -425,6 +464,7 @@ var Calculos = (function () {
       ajustados = items;
     }
     var repAj = prorratear(ajusteTotal, ajustados.map(function (x) { return x.valor; }));
+    vigilarReparto(repAj, ajusteTotal, "ajustes", "El valor facturado de los ítems ajustados es 0: los ajustes se reparten en partes iguales entre ellos.", r, avisar);
     items.forEach(function (it) { it.ajuste = fx(0, 3); });
     ajustados.forEach(function (it, k) { it.ajuste = repAj.partes[k]; });
     items.forEach(function (it) { it.ajusteUnitario = dividirFijo(it.ajuste, it.cantidad, 6) || fx(0, 6); });
@@ -462,6 +502,8 @@ var Calculos = (function () {
       avisar("A15", "Importación sin seguro: se aplica el % de la tabla de SUNAT (" + formato.pct(pctTabla) + ", PV-06) sobre el FOB.");
     }
     var repSeguro = prorratear(seguroTotal, series.map(function (s) { return s.fob; }));
+    vigilarReparto(repFlete, escalar(flete, 3), "flete", "El peso bruto total es 0: el flete se reparte en partes iguales entre las series.", r, avisar);
+    vigilarReparto(repSeguro, seguroTotal, "seguro", "El FOB de las series suma 0: el seguro se reparte en partes iguales entre las series.", r, avisar);
     series.forEach(function (s, k) {
       s.flete = repFlete.partes[k];
       s.seguro = repSeguro.partes[k];
@@ -512,17 +554,21 @@ var Calculos = (function () {
     // sin fuente en la carpeta; PV-17).
     var tasaPer = aFijo(op.especificos.tributos.tasaPercepcion, 4);
     var basePer = sumar(valorAduana.total, liq.total);
-    var percepcion = { tasa: tasaPer, base: basePer, monto: porcentaje(basePer, tasaPer, 3) };
+    var percepcion = { tasa: tasaPer, valorAduana: valorAduana.total, tributos: liq.total, antidumping: liq.antidumping,
+      base: basePer, monto: porcentaje(basePer, tasaPer, 3) };
 
     // Pago en soles: monto en USD × tipo de cambio venta (IT D rubro 5); 2 decimales [S; PV-08].
-    var tc = aFijo(g.aduana.tipoCambio, 3);
-    if (tc.v <= 0) { avisar("E15", "Importación sin tipo de cambio: no se calcula el pago en soles."); }
-    var soles = {
-      tipoCambio: tc,
-      tributos: multiplicar(liq.total, tc, 2),
-      percepcion: multiplicar(percepcion.monto, tc, 2)
-    };
-    soles.total = sumar(soles.tributos, soles.percepcion);
+    // Sin un tipo de cambio válido (vacío, 0 o negativo) los pagos quedan "no calculados" (null), no en 0 (F3-M2).
+    var tcValido = typeof g.aduana.tipoCambio === "number" && g.aduana.tipoCambio > 0;
+    var tc = tcValido ? aFijo(g.aduana.tipoCambio, 3) : null;
+    var soles = { disponible: tcValido, tipoCambio: tc, tributos: null, percepcion: null, total: null };
+    if (tcValido) {
+      soles.tributos = multiplicar(liq.total, tc, 2);
+      soles.percepcion = multiplicar(percepcion.monto, tc, 2);
+      soles.total = sumar(soles.tributos, soles.percepcion);
+    } else {
+      avisar("E15", "Importación sin tipo de cambio válido: el pago en soles no se calcula.");
+    }
 
     // Cuadres internos (E19): deben cumplirse siempre.
     var cuadres = [
@@ -561,6 +607,7 @@ var Calculos = (function () {
 
     // FOB por ítem: S 6.5 repartido según el valor del ítem (mismo criterio que IT C 5.9) [S].
     var rep = prorratear(s65, items.map(function (x) { return x.valor; }));
+    vigilarReparto(rep, s65, "fob", "El valor de la factura es 0: el FOB de exportación (S 6.5) se reparte en partes iguales entre los ítems.", r, avisar);
     items.forEach(function (it, i) {
       it.fob = rep.partes[i];
       it.fobUnitario = dividirFijo(it.fob, it.cantidad, 6) || fx(0, 6);

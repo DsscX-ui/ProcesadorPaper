@@ -20,6 +20,50 @@ var Modelo = (function () {
     marcas: 5000
   };
 
+  // Límites de cada dato numérico (F3-M4): [valor absoluto máximo, decimales máximos]. Los usan Abrir
+  // y Calculos.calcular, así ninguna cifra sale del rango de enteros exactos de JavaScript (±2^53 − 1)
+  // ni se redondea en silencio. Además, el valor total de la factura no puede superar USD 1,000,000,000
+  // (lo comprueba calculos.js). Se aplican por nombre del dato (última parte de la ruta).
+  var MONTO = [1000000000, 2], PCT = [1000, 4], TRIBUTO = [1000000000, 3];
+  var LIMITES_NUMERO = {
+    cantidad: [1000000, 3], precioUnitario: [1000000, 6], unidadesPorBulto: [1000000, 3],
+    pesoNetoBulto: [100000, 2], pesoBrutoBulto: [100000, 2],
+    largoCm: [10000, 1], anchoCm: [10000, 1], altoCm: [10000, 1],
+    tara: [100000, 2], estibaTrincaje: [100000, 2], blOriginales: [100, 0],
+    tasaAV: PCT, tasaPercepcion: PCT, coberturaPct: PCT, tasaPrimaPct: PCT, pctTablaSunat: PCT, porcentaje: PCT,
+    plazoDias: [10000, 0], tipoCambio: [1000, 3],
+    sobretasa: TRIBUTO, derechoEspecifico: TRIBUTO, isc: TRIBUTO, antidumping: TRIBUTO,
+    flete: MONTO, gastosExw815: MONTO, otros816: MONTO, ajuste812: MONTO, ajuste813: MONTO,
+    descuentosNoAceptables814: MONTO, comisiones821: MONTO, envases822: MONTO, materiales8231: MONTO,
+    herramientas8232: MONTO, consumidos8233: MONTO, ingenieria8234: MONTO, canones824: MONTO,
+    reversion825: MONTO, gastosDestino832: MONTO, posteriores851: MONTO, montaje852: MONTO,
+    tributos853: MONTO, intereses854: MONTO, otros855: MONTO, expOtrosDeducibles: MONTO, expAjustes: MONTO
+  };
+  var MAX_FACTURA_USD = 1000000000;
+
+  // Cantidad de decimales con que está escrito un número (0.3 → 1; 1e-7 → 7).
+  function decimalesDe(n) {
+    var s = String(Math.abs(n));
+    if (s.indexOf("e") !== -1) { s = Math.abs(n).toFixed(20).replace(/0+$/, ""); }
+    var frac = s.split(".")[1];
+    return frac ? frac.length : 0;
+  }
+
+  // Revisa un dato numérico contra su límite. Devuelve "" si está bien o el problema en español.
+  function revisarNumero(clave, valor) {
+    if (valor === null || valor === undefined) { return ""; }
+    if (typeof valor !== "number" || !isFinite(valor)) { return "número no válido"; }
+    var lim = LIMITES_NUMERO[clave];
+    if (!lim) { return ""; }
+    if (Math.abs(valor) > lim[0]) {
+      return "el valor " + valor + " supera el máximo de " + lim[0].toLocaleString("en-US") + " que admite la herramienta";
+    }
+    if (decimalesDe(valor) > lim[1]) {
+      return "tiene más de " + lim[1] + " decimales (" + valor + "); la herramienta no lo redondea en silencio";
+    }
+    return "";
+  }
+
   function parte() {
     return { razonSocial: "", direccion: "", ciudad: "", pais: "", idFiscal: "", ubigeo: "" };
   }
@@ -243,7 +287,10 @@ var Modelo = (function () {
     }
     if (tp === "number" || tp === "null") {
       if (tv !== "number" && tv !== "null") { errores.push(ruta + ": se esperaba un número o vacío y llegó " + NOMBRE_TIPO[tv]); return; }
-      if (tv === "number" && !isFinite(valor)) { errores.push(ruta + ": número no válido"); }
+      if (tv === "number") {
+        var problema = revisarNumero(ruta.split(".").pop(), valor);
+        if (problema) { errores.push(ruta + ": " + problema); }
+      }
       return;
     }
     if (tp === "object") {
@@ -406,6 +453,9 @@ var Modelo = (function () {
     formato: FORMATO,
     version: VERSION,
     limites: LIMITES,
+    limitesNumero: LIMITES_NUMERO,
+    maxFacturaUsd: MAX_FACTURA_USD,
+    revisarNumero: revisarNumero,
     operacionVacia: operacionVacia,
     itemVacio: itemVacio,
     equipoVacio: equipoVacio,

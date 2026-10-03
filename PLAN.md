@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`) y **F4** (validaciones y panel «Revisión de la operación»; `pruebas.html`: 256 de 256 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación») y **F3.1** (correcciones de la auditoría de F3; `pruebas.html`: 304 de 304 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -405,7 +405,10 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 - Los cálculos internos se hacen con enteros (centavos o milésimos) para evitar errores de coma flotante [S].
 - **Prorrateos:** cada parte se redondea y la diferencia se asigna a la última, para que la suma cuadre exacta [S].
 - Pesos en kg con 2 decimales; volumen en m³ con 3 decimales [S]. El volumen por bulto se redondea a 3 decimales y el de la línea es ese valor × bultos, para que la lista de empaque cuadre a la vista.
-- **Implementación (F3):** cada cifra es un decimal fijo (entero + cantidad de decimales); productos y divisiones con `BigInt`. La mitad se redondea alejándose de cero [S; PV-08]. Si la base de un prorrateo es 0, se reparte en partes iguales y se informa [S].
+- **Implementación (F3):** cada cifra es un decimal fijo (entero + cantidad de decimales); productos y divisiones con `BigInt`. La mitad se redondea alejándose de cero [S; PV-08]. Si la base de un prorrateo es 0 y hay un monto no nulo que repartir entre 2 o más partes (FOB por ítem, ajustes, flete o seguro por serie, FOB de exportación), se reparte en partes iguales y se informa con la advertencia C01 [S; D12].
+- **Bultos (F3.1):** se calculan con los enteros exactos de cantidad y unidades por bulto (milésimos), sin redondear antes el cociente: 3,000.001 unidades en cajas de 100 son 31 bultos y avisan E06.
+- **Rango seguro y límites de entrada (F3.1)** [S]: ninguna cifra interna puede salir del rango de enteros exactos de JavaScript (±2^53 − 1 en su unidad mínima); si saliera, el cálculo se detiene con un mensaje claro en lugar de redondear en silencio. Para que eso no ocurra con datos razonables, cada dato numérico tiene un máximo y una cantidad máxima de decimales (`Modelo.limitesNumero`), que se aplican al **Abrir** y al **calcular**: cantidad ≤ 1,000,000 (3 decimales); precio unitario ≤ 1,000,000 (6); unidades por bulto ≤ 1,000,000 (3); pesos por bulto, tara y estiba ≤ 100,000 kg (2); medidas ≤ 10,000 cm (1); montos de la sección 8 y de exportación ≤ USD 1,000,000,000 (2); sobretasa, derecho específico, ISC y antidumping ≤ USD 1,000,000,000 (3); porcentajes ≤ 1,000 (4); tipo de cambio ≤ 1,000 (3); N° de originales ≤ 100 y plazo ≤ 10,000 días (enteros). Además, el **valor total de la factura no puede superar USD 1,000,000,000**.
+- **Pago en soles sin tipo de cambio válido (F3.1):** si el tipo de cambio está vacío, es 0 o negativo, los pagos en soles quedan **no calculados** (no 0.00) y se informa E15.
 - **Formato de números en pantalla y documentos** [S] (decisión D10): **coma de miles y punto decimal**: "20,040.00" (documentos comerciales), "18,123.870" (DAM, Formatos A y C), "21.705231" (Formato B); negativos con "−". Es la convención que el estudiante ve en las facturas comerciales en USD y en la DAM impresa. Las cantidades enteras van sin decimales ("3,000"). Las tablas de este plan conservan el espacio como separador por legibilidad; la herramienta usa la coma.
 
 ### 6.2 Mercancía y embalaje
@@ -562,7 +565,13 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 - **E17** aplica desde la fecha de formulación 05-10-2026 (RS129, `normativa.js`), con el modelo de equipos de D9.
 - **E18** revisa los campos de código cuya lista es cerrada (marca H del instructivo o S del alcance v1); las listas abiertas o pendientes (H\*, PV) no se revisan.
 - **A07** usa 30 480 kg como peso bruto máximo referencial de los tres tipos de contenedor [H\*: ISO 668; PV-16]. **A10** no se activa mientras el umbral de PV-03 no tenga cifra con fuente (`normativa.js`: `null`); `pruebas.html` comprueba la lógica con un umbral ficticio.
-- Los avisos del cálculo de D12 se muestran como advertencias **C01** (FOB repartido en partes iguales) y **C02** (ajustes sin ítems marcados).
+- Los avisos del cálculo de D12 se muestran como advertencias adicionales a las de la tabla (decisión D13):
+
+| ID | Regla |
+|---|---|
+| C01 | Reparto en partes iguales por base cero: FOB por ítem (importación o exportación), ajustes entre los ítems ajustados, flete o seguro entre series. El mensaje dice qué se repartió y lleva al dato de la base (precio o peso bruto) [S; D12]. |
+| C02 | Hay ajustes (8.1.2 a 8.2.5) pero ningún ítem está marcado como objeto de ajuste: se reparten entre todos [S; IT C 5.10; D12]. |
+
 - `Validaciones.hayErrores(revision)` es la función que consultarán los documentos (F6+) para bloquearse si hay errores.
 - Panel **«Revisión de la operación»** en `index.html`: contador (errores bloquean, advertencias no), lista por severidad y por regla, y botón «Ir al dato» que abre el grupo, centra, enfoca y resalta la fila.
 
@@ -910,6 +919,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | D10 | Formato de números | Coma de miles y punto decimal: `20,040.00`; DAM A/C `18,123.870`; B `21.705231` (§6.1). |
 | D11 | Antidumping en la base de la percepción | Se mantiene incluido, con marca H\* (Ley 29173, sin fuente en la carpeta) y PV-17 visibles. En los casos vale 0. |
 | D12 | Supuestos de F3 | Aceptados como [S]: FOB por ítem en exportación por valor; soles con 2 decimales; tabla SUNAT sobre FOB; ajustes sin ítems marcados → todos con aviso (C01/C02 en F4); base 0 → partes iguales con aviso. |
+| D13 | Dudas de F4 | Aceptadas: modelo obligatorio solo en importación [S]; dato vacío marcado PV no es E01 (lo cuenta A19); A07 con 30,480 kg [H\*: ISO 668; PV-16]; A10 inactiva hasta cerrar PV-03; advertencias C01/C02 (§7); las tablas de §9 conservan su notación; A19 cuenta tributos en 0 marcados PV. |
 
 **Correcciones de la auditoría de F2 aplicadas en F2.1**
 
@@ -920,6 +930,15 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - La revisión del diccionario dice "Correspondencia diccionario–modelo: correcta" (no acredita la cobertura del plan).
 - Accesibilidad: botón "Abrir JSON" real, foco visible, ayuda por campo con botón "?" (teclado y toque); en móvil la casilla DAM y la fuente se ven debajo de cada dato.
 - La huella se describe como comprobación rápida, no como garantía; la prueba Guardar→Abrir compara además el contenido completo.
+
+**Correcciones de la auditoría de F3 (Codex), aplicadas en F3.1**
+
+- F3-M1: bultos con enteros exactos, sin redondeo previo del cociente (§6.1).
+- F3-M2: sin tipo de cambio válido, el pago en soles queda «no calculado» (null), no 0.
+- F3-M3: los repartos con base cero (FOB, ajustes, flete, seguro, exportación) avisan C01 y la pantalla explica el criterio usado.
+- F3-M4: rango seguro de enteros vigilado en cada conversión y límites de entrada coherentes, aplicados al abrir y al calcular (§6.1).
+- F3-M5: la percepción se explica como «valor en aduana 20,040.000 + tributos 4,222.709 = 24,262.709», con la marca del antidumping [H\*: Ley 29173; PV-17] junto a la base.
+- Cada corrección tiene pruebas de regresión en `pruebas.html` (grupos F3-M1 a F3-M5).
 
 **Pendientes de la re-auditoría de F2.1, resueltos en F4**
 

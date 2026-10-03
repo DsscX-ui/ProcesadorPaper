@@ -146,9 +146,9 @@ var Validaciones = (function () {
     "En el despacho anticipado la DAM se numera antes de la llegada, así que aún no hay fecha de término de descarga. Qué va en la casilla A 3.4 está POR VERIFICAR (PV-26).",
     "Déjala vacía hasta la descarga; la DAM mostrará POR VERIFICAR.");
   // Avisos del cálculo (decisión D12) convertidos en advertencias, como pide PLAN §6.5.
-  regla("C01", "FOB repartido en partes iguales", "S", "PLAN §6.1 (D12)",
-    "El valor de la factura es 0, así que no hay proporción para repartir el FOB entre los ítems.",
-    "Revisa cantidades y precios unitarios.");
+  regla("C01", "Reparto en partes iguales (base cero)", "S", "PLAN §6.1 (D12)",
+    "Un monto (FOB, flete, seguro o ajustes) debía repartirse en proporción a una base (valor, peso bruto o FOB) que suma 0; como no hay proporción, se repartió en partes iguales.",
+    "");
   regla("C02", "Ajustes sin ítems marcados: se reparten entre todos", "S", "IT C 5.10; PLAN §6.5 (D12)",
     "Los ajustes (8.1.2 a 8.2.5) solo se reparten entre los ítems «objeto de ajuste» (IT C 5.10); como no hay ninguno marcado, se repartieron entre todos.",
     "Marca los ítems a los que corresponde el ajuste.");
@@ -488,7 +488,15 @@ var Validaciones = (function () {
     });
     // C01 y C02: avisos del cálculo (D12).
     r.avisos.forEach(function (a) {
-      if (a.codigo === "C01") { agregar("C01", a.texto, ["especificos.items.0.precioUnitario"]); }
+      if (a.codigo === "C01") {
+        var c01 = {
+          fob: ["especificos.items.0.precioUnitario", "Revisa cantidades y precios unitarios: el reparto debería seguir el valor de cada ítem."],
+          ajustes: ["especificos.items.0.precioUnitario", "Revisa los precios de los ítems objeto de ajuste: el ajuste debería repartirse según su valor."],
+          flete: ["especificos.items.0.pesoBrutoBulto", "Revisa los pesos brutos por bulto: el flete debería repartirse según el peso bruto de cada serie."],
+          seguro: ["especificos.items.0.precioUnitario", "Revisa precios y gastos: el seguro debería repartirse según el FOB de cada serie."]
+        }[a.concepto] || ["especificos.items.0.precioUnitario", "Revisa los datos de la base del reparto."];
+        agregar("C01", a.texto, [c01[0]], { como: c01[1] });
+      }
       if (a.codigo === "C02") { agregar("C02", a.texto, ["especificos.items.0.objetoAjuste"]); }
     });
   }

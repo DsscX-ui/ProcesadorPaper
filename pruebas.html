@@ -320,6 +320,119 @@
     prueba("UN/LOCODE PE1LL (el dígito 1 no se usa, inválido)", "false", String(C.locode("PE1LL").valido));
     prueba("UN/LOCODE CLSAI no es de Perú (inválido)", "false", String(C.locode("CLSAI", "PE").valido));
 
+    // ============================================================ Regresiones de la auditoría de F3 (F3.1)
+    function codigos(r) { return r.avisos.map(function (a) { return a.codigo + (a.concepto ? ":" + a.concepto : ""); }).join(","); }
+    function lanza(fn) { try { fn(); return "sin error"; } catch (e) { return "error: " + e.message; } }
+
+    grupo("F3-M1. Bultos con división no exacta (sin redondeo previo)",
+      "3 000.001 o 3 000.01 unidades en cajas de 100 no llenan 30 cajas: son 31 bultos y aviso E06.");
+    [["3000.001", 31], ["3000.01", 31], ["3000", 30]].forEach(function (e) {
+      var o = ejemplo("caso1");
+      o.especificos.items[2].cantidad = Number(e[0]);
+      var r = Calculos.calcular(o);
+      prueba("Cantidad " + e[0] + " ÷ 100 por caja: bultos", e[1], r.items[2].bultos);
+      prueba("Cantidad " + e[0] + ": ¿división exacta?", String(e[1] === 30), String(r.items[2].bultosExactos));
+      prueba("Cantidad " + e[0] + ": aviso E06 del cálculo", e[1] === 30 ? "" : "E06", codigos(r));
+    });
+    (function () {
+      var o = ejemplo("caso1");
+      o.especificos.items[2].cantidad = 3000.001;
+      var r = Calculos.calcular(o);
+      prueba("3 000.001: el peso bruto incluye el bulto 31 (31 × 7.50)", "232.50", r.items[2].pesoBruto);
+      prueba("3 000.001: la validación muestra E06", "true", String(Validaciones.ids(Validaciones.validar(o, r)).indexOf("E06") !== -1));
+    })();
+
+    grupo("F3-M2. Tipo de cambio vacío, 0 o negativo: pagos «no calculados»",
+      "Sin tipo de cambio válido los pagos en soles son null (no calculados), nunca 0.00.");
+    [["vacío", null], ["0", 0], ["negativo", -3.5]].forEach(function (e) {
+      var o = ejemplo("caso1");
+      o.generales.aduana.tipoCambio = e[1];
+      var r = Calculos.calcular(o);
+      prueba("Tipo de cambio " + e[0] + ": pago en soles disponible", "false", String(r.soles.disponible));
+      prueba("Tipo de cambio " + e[0] + ": tributos, percepción y total en soles = no calculados (null)", "null,null,null",
+        [r.soles.tributos, r.soles.percepcion, r.soles.total].map(String).join(","));
+      prueba("Tipo de cambio " + e[0] + ": aviso E15 y validación E15", "E15/E15",
+        codigos(r) + "/" + (Validaciones.ids(Validaciones.validar(o, r)).indexOf("E15") !== -1 ? "E15" : "—"));
+    });
+    prueba("Tipo de cambio 3.500 (caso 1): pago en soles disponible", "true", String(r1.soles.disponible));
+
+    grupo("F3-M3. Repartos con base cero: aviso C01 (flete, seguro, ajustes y exportación)",
+      "Si un monto no nulo se reparte sobre una base que suma 0, se usa partes iguales y se avisa (D12).");
+    (function () {
+      prueba("Caso 1: ningún reparto en partes iguales", "", codigos(r1));
+      var of = ejemplo("caso1");
+      of.especificos.items.forEach(function (it) { it.pesoBrutoBulto = 0; });
+      var rf = Calculos.calcular(of);
+      prueba("Peso bruto total 0: aviso C01 del flete", "C01:flete", codigos(rf).split(",").filter(function (c) { return c.indexOf("C01") === 0; }).join(","));
+      prueba("Peso bruto total 0: repartosIguales.flete", "true", String(rf.repartosIguales.flete));
+      prueba("Peso bruto total 0: C01 llega a la revisión con enlace al peso bruto", "especificos.items.0.pesoBrutoBulto",
+        Validaciones.validar(of, rf).hallazgos.filter(function (h) { return h.id === "C01"; }).map(function (h) { return h.rutas[0]; }).join(","));
+      var os = ejemplo("caso1");
+      os.especificos.valoracion.flete = 19973.87;   // FOB = 20 040.00 − 19 973.87 − 66.13 = 0
+      var rs = Calculos.calcular(os);
+      prueba("FOB de las series 0 con seguro 66.13: aviso C01 del seguro", "true", String(codigos(rs).indexOf("C01:seguro") !== -1));
+      prueba("…el seguro se reparte en partes iguales (33.065 / 33.065)", "33.065", rs.series[0].seguro);
+      var oa2 = ejemplo("caso1");
+      oa2.especificos.valoracion.ajuste812 = 10;
+      oa2.especificos.items[0].precioUnitario = 0; oa2.especificos.items[1].precioUnitario = 0;
+      oa2.especificos.items[2].objetoAjuste = false;
+      var ra2 = Calculos.calcular(oa2);
+      prueba("Ítems ajustados con valor 0: aviso C01 de los ajustes", "true", String(codigos(ra2).indexOf("C01:ajustes") !== -1));
+      prueba("…ajuste en partes iguales: ítem 1", "5.000", ra2.items[0].ajuste);
+      var oe2 = ejemplo("caso2");
+      oe2.especificos.items.forEach(function (it) { it.precioUnitario = 0; });
+      oe2.especificos.valoracion.expAjustes = 100;
+      var re2 = Calculos.calcular(oe2);
+      prueba("Exportación con factura 0 y ajuste 100: aviso C01 del FOB", "true", String(codigos(re2).indexOf("C01:fob") !== -1));
+      prueba("…S 6.5 en partes iguales: ítem 1", "50.000", re2.items[0].fob);
+      prueba("Exportación con factura 0 y sin ajustes (nada que repartir): sin C01", "false",
+        String(codigos(Calculos.calcular((function () { var o = ejemplo("caso2"); o.especificos.items.forEach(function (it) { it.precioUnitario = 0; }); return o; })())).indexOf("C01") !== -1));
+    })();
+
+    grupo("F3-M4. Rango seguro de enteros y límites de entrada",
+      "Ninguna cifra sale del rango exacto (±2^53 − 1) sin aviso: los datos fuera de límite se rechazan con un mensaje claro.");
+    prueba("aFijo(\"9007199254.740991\", 6): dentro del rango", "9007199254.740991", Calculos.aFijo("9007199254.740991", 6));
+    prueba("aFijo(\"9007199254.740993\", 6): fuera del rango, se rechaza", "true", String(/rango/.test(lanza(function () { Calculos.aFijo("9007199254.740993", 6); }))));
+    prueba("Todos los datos numéricos del modelo tienen límite", "[]", JSON.stringify((function () {
+      var o = Modelo.operacionVacia(); o.especificos.items = [Modelo.itemVacio()];
+      return Modelo.hojas(o, "").filter(function (h) {
+        return (typeof h.valor === "number" || h.valor === null) && h.ruta !== "version" && !Modelo.limitesNumero[h.ruta.split(".").pop()];
+      }).map(function (h) { return h.ruta; });
+    })()));
+    (function () {
+      var o = ejemplo("caso1");
+      o.especificos.items[0].precioUnitario = 1e21;
+      prueba("Precio 1e21: Abrir lo rechaza", "true", String(/precioUnitario: el valor .* supera el máximo/.test(Modelo.revisarArchivo(o))));
+      prueba("Precio 1e21: calcular lo rechaza con mensaje claro", "true", String(/Dato fuera de rango en especificos\.items\.0\.precioUnitario/.test(lanza(function () { Calculos.calcular(o); }))));
+      var o4 = ejemplo("caso1");
+      o4.especificos.items[2].cantidad = 3000.0001;
+      prueba("Cantidad con 4 decimales: Abrir lo rechaza (no se redondea en silencio)", "true", String(/más de 3 decimales/.test(Modelo.revisarArchivo(o4))));
+      prueba("Cantidad con 4 decimales: calcular lo rechaza", "true", String(/más de 3 decimales/.test(lanza(function () { Calculos.calcular(o4); }))));
+      var om = ejemplo("caso1");
+      om.especificos.items = [om.especificos.items[2]];
+      om.especificos.items[0].cantidad = 1000000; om.especificos.items[0].precioUnitario = 1000;
+      om.especificos.valoracion.flete = 1000000;
+      var rm = Calculos.calcular(om);
+      prueba("Factura en el máximo (1,000,000 × 1,000 = USD 1,000,000,000): se calcula", "1000000000.00", rm.totales.valorFactura);
+      prueba("…y todos los cuadres internos son correctos", "true", String(rm.cuadres.every(function (c) { return c.ok; })));
+      om.especificos.items[0].precioUnitario = 1000.01;
+      prueba("Factura sobre el máximo: se rechaza con mensaje claro", "true", String(/supera USD 1,000,000,000/.test(lanza(function () { Calculos.calcular(om); }))));
+      var op2 = ejemplo("caso1");
+      op2.especificos.valoracion.ajuste812 = 1000000000;
+      op2.especificos.items.forEach(function (it, k) { it.objetoAjuste = k === 0; });
+      op2.especificos.items[0].cantidad = 0.001; op2.especificos.items[0].unidadesPorBulto = 0.001;
+      prueba("Combinación extrema dentro de los límites (ajuste unitario > rango): se rechaza, no se redondea", "true",
+        String(/rango que la herramienta calcula con exactitud/.test(lanza(function () { Calculos.calcular(op2); }))));
+    })();
+
+    grupo("F3-M5. Percepción: base descompuesta y antidumping (D11)",
+      "Base = valor en aduana + tributos (20,040.000 + 4,222.709 = 24,262.709); incluye antidumping [H*; PV-17].");
+    prueba("Valor en aduana de la base", "20040.000", r1.percepcion.valorAduana);
+    prueba("Tributos de la base (incluye antidumping)", "4222.709", r1.percepcion.tributos);
+    prueba("Base = valor en aduana + tributos", "24262.709", Calculos.sumar(r1.percepcion.valorAduana, r1.percepcion.tributos));
+    prueba("Base de la percepción", "24262.709", r1.percepcion.base);
+    prueba("Antidumping incluido (caso 1)", "0.000", r1.percepcion.antidumping);
+
     // ============================================================ Validaciones (F4)
     var V = Validaciones;
     var todosHallazgos = [];

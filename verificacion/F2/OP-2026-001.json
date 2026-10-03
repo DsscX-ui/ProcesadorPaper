@@ -1,6 +1,6 @@
 {
   "formato": "procesador-paper/operacion",
-  "version": 1,
+  "version": 2,
   "meta": {
     "referencia": "OP-2026-001",
     "descripcion": "Caso 1 — Importación CIF Callao: ventiladores (serie 1) y cargadores USB-C (serie 2).",
@@ -131,7 +131,7 @@
         "p7_1": "2",
         "p7_2": "",
         "p7_3": "",
-        "p7_4": "",
+        "p7_4": "1",
         "p7_5": "2",
         "p7_6": "",
         "p7_7": "2",
@@ -161,8 +161,8 @@
         "unidadComercial": "U",
         "unidadFisica": "U",
         "precioUnitario": 19.5,
-        "series": [],
-        "imeis": [],
+        "objetoAjuste": true,
+        "equipos": [],
         "claseBulto": "CAJA_CARTON",
         "unidadesPorBulto": 1,
         "pesoNetoBulto": 4.5,
@@ -176,8 +176,7 @@
         "isc": 0,
         "antidumping": 0,
         "tpi": "",
-        "tipoA720": "",
-        "tasaPercepcion": 3.5
+        "tipoA720": ""
       },
       {
         "nombre": "Ventilador de pie",
@@ -193,8 +192,8 @@
         "unidadComercial": "U",
         "unidadFisica": "U",
         "precioUnitario": 24,
-        "series": [],
-        "imeis": [],
+        "objetoAjuste": true,
+        "equipos": [],
         "claseBulto": "CAJA_CARTON",
         "unidadesPorBulto": 1,
         "pesoNetoBulto": 5.5,
@@ -208,8 +207,7 @@
         "isc": 0,
         "antidumping": 0,
         "tpi": "",
-        "tipoA720": "",
-        "tasaPercepcion": 3.5
+        "tipoA720": ""
       },
       {
         "nombre": "Cargador USB-C",
@@ -225,8 +223,8 @@
         "unidadComercial": "U",
         "unidadFisica": "U",
         "precioUnitario": 4.1,
-        "series": [],
-        "imeis": [],
+        "objetoAjuste": true,
+        "equipos": [],
         "claseBulto": "CAJA_CARTON",
         "unidadesPorBulto": 100,
         "pesoNetoBulto": 6,
@@ -240,8 +238,7 @@
         "isc": 0,
         "antidumping": 0,
         "tpi": "",
-        "tipoA720": "",
-        "tasaPercepcion": 3.5
+        "tipoA720": ""
       }
     ],
     "marcasEmbarque": "IDA / OP-2026-001 / CALLAO / C/No. 1-390 / MADE IN CHINA",
@@ -268,6 +265,7 @@
       "clausulaSlac": true,
       "clausulaStc": true,
       "shipper": "",
+      "fleteBl": "prepaid",
       "manifiesto": "118-2026-POR ASIGNAR",
       "fechaEmbarque": "2026-10-14",
       "fechaTerminoEmbarque": "",
@@ -300,6 +298,9 @@
       "flete": 1850,
       "gastosExw815": 0,
       "otros816": 0,
+      "ajuste812": 0,
+      "ajuste813": 0,
+      "descuentosNoAceptables814": 0,
       "comisiones821": 0,
       "envases822": 0,
       "materiales8231": 0,
@@ -316,6 +317,9 @@
       "otros855": 0,
       "expOtrosDeducibles": 0,
       "expAjustes": 0
+    },
+    "tributos": {
+      "tasaPercepcion": 3.5
     }
   },
   "marcas": {
@@ -352,8 +356,8 @@
       "nota": "Supuesto del caso."
     },
     "generales.valor.rubro7.p7_4": {
-      "marca": "PV",
-      "nota": "Pendiente de decisión de Aarón: el plan dice 'No' en todo el rubro 7, pero en una compraventa normal lo esperable en 7.4 (libre disposición) es 'Sí'."
+      "marca": "S",
+      "nota": "Supuesto del caso (decisiones D1 y D7): en esta compraventa a precio firme el comprador dispone libremente de la mercancía."
     },
     "especificos.items.0.subpartida": {
       "marca": "PV",
@@ -379,17 +383,9 @@
       "marca": "S",
       "nota": "Tasa supuesta (PV-11)."
     },
-    "especificos.items.0.tasaPercepcion": {
+    "especificos.tributos.tasaPercepcion": {
       "marca": "PV",
-      "nota": "Tasa supuesta (PV-01)."
-    },
-    "especificos.items.1.tasaPercepcion": {
-      "marca": "PV",
-      "nota": "Tasa supuesta (PV-01)."
-    },
-    "especificos.items.2.tasaPercepcion": {
-      "marca": "PV",
-      "nota": "Tasa supuesta (PV-01)."
+      "nota": "Tasa supuesta para el caso (PV-01); depende del importador y, en algunos casos, de la mercancía."
     },
     "especificos.contenedor.numero": {
       "marca": "S",
@@ -434,6 +430,46 @@
     "generales.partes.entidadFinanciera.codigo": {
       "marca": "PV",
       "nota": "PV-09: código de la entidad financiera en la tabla de SUNAT."
+    },
+    "generales.valor.rubro7.p7_1": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_5": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_7": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_8": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_9": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_10": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_11": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_12": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_13": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
+    },
+    "generales.valor.rubro7.p7_14": {
+      "marca": "S",
+      "nota": "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto."
     }
   }
 }

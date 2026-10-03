@@ -1,6 +1,6 @@
 {
   "formato": "procesador-paper/operacion",
-  "version": 1,
+  "version": 2,
   "meta": {
     "referencia": "OP-2026-002",
     "descripcion": "Caso 2 — Exportación FOB Callao de prendas de algodón a Chile, con certificado de origen.",
@@ -161,8 +161,8 @@
         "unidadComercial": "U",
         "unidadFisica": "U",
         "precioUnitario": 5.2,
-        "series": [],
-        "imeis": [],
+        "objetoAjuste": true,
+        "equipos": [],
         "claseBulto": "CAJA_CARTON",
         "unidadesPorBulto": 50,
         "pesoNetoBulto": 9,
@@ -176,8 +176,7 @@
         "isc": 0,
         "antidumping": 0,
         "tpi": "",
-        "tipoA720": "",
-        "tasaPercepcion": null
+        "tipoA720": ""
       },
       {
         "nombre": "Sudadera con capucha",
@@ -193,8 +192,8 @@
         "unidadComercial": "U",
         "unidadFisica": "U",
         "precioUnitario": 12.5,
-        "series": [],
-        "imeis": [],
+        "objetoAjuste": true,
+        "equipos": [],
         "claseBulto": "CAJA_CARTON",
         "unidadesPorBulto": 25,
         "pesoNetoBulto": 12.5,
@@ -208,8 +207,7 @@
         "isc": 0,
         "antidumping": 0,
         "tpi": "",
-        "tipoA720": "",
-        "tasaPercepcion": null
+        "tipoA720": ""
       }
     ],
     "marcasEmbarque": "TE / OP-2026-002 / SAN ANTONIO / C/No. 1-140 / HECHO EN PERÚ",
@@ -236,6 +234,7 @@
       "clausulaSlac": true,
       "clausulaStc": true,
       "shipper": "",
+      "fleteBl": "collect",
       "manifiesto": "118-2026-POR ASIGNAR",
       "fechaEmbarque": "2026-10-24",
       "fechaTerminoEmbarque": "2026-10-24",
@@ -268,6 +267,9 @@
       "flete": null,
       "gastosExw815": 0,
       "otros816": 0,
+      "ajuste812": 0,
+      "ajuste813": 0,
+      "descuentosNoAceptables814": 0,
       "comisiones821": 0,
       "envases822": 0,
       "materiales8231": 0,
@@ -284,6 +286,9 @@
       "otros855": 0,
       "expOtrosDeducibles": 0,
       "expAjustes": 0
+    },
+    "tributos": {
+      "tasaPercepcion": null
     }
   },
   "marcas": {

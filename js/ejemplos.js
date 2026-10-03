@@ -34,6 +34,13 @@ var EJEMPLOS = (function () {
     "generales.partes.entidadFinanciera.codigo": { marca: "PV", nota: "PV-09: código de la entidad financiera en la tabla de SUNAT." }
   };
 
+  // Rubro 7 del caso 1 (decisión D7): las respuestas "No" son SUPUESTOS del ejemplo, no una regla.
+  // 7.2, 7.3 y 7.6 quedan vacías porque solo se responden si 7.1 o 7.5 son "Sí".
+  var MARCAS_RUBRO7_NO = {};
+  ["1", "5", "7", "8", "9", "10", "11", "12", "13", "14"].forEach(function (n) {
+    MARCAS_RUBRO7_NO["generales.valor.rubro7.p7_" + n] = { marca: "S", nota: "Supuesto del ejemplo (decisión D7); no es una respuesta por defecto." };
+  });
+
   // ---------------- Caso 1: importación CIF Callao (PLAN.md §9.1)
   var caso1 = mezclar(Modelo.operacionVacia(), {
     meta: {
@@ -78,7 +85,7 @@ var EJEMPLOS = (function () {
         nivelComercial: "2", naturaleza: "11", formaEnvio: "1/1", tipoValor: "1",
         intermediario: { hubo: "2" },
         rubro7: {
-          p7_1: "2", p7_2: "", p7_3: "", p7_4: "", p7_5: "2", p7_6: "", p7_7: "2",
+          p7_1: "2", p7_2: "", p7_3: "", p7_4: "1", p7_5: "2", p7_6: "", p7_7: "2",
           p7_8: "2", p7_9: "2", p7_10: "2", p7_11: "2", p7_12: "2", p7_13: "2", p7_14: "2"
         }
       }
@@ -91,7 +98,7 @@ var EJEMPLOS = (function () {
           marca: "EJEMPLO", modelo: "VE-16", subpartida: "8414.51.00.00", paisOrigen: "CN", estado: "10",
           cantidad: 200, precioUnitario: 19.50,
           claseBulto: "CAJA_CARTON", unidadesPorBulto: 1, pesoNetoBulto: 4.50, pesoBrutoBulto: 5.20,
-          largoCm: 50, anchoCm: 20, altoCm: 60, tasaAV: 6, tasaPercepcion: 3.5
+          largoCm: 50, anchoCm: 20, altoCm: 60, tasaAV: 6
         }),
         item({
           nombre: "Ventilador de pie",
@@ -99,7 +106,7 @@ var EJEMPLOS = (function () {
           marca: "EJEMPLO", modelo: "VE-18", subpartida: "8414.51.00.00", paisOrigen: "CN", estado: "10",
           cantidad: 160, precioUnitario: 24.00,
           claseBulto: "CAJA_CARTON", unidadesPorBulto: 1, pesoNetoBulto: 5.50, pesoBrutoBulto: 6.40,
-          largoCm: 50, anchoCm: 25, altoCm: 60, tasaAV: 6, tasaPercepcion: 3.5
+          largoCm: 50, anchoCm: 25, altoCm: 60, tasaAV: 6
         }),
         item({
           nombre: "Cargador USB-C",
@@ -107,7 +114,7 @@ var EJEMPLOS = (function () {
           marca: "EJEMPLO", modelo: "CG-20", subpartida: "8504.40.90.00", paisOrigen: "CN", estado: "10",
           cantidad: 3000, precioUnitario: 4.10,
           claseBulto: "CAJA_CARTON", unidadesPorBulto: 100, pesoNetoBulto: 6.00, pesoBrutoBulto: 7.50,
-          largoCm: 40, anchoCm: 30, altoCm: 40, tasaAV: 0, tasaPercepcion: 3.5
+          largoCm: 40, anchoCm: 30, altoCm: 40, tasaAV: 0
         })
       ],
       marcasEmbarque: "IDA / OP-2026-001 / CALLAO / C/No. 1-390 / MADE IN CHINA",
@@ -119,7 +126,7 @@ var EJEMPLOS = (function () {
         nave: "MV DIDACTIC STAR", viaje: "2641E", booking: "BK-2026-0001",
         blNumero: "DIDL2026000457", blTipo: "nominativo", blOriginales: 3,
         blLugarEmision: "Ningbo", blFechaEmision: "2026-10-14", fechaShippedOnBoard: "2026-10-14",
-        clausulaSlac: true, clausulaStc: true, shipper: "",
+        clausulaSlac: true, clausulaStc: true, shipper: "", fleteBl: "prepaid",
         manifiesto: "118-2026-POR ASIGNAR", fechaEmbarque: "2026-10-14", fechaTerminoEmbarque: "",
         eta: "2026-11-15", fechaTerminoDescarga: ""
       },
@@ -130,7 +137,8 @@ var EJEMPLOS = (function () {
         pctTablaSunat: null
       },
       origen: { solicitaPreferencia: false },
-      valoracion: { flete: 1850.00 }
+      valoracion: { flete: 1850.00 },
+      tributos: { tasaPercepcion: 3.5 }
     },
     marcas: Object.assign({
       "generales.partes.vendedor.condicion": { marca: "S", nota: "Supuesto del caso." },
@@ -141,16 +149,14 @@ var EJEMPLOS = (function () {
       "generales.aduana.regionDestino": { marca: "S", nota: "Se supone que la mercancía se consume en Lima." },
       "generales.valor.nivelComercial": { marca: "S", nota: "Supuesto del caso." },
       "generales.valor.naturaleza": { marca: "S", nota: "Supuesto del caso." },
-      "generales.valor.rubro7.p7_4": { marca: "PV", nota: "Pendiente de decisión de Aarón: el plan dice 'No' en todo el rubro 7, pero en una compraventa normal lo esperable en 7.4 (libre disposición) es 'Sí'." },
+      "generales.valor.rubro7.p7_4": { marca: "S", nota: "Supuesto del caso (decisiones D1 y D7): en esta compraventa a precio firme el comprador dispone libremente de la mercancía." },
       "especificos.items.0.subpartida": { marca: "PV", nota: "PV-10: SA 8414.51 [H*]; '.00.00' es relleno didáctico." },
       "especificos.items.1.subpartida": { marca: "PV", nota: "PV-10: SA 8414.51 [H*]; '.00.00' es relleno didáctico." },
       "especificos.items.2.subpartida": { marca: "PV", nota: "PV-10: SA 8504.40 [H*]; '.90.00' es una hipótesis no verificada." },
       "especificos.items.0.tasaAV": { marca: "S", nota: "Tasa supuesta (PV-11)." },
       "especificos.items.1.tasaAV": { marca: "S", nota: "Tasa supuesta (PV-11)." },
       "especificos.items.2.tasaAV": { marca: "S", nota: "Tasa supuesta (PV-11)." },
-      "especificos.items.0.tasaPercepcion": { marca: "PV", nota: "Tasa supuesta (PV-01)." },
-      "especificos.items.1.tasaPercepcion": { marca: "PV", nota: "Tasa supuesta (PV-01)." },
-      "especificos.items.2.tasaPercepcion": { marca: "PV", nota: "Tasa supuesta (PV-01)." },
+      "especificos.tributos.tasaPercepcion": { marca: "PV", nota: "Tasa supuesta para el caso (PV-01); depende del importador y, en algunos casos, de la mercancía." },
       "especificos.contenedor.numero": { marca: "S", nota: "Prefijo EJMU ficticio (PV-19); dígito de control ISO 6346 calculado." },
       "especificos.contenedor.tara": { marca: "S", nota: "Tara supuesta (PV-16)." },
       "especificos.transporte.manifiesto": { marca: "S", nota: "Estructura aduana–año–número (IT A 3.2); número por asignar." },
@@ -158,7 +164,7 @@ var EJEMPLOS = (function () {
       "especificos.seguro.tasaPrimaPct": { marca: "S", nota: "Tasa de prima supuesta." },
       "especificos.seguro.agenteReclamos": { marca: "S", nota: "Nombre ficticio." },
       "especificos.valoracion.flete": { marca: "S", nota: "Flete supuesto." }
-    }, MARCAS_AGENTES)
+    }, MARCAS_AGENTES, MARCAS_RUBRO7_NO)
   });
 
   // ---------------- Caso 2: exportación FOB Callao con certificado de origen (PLAN.md §9.2)
@@ -226,7 +232,7 @@ var EJEMPLOS = (function () {
         nave: "MV DIDACTIC STAR", viaje: "2643S", booking: "BK-2026-0002",
         blNumero: "DIDL2026000102", blTipo: "nominativo", blOriginales: 3,
         blLugarEmision: "Callao", blFechaEmision: "2026-10-24", fechaShippedOnBoard: "2026-10-24",
-        clausulaSlac: true, clausulaStc: true, shipper: "",
+        clausulaSlac: true, clausulaStc: true, shipper: "", fleteBl: "collect",
         manifiesto: "118-2026-POR ASIGNAR", fechaEmbarque: "2026-10-24", fechaTerminoEmbarque: "2026-10-24",
         eta: "2026-10-30", fechaTerminoDescarga: ""
       },

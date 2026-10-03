@@ -1,13 +1,13 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fase actual: **F1** (estructura + página con aviso didáctico). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2 y **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11). Fase siguiente: **F3** (cálculos y página de pruebas). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
 
 | Marca | Significado | Cómo se verá en la herramienta |
 |---|---|---|
-| **[H]** | Hecho con fuente en la carpeta. Se cita el documento y la sección (§8.2). | Sin resaltar. La fuente aparece al pasar el cursor y en la tabla de trazabilidad. |
+| **[H]** | Hecho con fuente en la carpeta. Se cita el documento y la sección (§8.2). | Sin resaltar. La fuente aparece con el botón "?" de cada campo (accesible con teclado y toque) y en la tabla de trazabilidad. |
 | **[H\*]** | Hecho de conocimiento general, **sin fuente en la carpeta**. | Etiqueta gris "H\*" junto al dato, con la nota "conocimiento general; no verificado con fuentes de la carpeta". |
 | **[S]** | Supuesto: decisión de diseño o dato ficticio. | Etiqueta "SUPUESTO" en los datos del ejemplo. |
 | **[PV-xx]** | POR VERIFICAR. No se afirma. | Resaltado amarillo con la etiqueta "POR VERIFICAR". |
@@ -94,6 +94,7 @@ ProcesadorPaper/
     ├── ejemplos.js       ← casos 1 y 2 (§9)
     ├── calculos.js       ← ÚNICO lugar donde se calcula y redondea
     ├── validaciones.js   ← errores y advertencias (§7)
+    ├── pantalla.js       ← conecta la interfaz (botones, vista de datos y resultados); no calcula (D3)
     └── documentos/       ← una plantilla por documento; solo leen, no calculan
 ```
 
@@ -215,7 +216,7 @@ Obl. = obligatorio. Cond. = obligatorio solo en el caso indicado. Las casillas d
 | Forma de envío | 1/1 por defecto [H: IT C 4.2] | B 4.2 | Sí |
 | Tipo de valor | 1 definitivo, 2 provisional [H: IT C 5.6] | B 5.6 | Sí |
 | ¿Hubo intermediario? | Sí / No (No por defecto); si es Sí, sus datos [H: IT C 6.1–6.7] | B 6 | Sí |
-| Condiciones de la transacción | Preguntas 7.1 a 7.14 (vinculación, pagos indirectos, cánones, etc.), "No" por defecto [H: IT C 7] | B 7 | Sí |
+| Condiciones de la transacción | Preguntas 7.1 a 7.14 (vinculación, pagos indirectos, cánones, etc.) [H: IT C 7]. **Sin respuesta por defecto:** dependen de la operación. 7.2 y 7.3 solo se responden si 7.1 = Sí; 7.6, si 7.5 = Sí. Las respuestas de los ejemplos son [S] (D1, D7). | B 7 | Sí |
 
 ### B. Datos específicos del embarque
 
@@ -233,7 +234,8 @@ Obl. = obligatorio. Cond. = obligatorio solo en el caso indicado. Las casillas d
 | Cantidad + unidad comercial | Número + código de unidad | A 7.10, B 5.11 | Sí |
 | Unidad física | Según la subpartida (ej. "U"; RS129 anexo VI 6.4 la cita como ejemplo) (PV-09) | A 7.16 / S 7.16 | Sí |
 | Precio unitario | USD, en el Incoterm pactado | B 8.1.1 (total) | Sí |
-| **Números de serie e IMEI por equipo** | Uno por unidad | A 7.35 | Cond.: E17 |
+| **Equipos: número de serie e IMEI** | Un registro por equipo: `equipos: [{serie, imeis: [..]}]`; un equipo puede tener más de un IMEI (D9) [H: RS129 art. 1] | A 7.35 | Cond.: E17 |
+| ¿Ítem objeto de ajuste? | Sí / No (Sí por defecto). Solo los ítems marcados reciben los ajustes (§6.5) [H: IT C 5.10] | B 5.10 | Cond.: si hay ajustes |
 
 **B2. Embalaje y pesos (uno por ítem)**
 
@@ -268,6 +270,7 @@ Obl. = obligatorio. Cond. = obligatorio solo en el caso indicado. Las casillas d
 | Tipo de B/L y N° de originales | Nominativo / A la orden; 3 por defecto | — | Sí |
 | Lugar y fecha de emisión del B/L; fecha "shipped on board" | Texto + fechas | — | Sí |
 | Cláusulas SLAC / STC | Sí / No | — | No |
+| Flete en el B/L | *Prepaid* / *collect*. Dato editable; la herramienta sugiere el usual según el Incoterm (§6.8) y A05 avisa si difiere (D8) | — | Sí |
 | Embarcador (*shipper*) si no es el vendedor | Texto | — | No |
 | N° de manifiesto | Aduana – año – número [H: IT A 3.2]; número [S] | A 3.2 / S 3.2 | Cond.: DAM |
 | Fecha de embarque | Fecha | A 7.7 | Sí |
@@ -305,19 +308,22 @@ Obl. = obligatorio. Cond. = obligatorio solo en el caso indicado. Las casillas d
 | Seguro (prima) | B 8.4 → A 6.3 y 7.32 | Cond.: si hay seguro |
 | Gastos hasta el lugar de embarque, solo en EXW (nombre exacto de la casilla: PV) | B 8.1.5 | Cond.: EXW |
 | Otros gastos no facturados (FCA, FAS u otros) | B 8.1.6 | No (0 por defecto) |
+| Monto no incluido en 8.1.1 (rótulo exacto: **POR VERIFICAR**; por la pregunta 7.7 podría ser "pagos indirectos") [H: IT C 8.1 y 5.10] | B 8.1.2 → ajuste | No (0 por defecto) |
+| Descuento incluido, distinguido y deducido en la factura (rótulo exacto: **POR VERIFICAR**; por la pregunta 7.8 podría ser "descuentos retroactivos") [H: IT C 8.1 y 5.10] | B 8.1.3 → ajuste | No (0 por defecto) |
+| Otros descuentos no aceptables [H: IT C 8.1] | B 8.1.4 → ajuste | No (0 por defecto) |
 | Adiciones: comisiones, envases, cánones, etc. | B 8.2.1–8.2.5 → A 6.4 y 7.33 | No (0 por defecto) |
 | Gastos de descarga y entrega en destino | B 8.3.2 | Cond.: grupo D |
 | Deducciones: gastos posteriores, montaje, tributos, intereses, otros | B 8.5.1–8.5.5 | No (0 por defecto) |
 | Exportación: otros gastos deducibles / ajustes | S 6.3 / S 6.4 | Cond.: exportación que no es FOB |
 
-**B8. Tributos (solo importación, por ítem; deben coincidir dentro de una serie, E16)**
+**B8. Tributos (solo importación; las tasas van por ítem y deben coincidir dentro de una serie, E16; la percepción, por operación)**
 
 | Campo | Casilla | Fuente de la tasa |
 |---|---|---|
 | Tasa ad valorem (%) | C 4.1 | Dato del usuario (PV-11) |
 | Sobretasa, derecho específico, ISC | C 4.2–4.4; código "Tipo" en A 7.20 | Dato del usuario (PV-11) |
 | Derechos antidumping o compensatorios | C 4.7; A 7.20 y 7.37 f) | Dato del usuario (PV-17) |
-| Tasa de percepción del IGV (%) | Fuera del Formato C | Dato del usuario (PV-01) |
+| Tasa de percepción del IGV (%) — **un solo valor por operación** (D2, D6). Nota visible: la tasa depende del importador y, en algunos casos, de la mercancía (bienes usados, exclusiones). | Fuera del Formato C | Dato del usuario (PV-01) |
 
 ### C. Datos derivados (no se ingresan; los calcula la herramienta)
 
@@ -326,7 +332,7 @@ Obl. = obligatorio. Cond. = obligatorio solo en el caso indicado. Las casillas d
 - Bultos, pesos y volumen.
 - FOB total, FOB por ítem y FOB unitario, ajustes por ítem, flete y seguro por serie, valor en aduana y tributos.
 - Suma asegurada y prima.
-- Flete *prepaid* o *collect*.
+- Flete *prepaid* o *collect* **sugerido** según el Incoterm (el valor del B/L es un dato editable, D8).
 - VGM y numeración correlativa de bultos.
 
 ---
@@ -335,7 +341,7 @@ Obl. = obligatorio. Cond. = obligatorio solo en el caso indicado. Las casillas d
 
 FC = factura comercial · PL = lista de empaque · BL = instrucciones de embarque / B/L / VGM · SEG = certificado de seguro · CO = certificado de origen · HR = hoja resumen.
 
-En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime en la hoja resumen. Cada casilla de la DAM muestra su fuente al pasar el cursor.
+En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime en la hoja resumen. Cada entrada del diccionario declara su `marca` (H, H\*, S o PV) y su `fuente` (ej. "IT C 5.9", "RS129 art. 1" o "—"); la casilla DAM se guarda por operación (importación / exportación) y solo se muestra la que aplica.
 
 | Campo o grupo | FC | PL | BL | DAM (casilla) | SEG | CO | HR |
 |---|:-:|:-:|:-:|---|:-:|:-:|:-:|
@@ -440,7 +446,12 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 - **Ítem** (Formato B): cada tipo de mercancía de igual especie, calidad, valor, origen y procedencia. No se agrupan mercancías distintas aunque tengan la misma subpartida [H: IT C 5.1].
 - **Serie** (Formato A): la herramienta **agrupa automáticamente** los ítems que comparten subpartida nacional, documento de transporte, certificado de origen, tipo de seguro, moneda, país de origen y país de adquisición [H: IT A 7.1, 7.8, 7.9, 7.26, 7.27]. En exportación, subpartida y país de destino [H: IT B 7.1, 7.27].
 - **FOB por ítem** = FOB total × (valor del ítem en el Incoterm ÷ Vc) [H: IT C 5.9]. **FOB unitario** = FOB del ítem ÷ cantidad comercial, con 6 decimales [H: IT C 5.9].
-- **Ajuste por ítem:** se reparte según el valor de los ítems ajustados [H: IT C 5.10].
+- **Ajuste por ítem** [H: IT C 5.10]:
+  - Ajuste total = 8.1.2 + 8.1.3 + 8.1.4 + 8.2.1 + 8.2.2 + 8.2.3.1 + 8.2.3.2 + 8.2.3.3 + 8.2.3.4 + 8.2.4 + 8.2.5.
+  - Se reparte **solo entre los ítems marcados como "objeto de ajuste"**, en proporción al valor facturado de cada uno sobre el valor facturado de los ítems ajustados. Los ítems no marcados reciben 0.
+  - Ajuste unitario (B 5.10) = ajuste del ítem ÷ cantidad comercial, con 6 decimales.
+  - Si hay ajuste y ningún ítem está marcado, se reparte entre todos y se informa (F4 lo convertirá en advertencia) [S].
+- **Ajuste de la serie** (A 7.33) = Σ ajustes de sus ítems; A 6.4 = Σ 7.33 [H: IT A 6.4, 7.33].
 - **FOB de la serie** (A 7.30) = Σ FOB de sus ítems [H: IT A 7.29–7.30].
 - **Flete de la serie** (A 7.31) = flete × (peso bruto de la serie ÷ peso bruto total) [S; PV-04: el IT no fija el criterio].
 - **Seguro de la serie** (A 7.32) = seguro × (FOB de la serie ÷ FOB total) [S; PV-04].
@@ -512,7 +523,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | E14 | Moneda distinta de USD (v1) |
 | E15 | Importación sin tipo de cambio |
 | E16 | Ítems agrupados en la misma serie con distinta tasa o código de tributos (AV, ISC, TPI, "Tipo" de A 7.20) |
-| E17 | Subpartida 8517.13.00.00 u 8517.14.00.00, destinación 10 y fecha de formulación desde el 05-10-2026: el número de series de fabricación y de IMEI no coincide con la cantidad, o hay repetidos [H: RS129 art. 1 y 1.ª disposición complementaria final] |
+| E17 | Subpartida 8517.13.00.00 u 8517.14.00.00, destinación 10 y fecha de formulación desde el 05-10-2026: el número de equipos registrados no coincide con la cantidad, algún equipo no tiene serie o IMEI, o hay series o IMEI repetidos (D9) [H: RS129 art. 1 y 1.ª disposición complementaria final] |
 | E18 | Código fuera de su lista cerrada: destinación, modalidad, vía, tipo de seguro, estado, modalidad y medio de pago, nivel comercial, naturaleza, tipo de valor, versión del Incoterm |
 | E19 | Descuadre interno de la DAM: Σ FOB de ítems ≠ FOB total, Σ 7.30 ≠ 6.1, o Σ 7.34 ≠ 6.5. Delata un error de cálculo de la herramienta. |
 
@@ -681,7 +692,7 @@ Los RUC de ambos casos son ficticios y cumplen el módulo 11 [H\*]:
 | Moneda y pago | USD · **100 % anticipado por transferencia**: modalidad 6, medio 09 [H] (cambió respecto a v1; ver PV-29) |
 | Factura | VEN-2026-0457 · 05-10-2026 |
 | Aduana | 118 [H\*] · destinación 10 · modalidad 1-0 anticipado · tipo de despacho vacío (PV) · N° de orden 2026-000001 [S] · formulación 09-11-2026 [S] · región de destino 40615 Lima |
-| Formato B | Nivel comercial 2 mayorista [S] · naturaleza 11 · envío 1/1 · valor definitivo (1) · sin intermediario · rubro 7 todo "No" [S] · ajustes 0 |
+| Formato B | Nivel comercial 2 mayorista [S] · naturaleza 11 · envío 1/1 · valor definitivo (1) · sin intermediario · rubro 7: **7.4 = Sí** [S]; 7.2, 7.3 y 7.6 vacías (solo se responden si hay vinculación o condiciones); el resto "No" [S, supuesto del ejemplo, no una regla] (D1, D7) · ajustes 0 |
 | Tipo de cambio | 3.500 S/ por USD (**supuesto didáctico, no es un dato real**) |
 
 **Mercancía**
@@ -699,7 +710,7 @@ Los RUC de ambos casos son ficticios y cumplen el módulo 11 [H\*]:
 - **Unidad física "U":** PV-09.
 - **Sin IMEI ni permisos:** el cargador no activa la regla del IMEI (no es 8517.13 ni 8517.14). Permisos del producto: PV-20.
 
-**Tributos (supuestos):** ad valorem 6 % en la serie 1 y 0 % en la serie 2. Tasas distintas por serie, para probar que se calcula por serie. ISC, sobretasa, derecho específico y antidumping: 0. Percepción: 3.5 % (PV-01).
+**Tributos (supuestos):** ad valorem 6 % en la serie 1 y 0 % en la serie 2. Tasas distintas por serie, para probar que se calcula por serie. ISC, sobretasa, derecho específico y antidumping: 0. Percepción: 3.5 % para toda la operación (PV-01; D2).
 
 **Embalaje**
 
@@ -868,3 +879,27 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 12. Material del curso: no hay por ahora.
 13. Añadido: aviso didáctico A01 (FAS, FOB, CFR o CIF con contenedor → recomendación ICC de FCA, CPT o CIP). Solo informa, no bloquea.
 14. F0b (fuentes SUNAT) queda para una sesión nueva; no bloquea F1–F7.
+
+**Decisiones tomadas en la sesión del 03-10-2026** (delegadas por Aarón al orquestador de la sesión)
+
+| # | Tema | Decisión |
+|---|---|---|
+| D1 | Formato B, pregunta 7.4 (libre disposición) | "Sí" en compraventas normales como el caso 1; sigue siendo editable. |
+| D2 | Tasa de percepción del IGV | Un solo valor por operación, no por ítem. |
+| D3 | `js/pantalla.js` | Se añade a la estructura (§2). |
+| D4 | UBIGEO del exportador (S 1.4) | Se mantiene el campo. |
+| D5 | Auditoría de F2 (Codex) | Se aceptan A1, A3, M1–M7 y B1–B3 (commit "F2.1"). A2: cada entrada del diccionario lleva `marca` y `fuente` explícitas ("S"/"—" cuando no hay norma). |
+| D6 | Percepción (matiz) | Se mantiene D2 como alcance v1, con nota visible: la tasa depende del importador y, en algunos casos, de la mercancía (bienes usados, exclusiones); sigue PV-01. |
+| D7 | Rubro 7 del Formato B | 7.4 = "Sí" en el caso 1 [S]; 7.2, 7.3 y 7.6 vacías (condicionales); el resto "No" como supuesto del ejemplo, no como regla. |
+| D8 | Flete *prepaid*/*collect* | Campo editable `fleteBl` con valor sugerido según el Incoterm (§6.8); A05 avisa si difiere. Caso 1: *prepaid*; caso 2: *collect*. |
+| D9 | IMEI | Un registro por equipo: `equipos: [{serie, imeis: [..]}]`; E17 compara el número de equipos con la cantidad y revisa la unicidad de series e IMEI. |
+
+**Correcciones de la auditoría de F2 aplicadas en F2.1**
+
+- Abrir revisa la estructura completa contra el modelo: bloques obligatorios, tipo de cada campo, ítems y equipos no nulos, campos desconocidos rechazados y marcas con ruta válida. La operación nueva se prepara completa antes de reemplazar la actual; si algo falla, la pantalla anterior se conserva.
+- Límites al abrir: 2 MB, 200 ítems, 10 000 equipos por ítem, 4 IMEI por equipo, 12 niveles de anidamiento y 5 000 caracteres por texto. Mensajes de error en español.
+- Formato del archivo: versión 2 (los archivos de la versión 1 se rechazan con un mensaje claro).
+- Casillas B 8.1.2, 8.1.3 y 8.1.4 y selección de ítems objeto de ajuste (§4 B1 y B7, §6.5). Los rótulos de 8.1.2 y 8.1.3 no figuran en la copia del instructivo: POR VERIFICAR.
+- La revisión del diccionario dice "Correspondencia diccionario–modelo: correcta" (no acredita la cobertura del plan).
+- Accesibilidad: botón "Abrir JSON" real, foco visible, ayuda por campo con botón "?" (teclado y toque); en móvil la casilla DAM y la fuente se ven debajo de cada dato.
+- La huella se describe como comprobación rápida, no como garantía; la prueba Guardar→Abrir compara además el contenido completo.

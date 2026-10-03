@@ -36,28 +36,31 @@
   <section class="operacion" aria-labelledby="op-titulo">
     <h2 id="op-titulo">Operación <span class="en">/ Operation</span></h2>
     <p class="ayuda-seccion">Carga un ejemplo, crea una operación vacía o abre un archivo <code>.json</code> guardado antes.
-      En esta fase los datos solo se muestran; el formulario para editarlos llega en F5.</p>
+      En esta fase los datos solo se muestran; el formulario para editarlos llega en F5.
+      Abrir acepta archivos de hasta 2 MB y 200 ítems; si el archivo tiene algún problema, lo que está en pantalla no cambia.
+      Pulsa <strong>?</strong> junto a un campo para ver su ayuda, su fuente y la marca del dato.</p>
     <div class="botones">
       <span id="botones-ejemplo"></span>
       <button type="button" id="btn-nueva">Nueva (vacía) / New</button>
       <button type="button" id="btn-guardar">Guardar JSON / Save</button>
-      <label class="boton-archivo">Abrir JSON / Open<input type="file" id="input-abrir" accept=".json,application/json"></label>
+      <button type="button" id="btn-abrir">Abrir JSON / Open</button>
+      <input type="file" id="input-abrir" class="oculto-visual" tabindex="-1" aria-hidden="true" accept=".json,application/json">
     </div>
     <p id="mensaje" class="mensaje" role="status" aria-live="polite"></p>
     <dl class="resumen">
       <dt>Operación cargada</dt><dd id="resumen">—</dd>
-      <dt>Huella de los datos</dt><dd><code id="huella">—</code> <span class="nota">(misma huella = mismos datos)</span></dd>
-      <dt>Revisión del diccionario</dt><dd id="revision-diccionario">—</dd>
+      <dt>Huella de los datos</dt><dd><code id="huella">—</code> <span class="nota">(comprobación rápida: si la huella cambia, los datos cambiaron; si coincide, casi seguro son iguales, pero no es una garantía)</span></dd>
+      <dt>Diccionario</dt><dd id="revision-diccionario">—</dd>
     </dl>
     <div id="vista-datos"></div>
   </section>
 
   <section class="estado" aria-labelledby="estado-titulo">
     <h2 id="estado-titulo">Estado de la construcción</h2>
-    <p>Fase <strong>F2</strong>: datos, ejemplos y Guardar/Abrir. El formulario y los documentos se agregan en las fases siguientes (ver <code>PLAN.md</code>, §10).</p>
+    <p>Fase <strong>F2.1</strong>: correcciones de la auditoría de F2 y decisiones D1–D9. El formulario y los documentos se agregan en las fases siguientes (ver <code>PLAN.md</code>, §10).</p>
     <ol class="fases">
       <li class="hecha">F1 · Estructura y aviso didáctico</li>
-      <li class="hecha">F2 · Datos, ejemplos y Guardar/Abrir</li>
+      <li class="hecha">F2 · Datos, ejemplos y Guardar/Abrir (F2.1: correcciones de la auditoría)</li>
       <li>F3 · Cálculos y página de pruebas</li>
       <li>F4 · Validaciones</li>
       <li>F5 · Formulario</li>

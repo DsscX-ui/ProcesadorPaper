@@ -168,6 +168,27 @@ var Validaciones = (function () {
     return String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
   }
 
+  // E03 (F4-M1): el lugar convenido coincide con el puerto si, palabra por palabra, es su nombre completo
+  // o su UN/LOCODE exacto. Se admiten solo estas variantes explícitas: «Puerto de/del …», «Port of …» y el
+  // país del puerto al final («Callao, Perú», «Callao PE»). «Otrocallao» o «Callao Norte» no coinciden.
+  var PALABRAS_DE_RELLENO = ["puerto", "port", "de", "del", "of", "el", "the"];
+  function palabrasLugar(texto, pais) {
+    var nombrePais = pais ? normalizar((NORMATIVA.opcion("pais", pais) || {}).texto || "") : "";
+    return normalizar(texto).replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(function (p, i, todas) {
+      if (!p || PALABRAS_DE_RELLENO.indexOf(p) !== -1) { return false; }
+      // El país solo se descarta como última palabra, nunca como el nombre entero.
+      var ultima = i === todas.length - 1 && todas.length > 1;
+      return !(ultima && (p === nombrePais || p === normalizar(pais)));
+    }).join(" ");
+  }
+  function lugarCoincide(lugar, puerto) {
+    var pais = String(puerto.locode || "").slice(0, 2).toUpperCase();
+    if (!vacio(puerto.locode) && normalizar(lugar).replace(/\s/g, "") === normalizar(puerto.locode)) { return true; }
+    if (vacio(puerto.nombre)) { return false; }
+    var a = palabrasLugar(lugar, pais), b = palabrasLugar(puerto.nombre, pais);
+    return a !== "" && a === b;
+  }
+
   function soloDigitos(t) { return String(t || "").replace(/[.\s-]/g, ""); }
 
   // Etiqueta legible de una ruta: "Ítem 2 · Peso bruto por bulto (kg)".
@@ -246,6 +267,8 @@ var Validaciones = (function () {
     }
     recorrerCampos(x.op, function (c, ruta, valor) {
       if (!vacio(valor) || REGLA_PROPIA[ruta] || c.tipo === "equipos" || c.tipo === "sino") { return; }
+      // En CIF y CIP los datos del seguro que faltan los informa E04 (F4-B1).
+      if (c.obl === "si hay seguro" && x.regla && x.regla.seguroObligatorio) { return; }
       var cond = CONDICIONES[c.obl.toLowerCase()];
       if (!cond || !cond(x)) { return; }
       var docs = c.docs ? c.docs.split(" ") : [];
@@ -274,9 +297,7 @@ var Validaciones = (function () {
     var exige = { FAS: "embarque", FOB: "embarque", CFR: "descarga", CIF: "descarga" }[x.regla.codigo];
     if (exige) {
       var puerto = x.op.generales.ruta[exige === "embarque" ? "puertoEmbarque" : "puertoDescarga"];
-      var lugar = normalizar(g.lugarConvenido);
-      var coincide = (!vacio(puerto.nombre) && lugar.indexOf(normalizar(puerto.nombre)) !== -1) ||
-        (!vacio(puerto.locode) && lugar === normalizar(puerto.locode));
+      var coincide = lugarCoincide(g.lugarConvenido, puerto);
       if (!coincide && (!vacio(puerto.nombre) || !vacio(puerto.locode))) {
         agregar("E03", "En " + x.regla.codigo + " el lugar convenido debe ser el puerto de " + exige + " («" + (puerto.nombre || puerto.locode) +
           "»), pero dice «" + g.lugarConvenido + "».",
@@ -325,6 +346,14 @@ var Validaciones = (function () {
           agregar("E04", "La cobertura es " + s.coberturaPct + " %, menor que el " + minimo + " % mínimo de " + cod + ".", ["especificos.seguro.coberturaPct"],
             { como: "Sube la cobertura al " + minimo + " % o más." });
         }
+        // F4-B1: en CIF y CIP los datos del seguro que faltan son E04 (no E01); un dato vacío marcado PV no cuenta (D13).
+        DICCIONARIO.campos.forEach(function (c) {
+          if (c.obl !== "si hay seguro") { return; }
+          var v = Modelo.leer(x.op, c.ruta);
+          if (!vacio(v) || (x.op.marcas[c.ruta] && x.op.marcas[c.ruta].marca === "PV")) { return; }
+          agregar("E04", "La operación es " + cod + " y falta «" + c.es + "» del seguro.", [c.ruta],
+            { como: "Complétalo: en " + cod + " el seguro es obligatorio y el certificado lo necesita. " + (c.ayuda || "") });
+        });
         if (cod === "CIP" && !vacio(s.clausulas) && s.clausulas !== "A") {
           agregar("E04", "En CIP el seguro debe tener cláusulas ICC (A), pero dice ICC (" + s.clausulas + ").", ["especificos.seguro.clausulas"],
             { como: "Cambia las cláusulas a ICC (A): cobertura «todo riesgo», la mínima de CIP en Incoterms® 2020." });
@@ -534,7 +563,8 @@ var Validaciones = (function () {
     var fecha = x.op.generales.aduana.fechaFormulacion;
     if (!x.imp || !esFecha(fecha) || fecha < cfg.vigenteDesde) { return; }
     var objetivo = cfg.subpartidas.map(soloDigitos);
-    var series = {}, imeis = {};
+    // F4-M2/M3: unicidad con Set (sin propiedades heredadas) y sin espacios exteriores; se muestra el texto original.
+    var series = new Set(), imeis = new Set();
     x.op.especificos.items.forEach(function (it, i) {
       if (objetivo.indexOf(soloDigitos(it.subpartida)) === -1) { return; }
       var problemas = [];
@@ -544,9 +574,13 @@ var Validaciones = (function () {
       }
       var sinSerie = 0, sinImei = 0, serieRep = [], imeiRep = [];
       it.equipos.forEach(function (eq) {
-        if (vacio(eq.serie)) { sinSerie++; } else if (series[eq.serie]) { serieRep.push(eq.serie); } else { series[eq.serie] = true; }
+        var serie = String(eq.serie || "").trim();
+        if (!serie) { sinSerie++; } else if (series.has(serie)) { serieRep.push(eq.serie); } else { series.add(serie); }
         if (!eq.imeis.length || eq.imeis.some(vacio)) { sinImei++; }
-        eq.imeis.forEach(function (im) { if (!vacio(im)) { if (imeis[im]) { imeiRep.push(im); } else { imeis[im] = true; } } });
+        eq.imeis.forEach(function (im) {
+          var k = String(im || "").trim();
+          if (k) { if (imeis.has(k)) { imeiRep.push(im); } else { imeis.add(k); } }
+        });
       });
       if (sinSerie) { problemas.push(sinSerie + " equipo(s) sin número de serie"); }
       if (sinImei) { problemas.push(sinImei + " equipo(s) sin IMEI"); }

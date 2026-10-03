@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación») y **F3.1** (correcciones de la auditoría de F3; `pruebas.html`: 304 de 304 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3) y **F4.1** (correcciones de la auditoría de F4; `pruebas.html`: 328 de 328 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -546,7 +546,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | A07 | VGM mayor que el peso bruto máximo referencial del contenedor (PV-16) |
 | A08 | Subpartida no marcada como verificada: se muestra "POR VERIFICAR" |
 | A09 | RUC con prefijo distinto de 10 o 20, o que no cumple el dígito verificador módulo 11 [H\*; PV-18] |
-| A10 | FOB dentro de un umbral de despacho simplificado (PV-03). No confundir con los US$ 2 000 de IT C, que son de medios de pago. |
+| A10 | FOB dentro de un umbral de despacho simplificado (PV-03). No confundir con los umbrales de medios de pago de IT C, rubro 4, «Otros datos» a): FOB > US$ 500 obliga a usar medios de pago (A16); US$ 2 000 separa las consecuencias (reembarque o multa) de no usarlos [H]. |
 | A11 | Fecha del certificado de seguro posterior al embarque (referencia: art. 28(e) de UCP 600 [H\*]) |
 | A12 | Seguro en un Incoterm que no lo exige: se informa quién lo contrata |
 | A13 | Certificado de origen con fecha posterior al embarque (PV-12) |
@@ -562,7 +562,8 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 
 - Las validaciones **solo leen** los datos y el resultado de `calculos.js`; comparan con listas y umbrales de `normativa.js`. Cada aviso trae ID, qué pasa, por qué importa, cómo corregirlo, ruta(s) del dato, fuente y marca (H, H\*, S o PV); si la regla es PV, el mensaje dice "POR VERIFICAR".
 - **E01** usa el diccionario: el campo es obligatorio si aplica a la operación (`solo`), se cumple su condición (`obl`) y lo usa algún documento que se generará (`docs`; SEG solo con seguro y CO solo con trato preferencial). Un dato vacío **a propósito y marcado PV** en la operación (ej. criterio de origen del caso 2, PV-12) no es error: lo cuenta A19. La falta de tipo de cambio la informa E15 (no E01). El **modelo** del producto es obligatorio solo en importación (B 5.14); en exportación no tiene casilla [S].
-- **E17** aplica desde la fecha de formulación 05-10-2026 (RS129, `normativa.js`), con el modelo de equipos de D9.
+- **E17** aplica desde la fecha de formulación 05-10-2026 (RS129, `normativa.js`), con el modelo de equipos de D9. Series e IMEI se comparan sin espacios exteriores y respetando mayúsculas (F4.1).
+- **E04** también informa cada dato del seguro que falta en CIF y CIP (esos datos no se repiten como E01; F4.1). **E03** compara el nombre completo del puerto o su UN/LOCODE (F4.1).
 - **E18** revisa los campos de código cuya lista es cerrada (marca H del instructivo o S del alcance v1); las listas abiertas o pendientes (H\*, PV) no se revisan.
 - **A07** usa 30 480 kg como peso bruto máximo referencial de los tres tipos de contenedor [H\*: ISO 668; PV-16]. **A10** no se activa mientras el umbral de PV-03 no tenga cifra con fuente (`normativa.js`: `null`); `pruebas.html` comprueba la lógica con un umbral ficticio.
 - Los avisos del cálculo de D12 se muestran como advertencias adicionales a las de la tabla (decisión D13):
@@ -939,6 +940,14 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - F3-M4: rango seguro de enteros vigilado en cada conversión y límites de entrada coherentes, aplicados al abrir y al calcular (§6.1).
 - F3-M5: la percepción se explica como «valor en aduana 20,040.000 + tributos 4,222.709 = 24,262.709», con la marca del antidumping [H\*: Ley 29173; PV-17] junto a la base.
 - Cada corrección tiene pruebas de regresión en `pruebas.html` (grupos F3-M1 a F3-M5).
+
+**Correcciones de la auditoría de F4 (Codex), aplicadas en F4.1**
+
+- F4-M1: E03 ya no acepta el nombre del puerto como parte de otra palabra («Puerto de Otrocallao»). El lugar convenido debe ser, palabra por palabra, el nombre completo del puerto o su UN/LOCODE exacto; solo se admiten las variantes «Puerto de/del …», «Port of …» y el país del puerto al final («Callao, Perú»).
+- F4-M2 y F4-M3: E17 comprueba la unicidad de series e IMEI con `Set` (una serie «constructor» ya no es un duplicado) y sin espacios exteriores («ABC» y « ABC » son la misma serie). Las mayúsculas se respetan: «abc» y «ABC» son distintas mientras no se decida otra cosa.
+- F4-B1: en CIF y CIP, cada dato del seguro que falta (póliza, certificado, fecha, cláusulas, cobertura, tasa de prima, lugar de pago de siniestros, aseguradora) es **E04** y no se repite como E01; un dato vacío marcado PV sigue sin ser error (D13).
+- F4-B2: la explicación de A10 cita los dos umbrales de medios de pago de la copia local de IT C, rubro 4, «Otros datos» a): US$ 500 (obligación de usar medios de pago, A16) y US$ 2 000 (consecuencias: reembarque o multa). La cifra US$ 2 000 sí figura en el instructivo, pero solo para las consecuencias.
+- Regresiones en `pruebas.html` (grupos F4-M1, F4-M2 y F4-M3, F4-B1).
 
 **Pendientes de la re-auditoría de F2.1, resueltos en F4**
 

@@ -593,6 +593,77 @@
     mutacion("C02", "caso1", "ajuste 8.1.2 sin ítems objeto de ajuste", function (o) {
       o.especificos.valoracion.ajuste812 = 10; o.especificos.items.forEach(function (it) { it.objetoAjuste = false; }); });
 
+    // ============================================================ Regresiones de la auditoría de F4 (F4.1)
+    function idsDe(op) { return V.ids(revisar(op)); }
+    function conLugar(lugar) { var o = ejemplo("caso1"); o.generales.comercial.lugarConvenido = lugar; return o; }
+    grupo("F4-M1. E03: el lugar convenido debe ser el nombre completo del puerto o su UN/LOCODE",
+      "Ya no basta con que el nombre aparezca dentro de otra palabra. Variantes admitidas: «Puerto de/del …», «Port of …» y el país del puerto al final.");
+    [["Puerto de Otrocallao", true], ["Callaoo", true], ["Callao Norte", true], ["Ningbo", true],
+      ["Callao", false], ["Puerto del Callao", false], ["Port of Callao", false], ["Callao, Perú", false], ["CALLAO (PE)", false], ["PECLL", false]
+    ].forEach(function (e) {
+      prueba("CIF con lugar convenido «" + e[0] + "» → " + (e[1] ? "E03" : "sin E03"), e[1] ? "E03 presente" : "E03 ausente",
+        idsDe(conLugar(e[0])).indexOf("E03") !== -1 ? "E03 presente" : "E03 ausente");
+    });
+    prueba("Caso 2 (FOB «Callao», puerto de embarque Callao) → sin E03", "E03 ausente",
+      idsDe(ejemplo("caso2")).indexOf("E03") !== -1 ? "E03 presente" : "E03 ausente");
+
+    grupo("F4-M2 y F4-M3. E17: series únicas con Set y sin espacios exteriores",
+      "Una serie llamada «constructor», «toString» o «__proto__» no es un duplicado; «ABC» y « ABC » sí lo son.");
+    function unCelular(serie) {
+      var o = ejemplo("caso1");
+      var eq = equiposSinteticos(1);
+      eq[0].serie = serie;
+      var it = o.especificos.items[2];
+      it.subpartida = "8517.13.00.00"; it.cantidad = 1; it.unidadesPorBulto = 1; it.equipos = eq;
+      o.generales.aduana.fechaFormulacion = "2026-10-05";
+      return o;
+    }
+    ["constructor", "toString", "__proto__", "hasOwnProperty", "NORMAL"].forEach(function (serie) {
+      prueba("Un solo celular con serie «" + serie + "» → sin E17", "E17 ausente",
+        idsDe(unCelular(serie)).indexOf("E17") !== -1 ? "E17 presente" : "E17 ausente");
+    });
+    (function () {
+      var o = ejemplo("caso1");
+      var eq = equiposSinteticos(2);
+      eq[0].serie = "ABC"; eq[1].serie = " ABC ";
+      celulares(o, eq); o.especificos.items[2].cantidad = 2;
+      var rv = revisar(o);
+      var e17 = rv.hallazgos.filter(function (h) { return h.id === "E17"; });
+      prueba("Series «ABC» y « ABC » (2 celulares) → E17 «series repetidas»", "true",
+        String(e17.length === 1 && /series repetidas/.test(e17[0].que)));
+      var o2 = ejemplo("caso1");
+      var eq2 = equiposSinteticos(2);
+      eq2[1].imeis = [" " + eq2[0].imeis[0] + " "];
+      celulares(o2, eq2); o2.especificos.items[2].cantidad = 2;
+      prueba("IMEI repetido con espacios exteriores → E17 «IMEI repetidos»", "true",
+        String(revisar(o2).hallazgos.some(function (h) { return h.id === "E17" && /IMEI repetidos/.test(h.que); })));
+      var o3 = ejemplo("caso1");
+      var eq3 = equiposSinteticos(2);
+      eq3[0].serie = "abc"; eq3[1].serie = "ABC";
+      celulares(o3, eq3); o3.especificos.items[2].cantidad = 2;
+      prueba("«abc» y «ABC» se consideran distintas (no se cambian mayúsculas sin una decisión)", "E17 ausente",
+        idsDe(o3).indexOf("E17") !== -1 ? "E17 presente" : "E17 ausente");
+    })();
+
+    grupo("F4-B1. E04: datos del seguro que faltan en CIF o CIP",
+      "En CIF y CIP el dato de seguro vacío es E04 (no E01); un dato vacío marcado POR VERIFICAR no es error (D13).");
+    (function () {
+      function e04y01(mutar) {
+        var o = ejemplo("caso1"); mutar(o);
+        var rv = revisar(o);
+        return rv.hallazgos.filter(function (h) { return h.id === "E04" || h.id === "E01"; })
+          .map(function (h) { return h.id + ":" + h.rutas[0].split(".").pop(); }).join(",");
+      }
+      prueba("CIF con cobertura vacía → solo E04 (sin E01)", "E04:coberturaPct", e04y01(function (o) { o.especificos.seguro.coberturaPct = null; }));
+      prueba("CIP con cláusulas vacías → solo E04", "E04:clausulas", e04y01(function (o) { o.generales.comercial.incoterm = "CIP"; o.especificos.seguro.clausulas = ""; }));
+      prueba("CIF sin N° de póliza ni aseguradora → E04 por cada dato", "E04:razonSocial,E04:poliza",
+        e04y01(function (o) { o.especificos.seguro.poliza = ""; o.generales.partes.aseguradora.razonSocial = ""; }));
+      prueba("CIF con la tasa de prima vacía pero marcada POR VERIFICAR → ni E04 ni E01", "", e04y01(function (o) {
+        o.especificos.seguro.tasaPrimaPct = null; o.marcas["especificos.seguro.tasaPrimaPct"] = { marca: "PV", nota: "prueba" }; }));
+      prueba("CFR con seguro y póliza vacía → E01 (fuera de CIF/CIP sigue siendo un obligatorio común)", "E01:poliza",
+        e04y01(function (o) { o.generales.comercial.incoterm = "CFR"; o.especificos.seguro.poliza = ""; }));
+    })();
+
     grupo("15. Validaciones: calidad de los mensajes",
       "Revisa todos los hallazgos producidos en los grupos 12 a 14.");
     prueba("Cada hallazgo dice qué pasa, por qué importa y cómo corregirlo", "[]", JSON.stringify(todosHallazgos.filter(function (h) {

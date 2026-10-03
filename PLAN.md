@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) y **F5** (formulario editable; `pruebas.html`: 438 de 438 pruebas correctas). **Fase actual: F6** (factura, lista de empaque y hoja resumen). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable) y **F5.1** (correcciones de la auditoría de F5; `pruebas.html`: 451 de 451 pruebas correctas). **Fase actual: F6** (factura, lista de empaque y hoja resumen). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -963,6 +963,12 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - **Equipos (D9):** editor de texto, una línea por equipo «serie;IMEI;IMEI» (también con tabulador, para pegar desde una hoja de cálculo); solo aparece con 8517.13.00.00 u 8517.14.00.00 (o si el ítem ya tiene equipos).
 - **Respaldo automático** (§2): `localStorage` del navegador, solo cuando hay cambios sin guardar y si la casilla está activa (por defecto, sí). Al abrir la página se **ofrece** «Recuperar la última operación» o «Descartar el respaldo»; nunca se carga solo. Un respaldo dañado o que no pasa la revisión de **Abrir** se descarta. Antes de Nueva, de cargar un ejemplo, de Abrir o de cerrar la pestaña con cambios sin guardar, se pide confirmación.
 - **Página:** barra de pasos fija (1 Datos · 2 Revisión con contador · 3 Resultados · 4 Documentos) con el estado «cambios sin guardar»; índice de secciones lateral en escritorio y en fichas en el celular, con los errores de cada sección. La hoja de prueba de impresión de F1 solo se imprime (no ocupa la pantalla) hasta que F6 traiga los documentos.
+
+**Correcciones de la auditoría de F5 (Codex), aplicadas en F5.1**
+
+- F5-M1: un número no válido en un campo que **deja de pedirse** (ej. tasa de prima con «¿Hay seguro?» = No) ya no deja la operación en pausa. Queda **en suspenso**: no bloquea, la operación conserva el valor anterior, el panel «Revisión» lo informa con un botón para descartar el texto no válido, y si el campo vuelve a pedirse se revisa de nuevo (E20). Antes de agregar, mover o eliminar ítems, los pendientes ocultos de los ítems se descartan con aviso.
+- F5-M2: el editor de equipos rechaza series o IMEI de más de 5 000 caracteres (el mismo límite de **Abrir**). Además, **Guardar** y el respaldo automático comprueban con `Modelo.revisarArchivo` que la operación se podrá abrir.
+- Regresiones en `pruebas.html` (grupos F5.1-M1 y F5.1-M2).
 
 **Pendientes de las re-auditorías de F3.1 y F4.1, resueltos en F4.2**
 

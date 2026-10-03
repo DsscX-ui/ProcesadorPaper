@@ -417,6 +417,27 @@
     }
   }
 
+  // F5-M1: datos no válidos en campos que ya no se piden. No bloquean, pero se informan (no se descartan
+  // en silencio): la operación conserva su valor anterior y el texto vuelve a revisarse si el campo reaparece.
+  function avisoSuspendidos(f) {
+    var lista = f.pendientesOcultos();
+    if (!lista.length) { return null; }
+    var caja = el("div", "rev-suspendidos");
+    caja.appendChild(el("p", null, "En suspenso (no bloquean): " + lista.length + " dato(s) con un número no válido en campos que ahora no se piden."));
+    var ul = el("ul");
+    lista.forEach(function (p) {
+      ul.appendChild(el("li", null, "«" + Validaciones.etiqueta(p.ruta) + "»: " + p.texto + " Se usa el valor anterior (" +
+        (p.conserva === null || p.conserva === undefined || p.conserva === "" ? "vacío" : String(p.conserva)) +
+        "). Si el campo vuelve a pedirse, se revisa otra vez (E20)."));
+    });
+    caja.appendChild(ul);
+    var b = el("button", "btn-ir", "Descartar el texto no válido y conservar el valor anterior");
+    b.type = "button";
+    b.addEventListener("click", function () { f.descartarPendientesOcultos(); });
+    caja.appendChild(b);
+    return caja;
+  }
+
   // Prepara los paneles en fragmentos (sin tocar el documento).
   function prepararPaneles(f, est) {
     var resultados;
@@ -427,7 +448,10 @@
       resultados.appendChild(el("p", "rev-pausa", "Cálculo en pausa: hay " + est.rv.errores.length +
         " dato(s) que la herramienta no puede calcular (E20, ver «Revisión»). Al corregirlos, las cifras vuelven."));
     }
-    return { resultados: resultados, revision: construirRevision(est.rv) };
+    var revision = construirRevision(est.rv);
+    var susp = avisoSuspendidos(f);
+    if (susp) { revision.insertBefore(susp, revision.firstChild); }
+    return { resultados: resultados, revision: revision };
   }
 
   function textoResumen(op) {
@@ -541,6 +565,7 @@
   function respaldar() {
     var a = almacen();
     if (!a || !form || !autoguardadoActivo() || !cambiosSinGuardar()) { return; }
+    if (Modelo.revisarArchivo(form.operacion())) { return; }   // F5-M2: solo se respalda una operación que Abrir aceptaría
     try {
       a.setItem(CLAVE_RESPALDO, JSON.stringify({ guardadoEl: new Date().toISOString(), operacion: form.operacion() }));
     } catch (e) {
@@ -623,6 +648,9 @@
           "el archivo llevaría el valor anterior y no el que ves.", "error");
         return;
       }
+      // F5-M2: lo que se descarga debe poder abrirse con la propia herramienta.
+      var problema = Modelo.revisarArchivo(form.operacion());
+      if (problema) { mensaje("No se guardó: " + problema + " Corrige ese dato y vuelve a guardar.", "error"); return; }
       var nombre = Modelo.guardar(form.operacion());
       huellaGuardada = Modelo.huella(form.operacion());
       pintarEstadoGuardado();

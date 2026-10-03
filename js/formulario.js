@@ -10,7 +10,8 @@
      resultado del cálculo y la revisión para mostrar derivados, resúmenes de ítems y errores junto al campo.
    - Un número que no se puede usar (no es número, supera su máximo o tiene decimales de más) NO se escribe en
      la operación: queda "pendiente" y se informa como E20 (decisión D14). Así la operación siempre es válida
-     para Guardar y Abrir.
+     para Guardar y Abrir. Si su campo deja de pedirse, el pendiente queda «en suspenso» (no bloquea, se
+     informa y se puede descartar) y se revisa de nuevo si el campo reaparece (F5-M1).
    Los datos del usuario se insertan siempre con textContent o value (nunca innerHTML).
    Script clásico: deja el objeto global Formulario. */
 
@@ -93,6 +94,17 @@ var Formulario = (function () {
       var imeis = p.slice(1).filter(function (x) { return x !== ""; });
       if (imeis.length > Modelo.limites.imeisPorEquipo) {
         return { equipos: null, error: "Línea " + (i + 1) + ": tiene " + imeis.length + " IMEI; el máximo por equipo es " + Modelo.limites.imeisPorEquipo + "." };
+      }
+      // F5-M2: el mismo límite de largo que aplica Abrir (Modelo.limites.largoTexto), para que Guardar no
+      // produzca un archivo que la propia herramienta rechazaría.
+      var largo = Modelo.limites.largoTexto;
+      if (p[0].length > largo) {
+        return { equipos: null, error: "Línea " + (i + 1) + ": la serie tiene " + p[0].length + " caracteres; el máximo es " + largo + "." };
+      }
+      for (var k = 0; k < imeis.length; k++) {
+        if (imeis[k].length > largo) {
+          return { equipos: null, error: "Línea " + (i + 1) + ": el IMEI " + (k + 1) + " tiene " + imeis[k].length + " caracteres; el máximo es " + largo + "." };
+        }
       }
       equipos.push({ serie: p[0], imeis: imeis });
     }
@@ -592,7 +604,11 @@ var Formulario = (function () {
       return Object.keys(pendientes).some(function (r) { return r.indexOf("especificos.items.") === 0; });
     }
 
+    // Antes de cambiar la estructura de los ítems, los pendientes de campos OCULTOS de los ítems se descartan
+    // de forma explícita (con aviso): sus rutas cambiarían de índice. Los visibles siguen bloqueando.
     function bloqueadoPorPendientes() {
+      var ocultos = pendientesOcultos().filter(function (p) { return p.ruta.indexOf("especificos.items.") === 0; });
+      if (ocultos.length) { descartarPendientes(ocultos.map(function (p) { return p.ruta; })); }
       if (!hayPendientesDeItems()) { return false; }
       anunciar("Primero corrige los datos de los ítems marcados en rojo (E20); después podrás agregar, mover o eliminar ítems.");
       return true;
@@ -864,14 +880,40 @@ var Formulario = (function () {
       return nueva;
     }
 
+    // ¿Se pide ahora el campo de esta ruta? (un pendiente de un campo oculto no bloquea; F5-M1)
+    function sePideRuta(ruta) {
+      var f = filas[ruta];
+      return !f || DICCIONARIO.sePide(f.campo, op, f.i);
+    }
+
+    // Pendientes que bloquean (E20): solo los de campos que se piden con los datos actuales.
     function pendientesLista() {
-      return Object.keys(pendientes).map(function (r) { return { ruta: r, texto: pendientes[r] }; });
+      return Object.keys(pendientes).filter(sePideRuta).map(function (r) { return { ruta: r, texto: pendientes[r] }; });
+    }
+
+    // Pendientes «en suspenso» (F5-M1): el campo dejó de pedirse. No bloquean; la operación conserva el valor
+    // anterior y el texto escrito sigue en el control: si el campo vuelve a pedirse, se revisa de nuevo (E20).
+    function pendientesOcultos() {
+      return Object.keys(pendientes).filter(function (r) { return !sePideRuta(r); }).map(function (r) {
+        return { ruta: r, texto: pendientes[r], conserva: Modelo.leer(op, r) };
+      });
+    }
+
+    // Descarta el texto no válido de esas rutas: el control vuelve a mostrar el valor de la operación.
+    function descartarPendientes(rutas) {
+      rutas.forEach(function (r) { delete pendientes[r]; pintarValor(r); });
+      if (rutas.length) {
+        anunciar("Se descartó el texto no válido de " + rutas.length + " dato(s) que no se piden ahora; se conserva su valor anterior.");
+        avisar("dato", rutas[0]);
+      }
     }
 
     return {
       raiz: raiz,
       operacion: function () { return op; },
       pendientes: pendientesLista,
+      pendientesOcultos: pendientesOcultos,
+      descartarPendientesOcultos: function () { descartarPendientes(pendientesOcultos().map(function (p) { return p.ruta; })); },
       refrescar: refrescar,
       irA: irA,
       control: function (ruta) { return filas[ruta] ? filas[ruta].control : null; },

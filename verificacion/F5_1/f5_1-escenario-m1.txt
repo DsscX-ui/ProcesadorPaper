@@ -1,0 +1,8 @@
+{
+ "conTasaMala": "✘ Cálculo en pausa: 1 dato por corregir (E20). Los demás avisos y los resultados vuelven al corregirlo.",
+ "sinSeguro": "✘ 2 errores (E01, E03) y 7 advertencias (A01, A08, A15, A19, A20). Los errores bloquean los documentos: corrígelos antes de generarlos.",
+ "suspendidos": "En suspenso (no bloquean): 1 dato(s) con un número no válido en campos que ahora no se piden.«Tasa de prima (%)»: No es un número. Se usa el valor anterior (0.3). Si el campo vuelve a pedirse, se revisa otra vez (E20).Descartar el texto no válido y conservar el valor anterior",
+ "guardar": "Se descargó 'OP-2026-001.json'. Huella: F302FCF4. Ese archivo es tu copia de trabajo.",
+ "trasDescartar": 0,
+ "errores": []
+}

@@ -274,6 +274,9 @@ html { scroll-padding-top: 76px; }
 .respaldo p { margin: 0 0 4px; font-weight: 600; }
 .rev-pausa { background: #fdecea; border: 1px solid #f5b5ae; border-radius: 6px; padding: 6px 10px; font-weight: 600; color: #b42318; }
 .documentos #estado-documentos { font-weight: 700; }
+.rev-suspendidos { background: #fff8e1; border: 1px solid var(--aviso-borde); border-radius: 6px; padding: 6px 10px; margin: 6px 0; overflow-wrap: anywhere; }
+.rev-suspendidos p { margin: 0 0 4px; font-weight: 600; }
+.rev-suspendidos ul { margin: 2px 0 6px; }
 
 /* Formulario: índice lateral en escritorio, fichas en móvil. */
 .formulario { display: grid; grid-template-columns: 1fr; gap: 12px; }

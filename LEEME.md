@@ -32,7 +32,8 @@ La barra también dice si hay **cambios sin guardar**.
 3. **Números:** usa punto decimal (la coma solo separa miles: `1,234.50`). Junto al campo se indica la unidad,
    el máximo y cuántos decimales admite (por ejemplo, cantidad: máx. 1,000,000, hasta 3 decimales). Si escribes un número
    que no se puede usar, el campo se marca en rojo y la revisión queda **en pausa (E20)** hasta que lo corrijas;
-   puedes seguir editando lo demás.
+   puedes seguir editando lo demás. Si ese campo deja de pedirse (por ejemplo, la tasa de prima al quitar el seguro),
+   el dato queda **en suspenso**: no bloquea, se usa el valor anterior y «Revisión» te ofrece descartarlo.
 4. **Códigos:** en las listas cerradas del instructivo eliges «código — texto» (por ejemplo `2 — Pago a crédito`).
    Países, puertos, UBIGEO, aduanas, unidades y clases de bulto son listas abiertas: escribe el código (hay sugerencias)
    y se muestra su nombre si está en la lista de ejemplo.
@@ -79,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"438 de 438 pruebas correctas"** en verde.
+2. Arriba debe decir **"451 de 451 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -89,7 +90,8 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 6. Los grupos F5-1 a F5-9 prueban el formulario sin clics: que se genera desde el diccionario (un control por campo),
    que leer → escribir → leer conserva la operación, que cambiar la cantidad del ítem 1 del caso 1 cambia el valor de la
    factura y los bultos, los números pendientes (E20), las secciones condicionales, el editor de equipos, los ítems y
-   sus marcas, los errores junto al campo y el rendimiento con 50 ítems.
+   sus marcas, los errores junto al campo y el rendimiento con 50 ítems. Los grupos F5.1 son las regresiones de la
+   auditoría de F5 (dato no válido en un campo que deja de pedirse; largo máximo de series e IMEI).
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -108,7 +110,7 @@ hoja de prueba con el encabezado y la marca de agua.
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4) y F5 (formulario editable).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4) F5 (formulario editable) y F5.1 (correcciones de la auditoría de F5).
 Siguiente: F6 (factura comercial, lista de empaque y hoja resumen).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

@@ -991,6 +991,58 @@
         Math.round(t1 - t0) + " ms; primer cálculo: " + Math.round(t2 - t1) + " ms)", "true", String(t3 - t2 < 400));
     })();
 
+    grupo("F5.1-M1. Un dato no válido en un campo que deja de pedirse no atrapa la operación",
+      "Regresión de la auditoría de F5: tasa de prima «no» → FOB → sin seguro. El pendiente queda en suspenso (no bloquea), se informa y se revisa de nuevo si el campo reaparece.");
+    (function () {
+      var f = formularioDe(ejemplo("caso1"));
+      evaluarF(f);
+      teclear(f, "especificos.seguro.tasaPrimaPct", "no");
+      var est = evaluarF(f);
+      prueba("Tasa de prima «no» con seguro: E20 en pausa", "E20", V.ids(est.rv).join(","));
+      elegir(f, "generales.comercial.incoterm", "FOB");
+      var cs = f.control("especificos.seguro.hay"); cs.checked = false; cs.dispatchEvent(new Event("change"));
+      est = evaluarF(f);
+      prueba("Sin seguro: la tasa ya no se pide (fila oculta)", "oculto", visible(f, "especificos.seguro.tasaPrimaPct"));
+      prueba("…y su pendiente ya no bloquea: hay resultado y la revisión no está en pausa", "con resultado · false · 0",
+        (est.r ? "con resultado" : "sin resultado") + " · " + String(!!est.rv.detenida) + " · " + f.pendientes().length);
+      prueba("…pero no se descarta en silencio: queda «en suspenso» con su texto y el valor que se conserva",
+        "especificos.seguro.tasaPrimaPct · 0.3", f.pendientesOcultos().map(function (p) { return p.ruta + " · " + p.conserva; }).join(""));
+      prueba("…la operación sigue siendo válida para Abrir (se puede guardar)", "", Modelo.revisarArchivo(f.operacion()));
+      cs.checked = true; cs.dispatchEvent(new Event("change"));
+      est = evaluarF(f);
+      prueba("Al volver a pedir el seguro, el dato se revisa de nuevo (E20)", "E20 · especificos.seguro.tasaPrimaPct",
+        V.ids(est.rv).join(",") + " · " + est.rv.hallazgos[0].rutas[0]);
+      cs.checked = false; cs.dispatchEvent(new Event("change")); evaluarF(f);
+      f.descartarPendientesOcultos();
+      est = evaluarF(f);
+      prueba("Descartar el texto no válido: el control vuelve al valor anterior y no queda nada en suspenso", "0.3 · 0 · 0",
+        f.control("especificos.seguro.tasaPrimaPct").value + " · " + f.pendientesOcultos().length + " · " + f.pendientes().length);
+      var g = formularioDe(ejemplo("caso1"));
+      teclear(g, "especificos.items.0.tasaAV", "x");
+      elegir(g, "generales.operacion.tipo", "exportacion"); evaluarF(g);
+      g.agregarItem();
+      prueba("Pendiente oculto de un ítem (tasa AV en exportación): agregar un ítem lo descarta con aviso y no bloquea", "4 · 0 · 0",
+        g.operacion().especificos.items.length + " · " + g.pendientes().length + " · " + g.pendientesOcultos().length);
+    })();
+
+    grupo("F5.1-M2. El editor de equipos respeta el límite de largo de Abrir (5,000 caracteres)",
+      "Regresión de la auditoría de F5: lo que acepta el editor debe poder abrirse después.");
+    (function () {
+      var max = Modelo.limites.largoTexto;
+      prueba("Serie de 5,000 caracteres: se admite", "", Formulario.parsearEquipos("X".repeat(max) + ";123").error);
+      prueba("Serie de 5,001 caracteres: se rechaza", "true", String(/serie tiene 5001 caracteres; el máximo es 5000/.test(Formulario.parsearEquipos("X".repeat(max + 1) + ";123").error)));
+      prueba("IMEI de 5,001 caracteres: se rechaza", "true", String(/IMEI 2 tiene 5001 caracteres/.test(Formulario.parsearEquipos("SN;123;" + "9".repeat(max + 1)).error)));
+      var o = ejemplo("caso1"); o.especificos.items[2].subpartida = "8517.13.00.00";
+      var f = formularioDe(o); evaluarF(f);
+      teclear(f, "especificos.items.2.equipos", "SN-1;356938035643809");
+      var antes = JSON.stringify(f.operacion().especificos.items[2].equipos);
+      teclear(f, "especificos.items.2.equipos", "X".repeat(max + 1) + ";356938035643809");
+      var est = evaluarF(f);
+      prueba("En el formulario: 5,001 caracteres → E20 y la operación conserva los equipos válidos anteriores", "E20 · " + antes,
+        V.ids(est.rv).join(",") + " · " + JSON.stringify(f.operacion().especificos.items[2].equipos));
+      prueba("…y la operación sigue siendo válida para Abrir", "", Modelo.revisarArchivo(f.operacion()));
+    })();
+
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");
     var indice = document.getElementById("indice");

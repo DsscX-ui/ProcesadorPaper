@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) y **F4.2** (pendientes menores de las re-auditorías; `pruebas.html`: 349 de 349 pruebas correctas). **Fase actual: F5** (formulario). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) y **F5** (formulario editable; `pruebas.html`: 438 de 438 pruebas correctas). **Fase actual: F6** (factura, lista de empaque y hoja resumen). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -94,7 +94,8 @@ ProcesadorPaper/
     ├── ejemplos.js       ← casos 1 y 2 (§9)
     ├── calculos.js       ← ÚNICO lugar donde se calcula y redondea
     ├── validaciones.js   ← errores y advertencias (§7)
-    ├── pantalla.js       ← conecta la interfaz (botones, vista de datos y resultados); no calcula (D3)
+    ├── formulario.js     ← formulario editable, GENERADO desde diccionario.js (F5); no calcula
+    ├── pantalla.js       ← conecta la interfaz (botones, formulario, revisión, resultados, respaldo); no calcula (D3)
     └── documentos/       ← una plantilla por documento; solo leen, no calculan
 ```
 
@@ -532,6 +533,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | E17 | Subpartida 8517.13.00.00 u 8517.14.00.00, destinación 10 y fecha de formulación desde el 05-10-2026: el número de equipos registrados no coincide con la cantidad, algún equipo no tiene serie o IMEI, o hay series o IMEI repetidos (D9) [H: RS129 art. 1 y 1.ª disposición complementaria final] |
 | E18 | Código fuera de su lista cerrada: destinación, modalidad, vía, tipo de seguro, estado, modalidad y medio de pago, nivel comercial, naturaleza, tipo de valor, versión del Incoterm |
 | E19 | Descuadre interno de la DAM: Σ FOB de ítems ≠ FOB total, Σ 7.30 ≠ 6.1, o Σ 7.34 ≠ 6.5. Delata un error de cálculo de la herramienta. |
+| E20 | (F5, decisión D14) Dato que la herramienta no puede calcular: en el formulario, un número que no es número, supera su máximo o tiene más decimales de los admitidos (§6.1), o un cálculo que sale del rango exacto. La revisión queda «en pausa» (solo E20) y los resultados no se muestran hasta corregirlo; la edición sigue libre [S]. |
 
 **Advertencias (se puede generar, pero se muestran en pantalla y en la hoja resumen)**
 
@@ -574,7 +576,8 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | C02 | Hay ajustes (8.1.2 a 8.2.5) pero ningún ítem está marcado como objeto de ajuste: se reparten entre todos [S; IT C 5.10; D12]. |
 
 - `Validaciones.hayErrores(revision)` es la función que consultarán los documentos (F6+) para bloquearse si hay errores.
-- Panel **«Revisión de la operación»** en `index.html`: contador (errores bloquean, advertencias no), lista por severidad y por regla, y botón «Ir al dato» que abre el grupo, centra, enfoca y resalta la fila.
+- Panel **«Revisión de la operación»** en `index.html`: contador (errores bloquean, advertencias no), lista por severidad y por regla, y botón «Ir al dato» que abre la sección del formulario (y la tarjeta del ítem), centra el campo, le da foco y lo resalta (F5).
+- **Formulario (F5):** la revisión se recalcula mientras se escribe (espera de 250 ms). Cada error marca su campo (`aria-invalid` y mensaje junto al campo, enlazado con `aria-describedby`) y el índice de secciones cuenta los errores. `Validaciones.obligatorio(op, campo)` es la misma regla de E01 y decide el asterisco «obligatorio» del formulario. E20 la produce `Validaciones.revisionDetenida`.
 
 ---
 
@@ -871,7 +874,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | F2 ✔ | `diccionario.js`, `normativa.js` (listas con marca H/H\*/PV), modelo, ejemplos y botones Guardar/Abrir | Cargas un ejemplo, lo guardas y lo reabres: datos idénticos |
 | F3 ✔ | `calculos.js` + `incoterms.js` + `pruebas.html`, con controles negativos (RUC, ISO 6346, IMEI sintético); panel "Resultados del cálculo" en `index.html` | Todo en verde (175/175); las cifras coinciden con §9 |
 | F4 ✔ | Validaciones + panel de errores y advertencias | Cada caso muestra solo sus advertencias esperadas; si alteras un dato a propósito, sale el error esperado |
-| F5 | Formulario completo: ítems variables, secciones condicionales, ayuda por campo y marcas H\*/PV visibles | Cambias una cantidad y los totales se actualizan; ves las etiquetas H\* y PV |
+| F5 ✔ | Formulario completo: ítems variables, secciones condicionales, ayuda por campo y marcas H\*/PV visibles | Cambias una cantidad y los totales se actualizan; ves las etiquetas H\* y PV |
 | F6 | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |
 | F7 | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
 | **F8a** | **DAM Formato A** (ingreso y salida, con A1) | Series, casillas y valores = §9.1 y §9.2. **Pausa: revisión de Aarón antes de seguir.** |
@@ -948,6 +951,18 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - F4-B1: en CIF y CIP, cada dato del seguro que falta (póliza, certificado, fecha, cláusulas, cobertura, tasa de prima, lugar de pago de siniestros, aseguradora) es **E04** y no se repite como E01; un dato vacío marcado PV sigue sin ser error (D13).
 - F4-B2: la explicación de A10 cita los dos umbrales de medios de pago de la copia local de IT C, rubro 4, «Otros datos» a): US$ 500 (obligación de usar medios de pago, A16) y US$ 2 000 (consecuencias). La cifra US$ 2 000 sí figura en el instructivo, pero solo para las consecuencias, que F4.2 precisa en §7 (régimen y momento del levante).
 - Regresiones en `pruebas.html` (grupos F4-M1, F4-M2 y F4-M3, F4-B1).
+
+**Decisiones de diseño del formulario (F5)** [S]
+
+- **Fuente única:** `js/formulario.js` genera el formulario desde `diccionario.js`; el HTML no repite campos. El diccionario suma tres datos por campo: `si` (condición para pedirlo), `sugerido` (valor por defecto del §4) y la lista `DERIVADOS` (datos del §4 C que se muestran en solo lectura junto a su sección: destinación, código de documento, países de embarque y destino, versión del Incoterm, unidad de carga, tipo de seguro, suma asegurada y prima, flete usual, FOB, VGM y totales de la mercancía).
+- **Controles:** listas cerradas (marca H o S) → selector «código — texto» (las listas de diseño, marca S, muestran solo el texto); listas **abiertas** de `normativa.js` (países, puertos, UBIGEO, aduanas, unidades y clases de bulto: solo traen ejemplos) → texto con sugerencias, que acepta otros códigos. Consignatario y parte a notificar pasan de texto libre a listas cerradas de diseño (`tipoConsignatario`, `tipoNotify`, marca S) con los mismos valores de antes.
+- **Números:** campo de texto con teclado decimal; punto decimal y coma de miles opcional («1,234.50»); junto al campo se indican la unidad, el máximo y los decimales admitidos (§6.1). Un número que no se puede usar **no entra en la operación**: queda pendiente, el campo se marca y la revisión pasa a **E20** «en pausa» (D14). Así la operación en memoria, el `.json` guardado y el respaldo siempre son válidos para **Abrir**; Guardar se niega mientras haya datos pendientes.
+- **Secciones condicionales:** un campo que no se pide se oculta y deja de ser obligatorio, pero **conserva su dato** (al volver a pedirlo reaparece). Las casillas 8.1.5, 8.3.2 y 8.5.1–8.5.3 se piden según la fórmula del FOB del Incoterm (IT C 5.9) y nunca se ocultan si tienen un monto. En importación no se pide el tipo de despacho (el IT no trae lista). En CIF y CIP «¿Hay seguro?» queda en Sí y no se puede quitar.
+- **Sugerencias dinámicas** (siempre editables, nunca pisan un dato propio): flete *prepaid*/*collect* según el Incoterm (D8), seguro = Sí al elegir CIF o CIP, país de adquisición = país del proveedor, tipo de despacho 00 al pasar a exportación. Operación nueva: consignatario = comprador, notify = consignatario, USD, forma de envío 1/1, intermediario = No, cobertura 110 %, 3 originales, estiba 0; ítem nuevo: estado 10 y objeto de ajuste = Sí.
+- **Ítems:** tarjetas con resumen (producto · cantidad · valor · bultos); agregar, duplicar, eliminar (con confirmación) y subir/bajar. Las marcas propias de cada ítem se mueven con él. Duplicar no copia los equipos (cada serie e IMEI es único). Con datos pendientes en los ítems no se cambia su estructura (primero se corrigen).
+- **Equipos (D9):** editor de texto, una línea por equipo «serie;IMEI;IMEI» (también con tabulador, para pegar desde una hoja de cálculo); solo aparece con 8517.13.00.00 u 8517.14.00.00 (o si el ítem ya tiene equipos).
+- **Respaldo automático** (§2): `localStorage` del navegador, solo cuando hay cambios sin guardar y si la casilla está activa (por defecto, sí). Al abrir la página se **ofrece** «Recuperar la última operación» o «Descartar el respaldo»; nunca se carga solo. Un respaldo dañado o que no pasa la revisión de **Abrir** se descarta. Antes de Nueva, de cargar un ejemplo, de Abrir o de cerrar la pestaña con cambios sin guardar, se pide confirmación.
+- **Página:** barra de pasos fija (1 Datos · 2 Revisión con contador · 3 Resultados · 4 Documentos) con el estado «cambios sin guardar»; índice de secciones lateral en escritorio y en fichas en el celular, con los errores de cada sección. La hoja de prueba de impresión de F1 solo se imprime (no ocupa la pantalla) hasta que F6 traiga los documentos.
 
 **Pendientes de las re-auditorías de F3.1 y F4.1, resueltos en F4.2**
 

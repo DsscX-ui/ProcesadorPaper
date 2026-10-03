@@ -29,6 +29,7 @@
   <script src="js/calculos.js"></script>
   <script src="js/diccionario.js"></script>
   <script src="js/validaciones.js"></script>
+  <script src="js/formulario.js"></script>
   <script>
   /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
      Los valores esperados son textos decimales con todos sus decimales ("18123.870"). */
@@ -498,7 +499,7 @@
       String(vacia.hallazgos.some(function (h) { return h.id === "E01" && h.rutas[0] === "especificos.items"; })));
     var catE = V.orden.filter(function (id) { return id.charAt(0) === "E"; });
     var catA = V.orden.filter(function (id) { return id.charAt(0) === "A"; });
-    prueba("Catálogo: errores E01–E19", "19", String(catE.length) + (catE[0] === "E01" && catE[18] === "E19" ? "" : " (desordenado)"));
+    prueba("Catálogo: errores E01–E20 (E20: cálculo en pausa, F5/D14)", "20", String(catE.length) + (catE[0] === "E01" && catE[19] === "E20" ? "" : " (desordenado)"));
     prueba("Catálogo: advertencias A01–A20", "20", String(catA.length) + (catA[0] === "A01" && catA[19] === "A20" ? "" : " (desordenado)"));
     prueba("Catálogo: cada regla tiene título, por qué, fuente y marca H/H*/S/PV", "[]", JSON.stringify(V.orden.filter(function (id) {
       var r = V.reglas[id];
@@ -559,6 +560,22 @@
       prueba("E19 · resultado con un cuadre alterado a propósito (copia sintética)", "E19 presente",
         V.ids(rv).indexOf("E19") !== -1 ? "E19 presente" : "falta E19");
       prueba("E19 · hayErrores() = sí", "true", String(V.hayErrores(rv)));
+    })();
+
+    (function () {
+      // E20 (F5, D14): no viene de validar(), sino de la revisión «en pausa» que usa el formulario.
+      var pend = V.revisionDetenida([{ ruta: "especificos.items.0.cantidad", texto: "No es un número." }]);
+      todosHallazgos = todosHallazgos.concat(pend.hallazgos);
+      prueba("E20 · dato pendiente en el formulario → revisión en pausa con E20", "E20", V.ids(pend).join(","));
+      prueba("E20 · hayErrores() = sí y la revisión dice «detenida»", "true true", String(V.hayErrores(pend)) + " " + String(pend.detenida));
+      var o = ejemplo("caso1");
+      o.especificos.items[0].precioUnitario = 1000000; o.especificos.items[0].cantidad = 1000000;
+      var e = null;
+      try { Calculos.calcular(o); } catch (x) { e = x; }
+      var calc = V.revisionDetenida([V.problemaDeCalculo(e)]);
+      todosHallazgos = todosHallazgos.concat(calc.hallazgos);
+      prueba("E20 · factura sobre USD 1,000,000,000: el error del cálculo va al panel y lleva al precio", "E20 → especificos.items.0.precioUnitario",
+        calc.hallazgos[0].id + " → " + calc.hallazgos[0].rutas[0]);
     })();
 
     grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A20, C01–C02)",
@@ -702,12 +719,277 @@
         return r.charAt(0) !== "#" && r !== "especificos.items" && !DICCIONARIO.buscar(r);
       }));
     }).map(function (h) { return h.id + ": " + h.rutas.join(" "); }).slice(0, 5)));
-    prueba("Se probaron todos los errores E01–E19", "[]", JSON.stringify(catE.filter(function (id) {
+    prueba("Se probaron todos los errores E01–E20", "[]", JSON.stringify(catE.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
     prueba("Se probaron todas las advertencias A01–A20", "[]", JSON.stringify(catA.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
+
+    // ============================================================ F5: capa de formulario
+    // Se prueba sin clics humanos: el formulario se construye fuera del documento y se le envían eventos.
+    function formularioDe(op, opciones) { return Formulario.crear(op, opciones || { confirmar: function () { return true; } }); }
+    function teclear(f, ruta, texto) { var c = f.control(ruta); c.value = texto; c.dispatchEvent(new Event("input")); }
+    function elegir(f, ruta, valor) { var c = f.control(ruta); c.value = valor; c.dispatchEvent(new Event("change")); }
+    function evaluarF(f) {
+      var op = f.operacion(), pend = f.pendientes(), r = null, rv;
+      if (pend.length) { rv = V.revisionDetenida(pend); }
+      else { try { r = Calculos.calcular(op); rv = V.validar(op, r); } catch (e) { rv = V.revisionDetenida([V.problemaDeCalculo(e)]); } }
+      f.refrescar(r, rv);
+      return { r: r, rv: rv };
+    }
+    function visible(f, ruta) { return f.fila(ruta) && !f.fila(ruta).hidden ? "visible" : "oculto"; }
+
+    grupo("F5-1. El formulario se genera desde el diccionario",
+      "Un control por cada campo editable (formato y versión los fija la herramienta); ninguno de más, ninguno de menos.");
+    (function () {
+      var o = Formulario.operacionNueva(); o.especificos.items = [Formulario.itemNuevo()];
+      var f = formularioDe(o);
+      var esperadas = DICCIONARIO.campos.filter(function (c) { return !Formulario.soloLectura[c.ruta]; })
+        .map(function (c) { return c.ruta.replace("items[]", "items.0"); });
+      var hay = f.rutas();
+      prueba("Rutas del diccionario sin control", "[]", JSON.stringify(esperadas.filter(function (r) { return hay.indexOf(r) === -1; })));
+      prueba("Controles que no están en el diccionario", "[]", JSON.stringify(hay.filter(function (r) { return esperadas.indexOf(r) === -1; })));
+      prueba("Cada control tiene su <label for> con el texto en español e inglés", "[]", JSON.stringify(hay.filter(function (r) {
+        var c = f.control(r), l = f.raiz.querySelector('label[for="' + c.id + '"]'), campo = DICCIONARIO.buscar(r);
+        return !l || l.textContent.indexOf(campo.es) === -1 || l.textContent.indexOf(campo.en) === -1;
+      })));
+      prueba("Cada campo muestra su marca (H, H*, SUPUESTO o POR VERIFICAR) y su botón de ayuda", "[]", JSON.stringify(hay.filter(function (r) {
+        var fi = f.fila(r);
+        return !fi.querySelector(".cf-cab .marca") || !fi.querySelector(".btn-ayuda[aria-controls]");
+      })));
+      var c1 = formularioDe(ejemplo("caso1"));
+      var porItem = DICCIONARIO.campos.filter(function (c) { return c.ruta.indexOf("items[]") !== -1; }).length;
+      prueba("Caso 1 (3 ítems): controles = generales + 3 × campos de ítem", String(esperadas.length - porItem + 3 * porItem), String(c1.rutas().length));
+      prueba("Listas cerradas → selector con «código — texto» (modalidad de pago)", "SELECT · 2 — Pago a crédito",
+        c1.control("generales.comercial.modalidadPago").tagName + " · " + Array.prototype.filter.call(c1.control("generales.comercial.modalidadPago").options, function (o) { return o.value === "2"; })[0].textContent);
+      prueba("Listas abiertas → texto con sugerencias (país del vendedor)", "INPUT con lista",
+        c1.control("generales.partes.vendedor.pais").tagName + (c1.control("generales.partes.vendedor.pais").getAttribute("list") ? " con lista" : " sin lista"));
+      prueba("Número: muestra el máximo y los decimales admitidos junto al campo (cantidad)", "true",
+        String(/máx\. 1,000,000 · hasta 3 decimales/.test(c1.fila("especificos.items.0.cantidad").querySelector(".cf-pista").textContent)));
+      prueba("La marca propia del dato se ve junto al campo (subpartida del ítem 1: POR VERIFICAR)", "POR VERIFICAR",
+        c1.fila("especificos.items.0.subpartida").querySelector(".cf-marca-dato .marca").textContent);
+      prueba("Los datos del usuario se insertan como texto (nombre con <img onerror>)", "0 img · texto intacto", (function () {
+        var o2 = ejemplo("caso1"); o2.especificos.items[0].nombre = "<img src=x onerror=alert(1)>";
+        var f2 = formularioDe(o2); evaluarF(f2);
+        return f2.raiz.querySelectorAll("img").length + " img · " + (f2.control("especificos.items.0.nombre").value === o2.especificos.items[0].nombre ? "texto intacto" : "cambió");
+      })());
+    })();
+
+    grupo("F5-2. Leer → escribir → leer conserva la operación",
+      "El formulario se arma con la operación y luego se lee SOLO desde sus controles: debe dar exactamente lo mismo.");
+    (function () {
+      function ida(nombre, o) {
+        var f = formularioDe(o);
+        prueba(nombre + ": operación leída de los controles = operación original", "idénticas", Modelo.iguales(f.leerControles(), o) ? "idénticas" : "distintas");
+      }
+      ida("Caso 1", ejemplo("caso1"));
+      ida("Caso 2", ejemplo("caso2"));
+      ida("Operación nueva (valores sugeridos)", Formulario.operacionNueva());
+      var o = ejemplo("caso1");
+      celulares(o, equiposSinteticos(3));
+      o.generales.partes.vendedor.pais = "ZZ";                  // lista abierta: código fuera de la lista
+      o.generales.comercial.modalidadPago = "5";                 // lista cerrada: código fuera de la lista (E18)
+      o.especificos.items[1].precioUnitario = 0.000001;          // 6 decimales
+      o.especificos.items[1].tasaAV = null;
+      ida("Caso 1 con celulares, códigos fuera de lista, 6 decimales y vacíos", o);
+      var f = formularioDe(ejemplo("caso1"));
+      teclear(f, "especificos.items.0.cantidad", "400");
+      prueba("Huella tras editar: cambia", "distinta", Modelo.huella(f.operacion()) !== "7945E0E3" ? "distinta" : "igual");
+      teclear(f, "especificos.items.0.cantidad", "200");
+      prueba("Huella al volver al valor original: la del caso 1", "7945E0E3", Modelo.huella(f.operacion()));
+    })();
+
+    grupo("F5-3. Cambiar la cantidad del ítem 1 del caso 1 recalcula",
+      "Cantidad 200 → 400 (precio 19.50, 1 unidad por bulto): Vc 20,040.00 → 23,940.00 y bultos 390 → 590.");
+    (function () {
+      var avisos = [];
+      var f = formularioDe(ejemplo("caso1"), { alCambiar: function (t, r) { avisos.push(t + ":" + r); }, confirmar: function () { return true; } });
+      var antes = evaluarF(f);
+      prueba("Antes: Vc", "20040.00", antes.r.totales.valorFactura);
+      prueba("Antes: bultos", 390, antes.r.totales.bultos);
+      teclear(f, "especificos.items.0.cantidad", "400");
+      prueba("El formulario avisa del cambio (para recalcular)", "dato:especificos.items.0.cantidad", avisos.join(","));
+      prueba("La operación tiene la cantidad nueva", 400, f.operacion().especificos.items[0].cantidad);
+      var despues = evaluarF(f);
+      prueba("Después: Vc", "23940.00", despues.r.totales.valorFactura);
+      prueba("Después: bultos", 590, despues.r.totales.bultos);
+      prueba("Después: FOB total (IT C 5.9)", "22011.000", despues.r.fob.total);
+      prueba("El resumen de la tarjeta del ítem 1 se actualiza", "true",
+        String(/400 U · USD 7,800\.00 · 400 bultos/.test(f.raiz.querySelector(".item-resumen").textContent)));
+      prueba("Los totales derivados del grupo B1 se actualizan", "true",
+        String(/590 bultos/.test(f.raiz.querySelector('[data-grupo="B1"] .derivado-valor').textContent)));
+    })();
+
+    grupo("F5-4. Números del formulario: punto decimal, máximos y decimales (D14)",
+      "Un número que no se puede usar no entra en la operación: queda pendiente y la revisión pasa a E20 «en pausa».");
+    [["1,234.5", "cantidad", "1234.5"], ["1234.5", "cantidad", "1234.5"], ["", "cantidad", "null"], ["0", "flete", "0"],
+      ["1,5", "cantidad", "error"], ["1e5", "cantidad", "error"], ["3000.0001", "cantidad", "error"], ["2000000", "cantidad", "error"],
+      ["2.5", "blOriginales", "error"], ["1.0000000000000001", "precioUnitario", "error"], ["0.000001", "precioUnitario", "0.000001"]
+    ].forEach(function (e) {
+      var p = Formulario.parsearNumero(e[0], e[1]);
+      prueba("«" + e[0] + "» en " + e[1], e[2], p.error ? "error" : String(p.valor));
+    });
+    (function () {
+      var f = formularioDe(ejemplo("caso1"));
+      teclear(f, "especificos.items.0.cantidad", "200.0001");
+      var est = evaluarF(f);
+      prueba("Cantidad 200.0001: la operación conserva 200 (no se redondea en silencio)", 200, f.operacion().especificos.items[0].cantidad);
+      prueba("…revisión en pausa con E20 en el dato, sin resultado", "E20 · especificos.items.0.cantidad · sin resultado",
+        V.ids(est.rv).join(",") + " · " + est.rv.hallazgos[0].rutas[0] + " · " + (est.r ? "con resultado" : "sin resultado"));
+      prueba("…el campo queda marcado (aria-invalid y mensaje junto al campo)", "true · true",
+        f.control("especificos.items.0.cantidad").getAttribute("aria-invalid") + " · " +
+        String(/E20: .*Admite hasta 3 decimales/.test(f.fila("especificos.items.0.cantidad").querySelector(".cf-error").textContent)));
+      prueba("…y se puede seguir editando otro campo", "Otro nombre", (function () { teclear(f, "especificos.items.1.nombre", "Otro nombre"); return f.operacion().especificos.items[1].nombre; })());
+      teclear(f, "especificos.items.0.cantidad", "300");
+      est = evaluarF(f);
+      prueba("Al corregirlo, vuelven el cálculo y la revisión normal", "A01,A08,A19,A20 · con resultado",
+        V.ids(est.rv).join(",") + " · " + (est.r ? "con resultado" : "sin resultado"));
+      prueba("…y se quita la marca de error del campo", "null", String(f.control("especificos.items.0.cantidad").getAttribute("aria-invalid")));
+    })();
+
+    grupo("F5-5. Secciones condicionales y valores sugeridos",
+      "Se ocultan (y no se exigen) los campos que no aplican; el dato se conserva. Sugerencias del plan, siempre editables.");
+    (function () {
+      var o = Formulario.operacionNueva();
+      prueba("Operación nueva: valores sugeridos del plan", "comprador · consignatario · USD · 1/1 · 2 · 110 · 3",
+        [o.generales.partes.consignatario.tipo, o.generales.partes.notify.tipo, o.generales.comercial.moneda, o.generales.valor.formaEnvio,
+          o.generales.valor.intermediario.hubo, o.especificos.seguro.coberturaPct, o.especificos.transporte.blOriginales].join(" · "));
+      var f = formularioDe(ejemplo("caso1"));
+      evaluarF(f);
+      prueba("Importación: UBIGEO de fabricación (solo exportación) oculto", "oculto", visible(f, "especificos.items.0.ubigeoOrigen"));
+      prueba("Importación: tipo de cambio visible y obligatorio", "visible · true", visible(f, "generales.aduana.tipoCambio") + " · " + f.control("generales.aduana.tipoCambio").getAttribute("aria-required"));
+      prueba("Sin intermediario (6.1 = No): sus datos ocultos", "oculto", visible(f, "generales.valor.intermediario.nombre"));
+      elegir(f, "generales.valor.intermediario.hubo", "1"); evaluarF(f);
+      prueba("6.1 = Sí: sus datos aparecen", "visible", visible(f, "generales.valor.intermediario.nombre"));
+      prueba("Pago al contado: datos del pago diferido ocultos", "oculto", visible(f, "generales.comercial.pagoDiferido.plazoDias"));
+      elegir(f, "generales.comercial.modalidadPago", "2"); evaluarF(f);
+      prueba("Modalidad 2 (crédito): aparecen y son obligatorios", "visible · true", visible(f, "generales.comercial.pagoDiferido.plazoDias") + " · " + f.control("generales.comercial.pagoDiferido.plazoDias").getAttribute("aria-required"));
+      prueba("CIF: «¿Hay seguro?» queda en Sí y no se puede quitar", "true · disabled", f.control("especificos.seguro.hay").checked + " · " + (f.control("especificos.seguro.hay").disabled ? "disabled" : "editable"));
+      prueba("CIF: casilla 8.1.5 (solo EXW) oculta", "oculto", visible(f, "especificos.valoracion.gastosExw815"));
+      elegir(f, "generales.comercial.incoterm", "EXW"); evaluarF(f);
+      prueba("EXW: casilla 8.1.5 visible", "visible", visible(f, "especificos.valoracion.gastosExw815"));
+      prueba("EXW: el flete del B/L pasa de prepaid (usual en CIF) a collect", "collect", f.operacion().especificos.transporte.fleteBl);
+      prueba("EXW: «¿Hay seguro?» se puede cambiar", "editable", f.control("especificos.seguro.hay").disabled ? "disabled" : "editable");
+      elegir(f, "generales.comercial.incoterm", "DAP"); evaluarF(f);
+      prueba("DAP (grupo D): casillas 8.3.2 y 8.5.1 visibles; 8.5.3 (solo DDP) oculta", "visible · visible · oculto",
+        [visible(f, "especificos.valoracion.gastosDestino832"), visible(f, "especificos.valoracion.posteriores851"), visible(f, "especificos.valoracion.tributos853")].join(" · "));
+      var seg = ejemplo("caso1"); seg.generales.comercial.incoterm = "CFR"; seg.especificos.seguro.hay = false;
+      var fs = formularioDe(seg); evaluarF(fs);
+      prueba("Sin seguro: datos de la póliza ocultos y % de la tabla SUNAT visible", "oculto · visible",
+        visible(fs, "especificos.seguro.poliza") + " · " + visible(fs, "especificos.seguro.pctTablaSunat"));
+      elegir(fs, "generales.comercial.incoterm", "CIF");
+      prueba("Al elegir CIF, el seguro pasa a Sí (obligatorio)", "true", String(fs.operacion().especificos.seguro.hay));
+      var fe = formularioDe(ejemplo("caso1")); evaluarF(fe);
+      elegir(fe, "generales.operacion.tipo", "exportacion"); evaluarF(fe);
+      prueba("Cambiar a exportación: aparecen UBIGEO de fabricación y tipo de despacho (sugerido 00)", "visible · visible · 00",
+        visible(fe, "especificos.items.0.ubigeoOrigen") + " · " + visible(fe, "generales.aduana.tipoDespacho") + " · " + fe.operacion().generales.aduana.tipoDespacho);
+      prueba("…y se ocultan los de importación (tipo de cambio, Formato B, tributos del ítem)", "oculto · oculto · oculto",
+        [visible(fe, "generales.aduana.tipoCambio"), visible(fe, "generales.valor.naturaleza"), visible(fe, "especificos.items.0.tasaAV")].join(" · "));
+      prueba("…el dato oculto se conserva (tipo de cambio del caso 1)", "3.5", String(fe.operacion().generales.aduana.tipoCambio));
+      prueba("Datos derivados en solo lectura: destinación 40 en exportación", "40 — Exportación definitiva",
+        fe.raiz.querySelector('[data-grupo="A1"] .derivado-valor').textContent);
+      var fv = formularioDe(ejemplo("caso1"));
+      teclear(fv, "generales.partes.vendedor.pais", "CL");
+      prueba("País de adquisición sigue al país del vendedor (si no se cambió a mano)", "CL", fv.operacion().generales.ruta.paisAdquisicion);
+    })();
+
+    grupo("F5-6. Celulares: editor de equipos (serie;IMEI;IMEI)",
+      "Solo aparece con las subpartidas 8517.13.00.00 y 8517.14.00.00; una línea por equipo.");
+    (function () {
+      var f = formularioDe(ejemplo("caso1")); evaluarF(f);
+      prueba("Subpartida 8504.40.90.00: sin editor de equipos", "oculto", visible(f, "especificos.items.2.equipos"));
+      teclear(f, "especificos.items.2.subpartida", "8517.13.00.00"); evaluarF(f);
+      prueba("Subpartida 8517.13.00.00: aparece el editor", "visible", visible(f, "especificos.items.2.equipos"));
+      var eq = equiposSinteticos(2);
+      teclear(f, "especificos.items.2.equipos", "SN-1;" + eq[0].imeis[0] + "\n\n SN-2 ; " + eq[1].imeis[0] + " ;  \n");
+      prueba("Pegar 2 líneas → 2 equipos (sin líneas vacías ni espacios)", JSON.stringify([{ serie: "SN-1", imeis: eq[0].imeis }, { serie: "SN-2", imeis: eq[1].imeis }]),
+        JSON.stringify(f.operacion().especificos.items[2].equipos));
+      prueba("Texto ↔ equipos (ida y vuelta)", "true", String(JSON.stringify(Formulario.parsearEquipos(Formulario.textoEquipos(eq)).equipos) === JSON.stringify(eq)));
+      prueba("Un equipo con 5 IMEI es un error (máximo 4)", "true", String(/máximo por equipo es 4/.test(Formulario.parsearEquipos("A;1;2;3;4;5").error)));
+      f.operacion().generales.aduana.fechaFormulacion = "2026-10-05";
+      var est = evaluarF(f);
+      prueba("Cantidad 3 000 con 2 equipos → E17 junto al editor", "true",
+        String(V.ids(est.rv).indexOf("E17") !== -1 && f.control("especificos.items.2.equipos").getAttribute("aria-invalid") === "true"));
+    })();
+
+    grupo("F5-7. Ítems: agregar, duplicar, eliminar y reordenar (con sus marcas)",
+      "Las marcas propias de cada ítem (por ejemplo, la subpartida POR VERIFICAR) se mueven con él.");
+    (function () {
+      var preguntas = [];
+      var f = formularioDe(ejemplo("caso1"), { confirmar: function (t) { preguntas.push(t); return true; } });
+      var notaItem3 = f.operacion().marcas["especificos.items.2.subpartida"].nota;
+      f.agregarItem();
+      prueba("Agregar: 4 ítems y el nuevo trae los valores sugeridos", "4 · 10 · true",
+        f.operacion().especificos.items.length + " · " + f.operacion().especificos.items[3].estado + " · " + f.operacion().especificos.items[3].objetoAjuste);
+      prueba("…y su tarjeta tiene sus controles", "true", String(!!f.control("especificos.items.3.cantidad")));
+      f.eliminarItem(1);
+      prueba("Eliminar pide confirmación", "1", String(preguntas.length));
+      prueba("Eliminar el ítem 2: quedan 3 y la marca del antiguo ítem 3 pasa al ítem 2", "3 · " + notaItem3,
+        f.operacion().especificos.items.length + " · " + f.operacion().marcas["especificos.items.1.subpartida"].nota);
+      prueba("…sin marcas huérfanas en el último índice", "false", String("especificos.items.3.subpartida" in f.operacion().marcas));
+      var nombre0 = f.operacion().especificos.items[0].nombre, nota0 = f.operacion().marcas["especificos.items.0.subpartida"].nota;
+      f.moverItem(0, 1);
+      prueba("Bajar el ítem 1: pasa a la posición 2 con su marca", nombre0 + " · " + nota0,
+        f.operacion().especificos.items[1].nombre + " · " + f.operacion().marcas["especificos.items.1.subpartida"].nota);
+      f.operacion().especificos.items[1].equipos = equiposSinteticos(1);
+      f.duplicarItem(1);
+      prueba("Duplicar: copia datos y marcas, pero no los equipos (series e IMEI son únicos)", "4 · " + nombre0 + " · " + nota0 + " · 0",
+        f.operacion().especificos.items.length + " · " + f.operacion().especificos.items[2].nombre + " · " +
+        f.operacion().marcas["especificos.items.2.subpartida"].nota + " · " + f.operacion().especificos.items[2].equipos.length);
+      prueba("La operación sigue siendo válida para Abrir", "", Modelo.revisarArchivo(f.operacion()));
+      var g = formularioDe(ejemplo("caso1"), { confirmar: function () { return false; } });
+      g.eliminarItem(0);
+      prueba("Si no se confirma, no se elimina", "3", String(g.operacion().especificos.items.length));
+      prueba("reindexarMarcas: eliminar el índice 0 corre las demás y conserva las generales", JSON.stringify({ "a": 1, "especificos.items.0.x": 3 }),
+        JSON.stringify(Formulario.reindexarMarcas({ "a": 1, "especificos.items.0.x": 2, "especificos.items.1.x": 3 }, function (j) { return j === 0 ? null : j - 1; })));
+    })();
+
+    grupo("F5-8. Errores junto al campo e ir al dato",
+      "Cada error de la revisión marca su campo (aria-invalid + mensaje); «Ir al dato» abre la sección y le da foco.");
+    (function () {
+      var o = ejemplo("caso1"); o.especificos.items[0].pesoBrutoBulto = 4;
+      var f = formularioDe(o);
+      var est = evaluarF(f);
+      prueba("E05: el peso bruto del ítem 1 queda marcado", "true", f.control("especificos.items.0.pesoBrutoBulto").getAttribute("aria-invalid"));
+      prueba("…con el mensaje junto al campo, enlazado con aria-describedby", "true", String((function () {
+        var c = f.control("especificos.items.0.pesoBrutoBulto"), err = f.fila("especificos.items.0.pesoBrutoBulto").querySelector(".cf-error");
+        return /E05/.test(err.textContent) && c.getAttribute("aria-describedby").indexOf(err.id) !== -1;
+      })()));
+      prueba("…y la sección B1 cuenta sus errores en el índice", "true", String(/\(\d+\)/.test(f.raiz.querySelector(".indice-cuenta") ? Array.prototype.map.call(f.raiz.querySelectorAll(".indice-cuenta"), function (b) { return b.textContent; }).join("") : "")));
+      document.body.appendChild(f.raiz);
+      try {
+        var r = f.irA("especificos.items.0.pesoBrutoBulto");
+        prueba("Ir al dato: abre la sección y la tarjeta y enfoca el control", "true · true · true",
+          r.ok + " · " + f.raiz.querySelector('[data-grupo="B1"]').open + " · " + (document.activeElement === f.control("especificos.items.0.pesoBrutoBulto")));
+        var r2 = f.irA("especificos.items.0.ubigeoOrigen");
+        prueba("Ir a un dato que no se pide ahora: avisa en vez de enfocar un campo oculto", "true", String(r2.oculto === true));
+      } finally { document.body.removeChild(f.raiz); }
+      prueba("Caso 1 sin errores: ningún campo marcado", "0", String((function () {
+        var g = formularioDe(ejemplo("caso1")); evaluarF(g); return g.raiz.querySelectorAll('[aria-invalid="true"]').length;
+      })()));
+    })();
+
+    grupo("F5-9. Rendimiento con 50 ítems",
+      "Construir el formulario y recalcular (cálculo + revisión + refresco) debe seguir siendo fluido.");
+    (function () {
+      var o = ejemplo("caso1");
+      var base = o.especificos.items[0];
+      o.especificos.items = [];
+      for (var k = 0; k < 50; k++) { o.especificos.items.push(Modelo.clonar(base)); }
+      var t0 = performance.now();
+      var f = formularioDe(o);
+      var t1 = performance.now();
+      evaluarF(f);
+      var t2 = performance.now();
+      teclear(f, "especificos.items.49.cantidad", "300");
+      evaluarF(f);
+      var t3 = performance.now();
+      prueba("50 ítems: controles creados", String(50 * DICCIONARIO.campos.filter(function (c) { return c.ruta.indexOf("items[]") !== -1; }).length +
+        DICCIONARIO.campos.filter(function (c) { return c.ruta.indexOf("items[]") === -1 && !Formulario.soloLectura[c.ruta]; }).length), String(f.rutas().length));
+      prueba("Una edición + recálculo + revisión + refresco tarda menos de 400 ms (" + Math.round(t3 - t2) + " ms; construir: " +
+        Math.round(t1 - t0) + " ms; primer cálculo: " + Math.round(t2 - t1) + " ms)", "true", String(t3 - t2 < 400));
+    })();
 
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");

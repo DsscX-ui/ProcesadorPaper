@@ -241,6 +241,17 @@ var NORMATIVA = (function () {
       ["A", "ICC (A)"], ["B", "ICC (B)"], ["C", "ICC (C)"]
     ]),
 
+    tipoConsignatario: lista("Consignatario del B/L", "S", "Práctica marítima (PLAN §4 A2)", [
+      ["comprador", "El comprador (por defecto)"],
+      ["otro", "Otra persona (escribe su nombre y dirección)"],
+      ["a_la_orden", "A la orden de… (escribe a la orden de quién)"]
+    ]),
+
+    tipoNotify: lista("Parte a notificar", "S", "Práctica marítima (PLAN §4 A2)", [
+      ["consignatario", "El consignatario (por defecto)"],
+      ["otro", "Otra persona (escribe su nombre y dirección)"]
+    ]),
+
     tipoBl: lista("Tipo de B/L", "S", "Práctica marítima", [
       ["nominativo", "Nominativo"],
       ["a_la_orden", "A la orden"]
@@ -251,6 +262,11 @@ var NORMATIVA = (function () {
       ["collect", "Freight collect"]
     ])
   };
+
+  // Listas ABIERTAS (F5): solo traen ejemplos (países, puertos, UBIGEO, aduanas, unidades y bultos del caso);
+  // la tabla completa es de SUNAT o de UN/ISO (F0b). El formulario acepta otros códigos (con sugerencias) y
+  // E18 no las revisa. Las demás listas son cerradas: el formulario las muestra como selector.
+  ["aduana", "puerto", "pais", "ubigeo", "unidadMedida", "claseBulto"].forEach(function (n) { listas[n].abierta = true; });
 
   // Preguntas del rubro 7 del Formato B (IT C 7). 7.15 no se llena; 7.16 a 7.20 reservadas.
   var preguntasRubro7 = [

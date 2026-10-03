@@ -1,4 +1,4 @@
-/* Validaciones: errores (E01–E19) y advertencias (A01–A20) de PLAN.md §7.
+/* Validaciones: errores (E01–E20) y advertencias (A01–A20) de PLAN.md §7.
    - Solo LEEN: los datos de la operación y el resultado de Calculos.calcular. No calculan cifras propias;
      comparan datos con listas, umbrales de normativa.js y lo que ya calculó js/calculos.js.
    - Cada hallazgo dice qué pasa, por qué importa y cómo corregirlo, con la ruta del dato afectado,
@@ -85,6 +85,11 @@ var Validaciones = (function () {
     "Las sumas por ítem y por serie deben dar exactamente el total. Un descuadre delata un error de cálculo de la herramienta, no de tus datos.",
     "Avisa del caso (guarda el .json) para corregir la herramienta; no imprimas documentos con este error.");
 
+  // E20 (F5, decisión D14): con el formulario, un dato que no se puede calcular se informa aquí, sin congelar la edición.
+  regla("E20", "Dato no válido o fuera de los límites: cálculo en pausa", "S", "PLAN §6.1 (límites de entrada) y decisión D14",
+    "La herramienta calcula con cifras exactas dentro de ciertos límites. Con un dato que no es un número, que supera su máximo o que tiene más decimales de los admitidos, no calcula: así nunca muestra cifras distintas de las que escribiste. El resto de la revisión y los resultados vuelven al corregirlo.",
+    "Corrige el dato: junto a cada campo numérico se indica su máximo y cuántos decimales admite.");
+
   regla("A01", "Regla marítima con contenedor: considera FCA, CPT o CIP", "H*", "ICC, nota de orientación de Incoterms® 2020",
     "En FAS, FOB, CFR y CIF el riesgo pasa al costado o a bordo del buque, pero la carga en contenedor se entrega antes, en la terminal o el depósito. Entre la entrega y la carga a bordo el riesgo queda en una zona gris.",
     "");
@@ -141,7 +146,7 @@ var Validaciones = (function () {
     "Es solo informativo; no hay nada que corregir.");
   regla("A19", "Resumen de datos H* y POR VERIFICAR en la DAM", "S", "PLAN, marcas H* y PV",
     "Estos datos no tienen fuente en la carpeta (H*) o están POR VERIFICAR (PV): la DAM didáctica los muestra con su etiqueta para que no se tomen como hechos comprobados.",
-    "Revisa las etiquetas H* y POR VERIFICAR en la vista de datos.");
+    "Revisa las etiquetas H* y POR VERIFICAR junto a cada campo del formulario (o con los enlaces de abajo).");
   regla("A20", "Despacho anticipado sin fecha de término de descarga", "PV", "IT A 3.4; PV-26",
     "En el despacho anticipado la DAM se numera antes de la llegada, así que aún no hay fecha de término de descarga. Qué va en la casilla A 3.4 está POR VERIFICAR (PV-26).",
     "Déjala vacía hasta la descarga; la DAM mostrará POR VERIFICAR.");
@@ -270,6 +275,29 @@ var Validaciones = (function () {
 
   // ------------------------------------------------------------------ Reglas
 
+  // ¿Es obligatorio el campo en esta operación? Devuelve los documentos activos que lo usan, o null si no lo es.
+  // Misma regla para E01 y para la marca «obligatorio» del formulario (F5).
+  function documentosQueLoExigen(x, c, activos) {
+    if (c.tipo === "equipos" || c.tipo === "sino") { return null; }
+    var cond = CONDICIONES[c.obl.toLowerCase()];
+    if (!cond || !cond(x)) { return null; }
+    var docs = c.docs ? c.docs.split(" ") : [];
+    var usados = docs.filter(function (d) { return activos[d]; });
+    if (docs.length && !usados.length) { return null; }
+    return usados;
+  }
+
+  function contexto(op) {
+    return { op: op, imp: op.generales.operacion.tipo === "importacion", regla: INCOTERMS.regla(op.generales.comercial.incoterm) };
+  }
+
+  // Para el formulario: obligatorio(op, campo) → true / false.
+  function obligatorio(op, campo) {
+    if (campo.solo && campo.solo !== op.generales.operacion.tipo) { return false; }
+    var x = contexto(op);
+    return documentosQueLoExigen(x, campo, documentosActivos(x)) !== null;
+  }
+
   function revisarObligatorios(x, agregar) {
     var activos = documentosActivos(x);
     if (!x.op.especificos.items.length) {
@@ -277,14 +305,11 @@ var Validaciones = (function () {
         { porque: "Sin ítems no hay factura, lista de empaque ni DAM que generar.", como: "Agrega al menos un ítem con su producto, cantidad, precio y embalaje." });
     }
     recorrerCampos(x.op, function (c, ruta, valor) {
-      if (!vacio(valor) || REGLA_PROPIA[ruta] || c.tipo === "equipos" || c.tipo === "sino") { return; }
+      if (!vacio(valor) || REGLA_PROPIA[ruta]) { return; }
       // En CIF y CIP los datos del seguro que faltan los informa E04 (F4-B1).
       if (c.obl === "si hay seguro" && x.regla && x.regla.seguroObligatorio) { return; }
-      var cond = CONDICIONES[c.obl.toLowerCase()];
-      if (!cond || !cond(x)) { return; }
-      var docs = c.docs ? c.docs.split(" ") : [];
-      var usados = docs.filter(function (d) { return activos[d]; });
-      if (docs.length && !usados.length) { return; }
+      var usados = documentosQueLoExigen(x, c, activos);
+      if (!usados) { return; }
       // Un dato vacío a propósito y marcado POR VERIFICAR no es un error: lo cuenta A19.
       if (x.op.marcas[ruta] && x.op.marcas[ruta].marca === "PV") { return; }
       var casilla = DICCIONARIO.casilla(c, x.op.generales.operacion.tipo);
@@ -646,31 +671,53 @@ var Validaciones = (function () {
   // Revisa una operación con su resultado de cálculo. Devuelve
   // { hallazgos, errores, advertencias, marcas: { hx, pv } }. Cada hallazgo:
   // { id, severidad, titulo, que, porque, como, rutas, fuente, marca }.
-  function validar(op, resultado) {
-    var x = {
-      op: op, r: resultado,
-      imp: op.generales.operacion.tipo === "importacion",
-      regla: INCOTERMS.regla(op.generales.comercial.incoterm)
+  function hallazgo(id, que, rutas, extra) {
+    var rg = REGLAS[id];
+    extra = extra || {};
+    return {
+      id: id, severidad: rg.severidad, titulo: rg.titulo, que: que,
+      porque: extra.porque || rg.porque, como: extra.como || rg.como,
+      rutas: rutas || [], fuente: extra.fuente || rg.fuente, marca: extra.marca || rg.marca
     };
-    x.marcas = resumenMarcas(op);
-    var hallazgos = [];
-    function agregar(id, que, rutas, extra) {
-      var rg = REGLAS[id];
-      extra = extra || {};
-      hallazgos.push({
-        id: id, severidad: rg.severidad, titulo: rg.titulo, que: que,
-        porque: extra.porque || rg.porque, como: extra.como || rg.como,
-        rutas: rutas || [], fuente: extra.fuente || rg.fuente, marca: extra.marca || rg.marca
-      });
-    }
-    REVISIONES.forEach(function (fn) { fn(x, agregar); });
+  }
+
+  function revision(hallazgos, marcas) {
     hallazgos.sort(function (a, b) { return ORDEN.indexOf(a.id) - ORDEN.indexOf(b.id); });
     return {
       hallazgos: hallazgos,
       errores: hallazgos.filter(function (h) { return h.severidad === "error"; }),
       advertencias: hallazgos.filter(function (h) { return h.severidad === "advertencia"; }),
-      marcas: x.marcas
+      marcas: marcas
     };
+  }
+
+  function validar(op, resultado) {
+    var x = contexto(op);
+    x.r = resultado;
+    x.marcas = resumenMarcas(op);
+    var hallazgos = [];
+    function agregar(id, que, rutas, extra) { hallazgos.push(hallazgo(id, que, rutas, extra)); }
+    REVISIONES.forEach(function (fn) { fn(x, agregar); });
+    return revision(hallazgos, x.marcas);
+  }
+
+  // Revisión «en pausa» (E20, D14): hay datos que no se pueden calcular. problemas: [{ ruta, texto }].
+  // Solo informa esos datos; el resto de la revisión vuelve cuando se corrigen. detenida = true.
+  function revisionDetenida(problemas) {
+    var rv = revision(problemas.map(function (p) {
+      return hallazgo("E20", (p.ruta.charAt(0) === "#" ? "" : "«" + etiqueta(p.ruta) + "»: ") + p.texto, [p.ruta]);
+    }), { hx: [], pv: [] });
+    rv.detenida = true;
+    return rv;
+  }
+
+  // Convierte el error que lanza Calculos.calcular en un problema { ruta, texto } para revisionDetenida.
+  function problemaDeCalculo(error) {
+    var msg = error && error.message ? error.message : String(error);
+    var m = /^Dato fuera de rango en (\S+): (.*)$/.exec(msg);
+    if (m) { return { ruta: m[1], texto: m[2].charAt(0).toUpperCase() + m[2].slice(1) + "." }; }
+    if (/valor total de la factura/.test(msg)) { return { ruta: "especificos.items.0.precioUnitario", texto: msg + ". Revisa cantidades y precios." }; }
+    return { ruta: "especificos.items", texto: msg + "." };
   }
 
   // ¿Hay errores que bloquean los documentos? Los documentos (F6+) deben consultarla antes de generarse.
@@ -690,6 +737,9 @@ var Validaciones = (function () {
     orden: ORDEN,
     condiciones: CONDICIONES,
     validar: validar,
+    revisionDetenida: revisionDetenida,
+    problemaDeCalculo: problemaDeCalculo,
+    obligatorio: obligatorio,
     hayErrores: hayErrores,
     ids: ids,
     etiqueta: etiqueta

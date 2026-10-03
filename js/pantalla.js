@@ -1,15 +1,23 @@
-/* Pantalla: botones de ejemplo, Nueva, Guardar y Abrir; vista de solo lectura de los datos
-   cargados (agrupada según el diccionario), panel "Revisión de la operación" (errores y advertencias
-   de Validaciones, F4) y panel didáctico "Resultados del cálculo".
-   No calcula ni valida: lee el resultado de Calculos.calcular y de Validaciones.validar y les da formato. El formulario editable llega en F5.
-   Regla de carga: la vista nueva se construye completa FUERA del documento; solo si todo sale bien
+/* Pantalla: conecta la interfaz. Botones de ejemplo, Nueva, Guardar y Abrir; formulario editable (F5,
+   js/formulario.js, generado desde el diccionario); panel "Revisión de la operación" (Validaciones, F4)
+   y panel didáctico "Resultados del cálculo" (F3); barra de pasos, respaldo automático en el navegador
+   y aviso de cambios sin guardar.
+   No calcula ni valida: tras cada cambio del formulario (con una pequeña espera) llama a Calculos.calcular
+   y Validaciones.validar y les da formato. Si un dato no se puede calcular, la revisión queda «en pausa»
+   (E20, decisión D14) sin bloquear la edición.
+   Regla de carga: lo nuevo se construye completo FUERA del documento; solo si todo sale bien
    se reemplaza la operación anterior. Si algo falla, la pantalla anterior se conserva.
    Los datos del usuario se insertan siempre con textContent (nunca innerHTML).
    Script clásico. */
 
 (function () {
-  var operacion = null;
-  var contadorAyuda = 0;
+  var form = null;              // Formulario de la operación cargada
+  var huellaGuardada = null;    // huella del último estado cargado, abierto o guardado (null = nunca guardado)
+  var ultimaRevision = null;
+  var temporizador = null;
+  var ESPERA_MS = 250;          // espera tras teclear antes de recalcular
+  var CLAVE_RESPALDO = "procesadorPaper.respaldo";
+  var CLAVE_PREFERENCIA = "procesadorPaper.autoguardado";
 
   function $(id) { return document.getElementById(id); }
 
@@ -20,160 +28,20 @@
     return n;
   }
 
+  var temporizadorBarra = null;
   function mensaje(texto, tipo) {
     var caja = $("mensaje");
     caja.textContent = texto;
     caja.className = "mensaje " + (tipo || "");
+    // Eco visual breve en la barra fija (el lector de pantalla ya lo oye en #mensaje).
+    var eco = $("barra-mensaje");
+    eco.textContent = texto;
+    eco.className = "barra-mensaje " + (tipo || "");
+    clearTimeout(temporizadorBarra);
+    temporizadorBarra = setTimeout(function () { eco.textContent = ""; }, 7000);
   }
 
-  // Etiqueta de marca: H, H*, SUPUESTO o POR VERIFICAR.
-  function etiquetaMarca(marca) {
-    var clases = { "H": "marca-h", "H*": "marca-hx", "S": "marca-s", "PV": "marca-pv" };
-    var textos = { "H": "H", "H*": "H*", "S": "SUPUESTO", "PV": "POR VERIFICAR" };
-    return el("span", "marca " + (clases[marca] || ""), textos[marca] || String(marca));
-  }
-
-  function textoValor(campo, valor) {
-    if (valor === null || valor === undefined || valor === "") { return "—"; }
-    if (campo.tipo === "sino") { return valor ? "Sí / Yes" : "No"; }
-    if (campo.tipo === "equipos") {
-      if (!valor.length) { return "—"; }
-      var muestra = valor.slice(0, 3).map(function (e) {
-        return (e.serie || "(sin serie)") + " [IMEI: " + (e.imeis.length ? e.imeis.join(", ") : "—") + "]";
-      }).join("; ");
-      return valor.length + " equipo(s): " + muestra + (valor.length > 3 ? "; …" : "");
-    }
-    if (campo.tipo === "codigo" && campo.lista) {
-      var op = NORMATIVA.opcion(campo.lista, String(valor));
-      return op ? valor + " — " + op.texto : valor + " (código fuera de la lista)";
-    }
-    return String(valor);
-  }
-
-  // Marca del DATO concreto: la propia de la operación o, si no hay, la de su lista de códigos.
-  function marcaDelDato(op, campo, ruta, valor) {
-    var propia = op.marcas[ruta];
-    if (propia) { return { marca: propia.marca, nota: propia.nota }; }
-    if (campo.tipo === "codigo" && campo.lista && valor !== "" && valor != null) {
-      var l = NORMATIVA.listas[campo.lista];
-      var o = NORMATIVA.opcion(campo.lista, String(valor));
-      return { marca: l.marca, nota: "Lista: " + l.fuente + (o && o.nota ? " · " + o.nota : "") + (l.nota ? " · " + l.nota : "") };
-    }
-    return null;
-  }
-
-  function aplica(op, campo) {
-    return !campo.solo || campo.solo === op.generales.operacion.tipo;
-  }
-
-  // Dos filas por campo: la de datos y una de detalle (ayuda, marca y fuente) que se abre con el botón "?".
-  // Así la ayuda funciona con teclado y con toque, no solo al pasar el cursor.
-  function fila(cuerpo, op, campo, ruta) {
-    var valor = Modelo.leer(op, ruta);
-    var tipoOp = op.generales.operacion.tipo;
-    var idDetalle = "ayuda-" + (++contadorAyuda);
-    var tr = el("tr");
-    // Destino de los enlaces del panel «Revisión de la operación» (F4).
-    tr.setAttribute("data-ruta", ruta);
-    tr.tabIndex = -1;
-
-    var tdCampo = el("td", "campo");
-    var boton = el("button", "btn-ayuda", "?");
-    boton.type = "button";
-    boton.setAttribute("aria-expanded", "false");
-    boton.setAttribute("aria-controls", idDetalle);
-    boton.setAttribute("aria-label", "Ayuda: " + campo.es);
-    tdCampo.appendChild(boton);
-    tdCampo.appendChild(el("span", null, campo.es));
-    tdCampo.appendChild(el("span", "en", " / " + campo.en));
-    tr.appendChild(tdCampo);
-
-    var tdValor = el("td", "valor", textoValor(campo, valor));
-    var md = marcaDelDato(op, campo, ruta, valor);
-    if (md) { tdValor.appendChild(document.createTextNode(" ")); tdValor.appendChild(etiquetaMarca(md.marca)); }
-    tr.appendChild(tdValor);
-
-    tr.appendChild(el("td", "casilla", DICCIONARIO.casilla(campo, tipoOp) || "—"));
-
-    var tdFuente = el("td", "fuente");
-    tdFuente.appendChild(etiquetaMarca(campo.marca));
-    tdFuente.appendChild(el("span", null, campo.fuente));
-    tr.appendChild(tdFuente);
-    cuerpo.appendChild(tr);
-
-    var trDet = el("tr", "detalle");
-    trDet.id = idDetalle;
-    trDet.hidden = true;
-    var td = el("td");
-    td.colSpan = 4;
-    td.appendChild(el("p", null, campo.ayuda));
-    td.appendChild(el("p", "nota", "Campo: " + campo.fuente + " · Obligatorio: " + campo.obl +
-      (campo.docs ? " · Documentos: " + campo.docs : "")));
-    if (md) {
-      var p = el("p", "nota");
-      p.appendChild(etiquetaMarca(md.marca));
-      p.appendChild(document.createTextNode(" Este dato: " + (md.nota || "—")));
-      td.appendChild(p);
-    }
-    trDet.appendChild(td);
-    cuerpo.appendChild(trDet);
-
-    boton.addEventListener("click", function () {
-      var abierto = boton.getAttribute("aria-expanded") === "true";
-      boton.setAttribute("aria-expanded", abierto ? "false" : "true");
-      trDet.hidden = abierto;
-    });
-  }
-
-  function tablaNueva() {
-    var t = el("table", "datos");
-    var thead = el("thead");
-    var cab = el("tr");
-    ["Campo / Field", "Valor / Value", "Casilla DAM", "Fuente del campo"].forEach(function (x) {
-      var th = el("th", null, x);
-      th.scope = "col";
-      cab.appendChild(th);
-    });
-    thead.appendChild(cab);
-    t.appendChild(thead);
-    var cuerpo = el("tbody");
-    t.appendChild(cuerpo);
-    return { tabla: t, cuerpo: cuerpo };
-  }
-
-  // Construye la vista completa de una operación en un fragmento (sin tocar el documento).
-  function construirDatos(op) {
-    var frag = document.createDocumentFragment();
-    DICCIONARIO.grupos.forEach(function (g, i) {
-      var campos = DICCIONARIO.campos.filter(function (c) { return c.grupo === g.id && aplica(op, c); });
-      if (!campos.length) { return; }
-      var det = el("details");
-      det.id = "grupo-" + g.id;
-      if (i < 2) { det.open = true; }
-      var sum = el("summary");
-      sum.appendChild(el("span", null, g.es));
-      sum.appendChild(el("span", "en", " / " + g.en));
-      det.appendChild(sum);
-
-      var deItem = campos.filter(function (c) { return c.ruta.indexOf("items[]") !== -1; });
-      var generales = campos.filter(function (c) { return c.ruta.indexOf("items[]") === -1; });
-      if (generales.length) {
-        var t = tablaNueva();
-        generales.forEach(function (c) { fila(t.cuerpo, op, c, c.ruta); });
-        det.appendChild(t.tabla);
-      }
-      if (deItem.length) {
-        op.especificos.items.forEach(function (_, n) {
-          det.appendChild(el("h4", null, "Ítem " + (n + 1) + " / Item " + (n + 1)));
-          var t2 = tablaNueva();
-          deItem.forEach(function (c) { fila(t2.cuerpo, op, c, c.ruta.replace("items[]", "items." + n)); });
-          det.appendChild(t2.tabla);
-        });
-      }
-      frag.appendChild(det);
-    });
-    return frag;
-  }
+  var etiquetaMarca = Formulario.etiquetaMarca;
 
   // ---------------------------------------------------------------- Resultados del cálculo
   // Solo lee el objeto "resultado" de Calculos.calcular y le da formato; no calcula nada.
@@ -398,7 +266,7 @@
 
   // ---------------------------------------------------------------- Revisión de la operación (F4)
   // Muestra los errores y advertencias de Validaciones.validar, agrupados por severidad y por regla.
-  // Cada ítem lleva botones que llevan al dato afectado en la vista de datos.
+  // Cada ítem lleva botones que llevan al dato afectado en el formulario.
 
   var TEXTO_SEVERIDAD = {
     error: { titulo: "Errores", nota: "bloquean la generación de documentos", icono: "✘" },
@@ -414,6 +282,10 @@
       return v.length ? " (" + v.join(", ") + ")" : "";
     }
     var e = rev.errores.length, a = rev.advertencias.length;
+    if (rev.detenida) {
+      return "✘ Cálculo en pausa: " + e + (e === 1 ? " dato por corregir" : " datos por corregir") + " (E20). " +
+        "Los demás avisos y los resultados vuelven al corregirlo" + (e === 1 ? "." : "s.");
+    }
     var tA = a + (a === 1 ? " advertencia" : " advertencias") + ids(rev.advertencias);
     if (e) {
       return "✘ " + e + (e === 1 ? " error" : " errores") + ids(rev.errores) + " y " + tA +
@@ -439,6 +311,7 @@
 
   function construirRevision(rev) {
     var frag = document.createDocumentFragment();
+
     ["error", "advertencia"].forEach(function (sev) {
       var lista = sev === "error" ? rev.errores : rev.advertencias;
       var ts = TEXTO_SEVERIDAD[sev];
@@ -449,7 +322,8 @@
       h.appendChild(el("span", "nota", " — " + ts.nota));
       caja.appendChild(h);
       if (!lista.length) {
-        caja.appendChild(el("p", "vacio", sev === "error" ? "Ninguno. ✔" : "Ninguna."));
+        caja.appendChild(el("p", "vacio", sev === "error" ? "Ninguno. ✔" :
+          (rev.detenida ? "En pausa: se revisan de nuevo al corregir los datos de E20 (puedes seguir editando el resto)." : "Ninguna.")));
         frag.appendChild(caja);
         return;
       }
@@ -507,26 +381,53 @@
     return p;
   }
 
-  // Lleva al dato: abre su grupo <details>, lo centra en pantalla, lo enfoca y lo resalta.
+
+  // ---------------------------------------------------------------- Ir al dato
+  // Lleva al control del formulario: abre su sección (y la tarjeta del ítem), lo centra y le da foco.
   function irAlDato(ruta) {
-    var destino = null;
     if (ruta.charAt(0) === "#") {
-      destino = $(ruta.slice(1));
-    } else {
-      destino = $("vista-datos").querySelector('tr[data-ruta="' + CSS.escape(ruta) + '"]');
-      if (!destino) {
-        // Dato sin fila (ej. «no hay ítems»): se abre su grupo.
-        var c = ruta === "especificos.items" ? { grupo: "B1" } : DICCIONARIO.buscar(ruta);
-        var det = c && $("grupo-" + c.grupo);
-        if (det) { destino = det.querySelector("summary"); }
-      }
+      var destino = $(ruta.slice(1));
+      if (!destino) { return; }
+      Array.prototype.forEach.call(document.querySelectorAll(".bloque-resultado.resaltado"), function (n) { n.classList.remove("resaltado"); });
+      destino.classList.add("resaltado");
+      destino.scrollIntoView({ block: "center" });
+      destino.focus({ preventScroll: true });
+      return;
     }
-    if (!destino) { return; }
-    for (var d = destino.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) { d.open = true; }
-    Array.prototype.forEach.call(document.querySelectorAll(".resaltado"), function (n) { n.classList.remove("resaltado"); });
-    destino.classList.add("resaltado");
-    destino.scrollIntoView({ block: "center" });
-    destino.focus({ preventScroll: true });
+    if (!form) { return; }
+    var r = form.irA(ruta);
+    if (r.oculto) {
+      mensaje("«" + Validaciones.etiqueta(ruta) + "» no se pide con los datos actuales (se pide en: " + r.condicion +
+        "). Se abrió su sección; cambia ese dato para que aparezca.", "ok");
+    }
+  }
+
+  // ---------------------------------------------------------------- Cálculo y revisión en vivo
+
+  // Calcula y revisa la operación del formulario. Si hay datos pendientes (no se pudieron usar) o el cálculo
+  // se detiene por un dato fuera de rango, devuelve una revisión «en pausa» (E20) y resultado null.
+  function evaluar(f) {
+    var op = f.operacion(), pend = f.pendientes();
+    if (pend.length) { return { r: null, rv: Validaciones.revisionDetenida(pend) }; }
+    try {
+      var r = Calculos.calcular(op);
+      return { r: r, rv: Validaciones.validar(op, r) };
+    } catch (e) {
+      return { r: null, rv: Validaciones.revisionDetenida([Validaciones.problemaDeCalculo(e)]) };
+    }
+  }
+
+  // Prepara los paneles en fragmentos (sin tocar el documento).
+  function prepararPaneles(f, est) {
+    var resultados;
+    if (est.r) {
+      resultados = construirResultados(f.operacion(), est.r);
+    } else {
+      resultados = document.createDocumentFragment();
+      resultados.appendChild(el("p", "rev-pausa", "Cálculo en pausa: hay " + est.rv.errores.length +
+        " dato(s) que la herramienta no puede calcular (E20, ver «Revisión»). Al corregirlos, las cifras vuelven."));
+    }
+    return { resultados: resultados, revision: construirRevision(est.rv) };
   }
 
   function textoResumen(op) {
@@ -536,7 +437,152 @@
       Object.keys(op.marcas).length + " dato(s) con marca propia";
   }
 
-  function pintarRevision() {
+  function cambiosSinGuardar() {
+    return !!form && (form.pendientes().length > 0 || Modelo.huella(form.operacion()) !== huellaGuardada);
+  }
+
+  function pintarEstadoGuardado() {
+    var b = $("barra-guardado");
+    if (!form) { b.textContent = ""; return; }
+    var sucio = cambiosSinGuardar();
+    b.textContent = sucio ? "● Cambios sin guardar" : "✔ Sin cambios por guardar";
+    b.className = "barra-guardado " + (sucio ? "sucio" : "limpio");
+    $("huella").textContent = Modelo.huella(form.operacion());
+    $("resumen").textContent = textoResumen(form.operacion());
+  }
+
+  function pintarDocumentos(rv) {
+    var p = $("estado-documentos");
+    if (!form) { p.textContent = "Carga una operación para saber si sus documentos se podrán generar."; p.className = ""; return; }
+    var bloqueados = Validaciones.hayErrores(rv);
+    p.textContent = bloqueados ?
+      "Con los datos actuales, los documentos quedarían BLOQUEADOS: hay " + rv.errores.length + " error(es) en «Revisión»." :
+      "Con los datos actuales, los documentos se podrán generar (no hay errores).";
+    p.className = bloqueados ? "error" : "ok";
+  }
+
+  // Aplica al documento lo ya preparado.
+  function pintar(f, est, paneles) {
+    ultimaRevision = est.rv;
+    $("vista-resultados").textContent = "";
+    $("vista-resultados").appendChild(paneles.resultados);
+    $("vista-revision").textContent = "";
+    $("vista-revision").appendChild(paneles.revision);
+    var texto = textoContador(est.rv), conErrores = Validaciones.hayErrores(est.rv);
+    // Solo se cambia el texto si cambió: así el lector de pantalla no lo repite en cada tecla.
+    if ($("revision-contador").textContent !== texto) { $("revision-contador").textContent = texto; }
+    $("revision-contador").className = "rev-contador " + (conErrores ? "rev-con-errores" : "rev-sin-errores");
+    var e = est.rv.errores.length, a = est.rv.advertencias.length;
+    $("barra-contador").textContent = est.rv.detenida ? "✘ en pausa" : (e ? "✘ " + e + " error" + (e === 1 ? "" : "es") : "✔ 0 errores") + " · ⚠ " + a;
+    $("barra-contador").className = "barra-contador " + (conErrores ? "con-errores" : "sin-errores");
+    pintarEstadoGuardado();
+    pintarDocumentos(est.rv);
+  }
+
+  function recalcular() {
+    temporizador = null;
+    if (!form) { return; }
+    var est = evaluar(form);
+    form.refrescar(est.r, est.rv);
+    pintar(form, est, prepararPaneles(form, est));
+    respaldar();
+  }
+
+  // Cada cambio del formulario: recalcula tras una pequeña espera (los cambios de ítems, enseguida).
+  function programarCalculo(tipo) {
+    clearTimeout(temporizador);
+    temporizador = setTimeout(recalcular, tipo === "estructura" ? 0 : ESPERA_MS);
+    pintarEstadoGuardado();
+  }
+
+  // Prepara todo lo nuevo y, solo si no hubo errores, reemplaza lo anterior.
+  // guardada: la operación coincide con un archivo o ejemplo (no hay cambios sin guardar).
+  function cargar(op, texto, guardada) {
+    var nuevo, est, paneles;
+    try {
+      nuevo = Formulario.crear(op, {
+        alCambiar: programarCalculo,
+        anunciar: function (t) { mensaje(t, "ok"); },
+        confirmar: function (t) { return window.confirm(t); }
+      });
+      est = evaluar(nuevo);
+      nuevo.refrescar(est.r, est.rv);
+      paneles = prepararPaneles(nuevo, est);
+    } catch (e) {
+      mensaje("No se pudo mostrar la operación (" + (e && e.message ? e.message : String(e)) +
+        "). Se conserva lo que había en pantalla.", "error");
+      return false;
+    }
+    clearTimeout(temporizador);
+    form = nuevo;
+    huellaGuardada = guardada === false ? null : Modelo.huella(form.operacion());
+    $("formulario").textContent = "";
+    $("formulario").appendChild(form.raiz);
+    pintar(form, est, paneles);
+    mensaje(texto.replace("{huella}", Modelo.huella(form.operacion())), "ok");
+    return true;
+  }
+
+  // Antes de reemplazar la operación: si hay cambios sin guardar, se pide confirmación.
+  function puedeReemplazar(accion) {
+    if (!cambiosSinGuardar()) { return true; }
+    return window.confirm("La operación «" + (form.operacion().meta.referencia || "sin referencia") + "» tiene cambios sin guardar. " +
+      "Si " + accion + ", se perderán (salvo el respaldo automático del navegador, si está activo). ¿Continuar?");
+  }
+
+  // ---------------------------------------------------------------- Respaldo automático (PLAN §2: solo respaldo)
+  // Se guarda en el navegador (localStorage) cuando hay cambios sin guardar. La copia real es el .json.
+
+  function almacen() {
+    try { var a = window.localStorage; a.getItem(CLAVE_PREFERENCIA); return a; } catch (e) { return null; }
+  }
+  function autoguardadoActivo() { var a = almacen(); return !!a && a.getItem(CLAVE_PREFERENCIA) !== "no"; }
+
+  function respaldar() {
+    var a = almacen();
+    if (!a || !form || !autoguardadoActivo() || !cambiosSinGuardar()) { return; }
+    try {
+      a.setItem(CLAVE_RESPALDO, JSON.stringify({ guardadoEl: new Date().toISOString(), operacion: form.operacion() }));
+    } catch (e) {
+      mensaje("No se pudo guardar el respaldo automático en el navegador (espacio lleno o bloqueado). Guarda el .json.", "error");
+    }
+  }
+
+  // Lee el respaldo; si está dañado o ya no es una operación válida, lo descarta. Devuelve { fecha, operacion } o null.
+  function leerRespaldo() {
+    var a = almacen();
+    if (!a) { return null; }
+    var texto = a.getItem(CLAVE_RESPALDO);
+    if (!texto) { return null; }
+    try {
+      var datos = JSON.parse(texto);
+      if (datos && datos.operacion && !Modelo.revisarArchivo(datos.operacion)) { return datos; }
+    } catch (e) { /* se descarta abajo */ }
+    a.removeItem(CLAVE_RESPALDO);
+    return null;
+  }
+
+  function borrarRespaldo() { var a = almacen(); if (a) { a.removeItem(CLAVE_RESPALDO); } }
+
+  function fechaHora(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) { return "fecha desconocida"; }
+    function dos(n) { return (n < 10 ? "0" : "") + n; }
+    return dos(d.getDate()) + "-" + dos(d.getMonth() + 1) + "-" + d.getFullYear() + " a las " + dos(d.getHours()) + ":" + dos(d.getMinutes());
+  }
+
+  function ofrecerRespaldo() {
+    var datos = leerRespaldo(), caja = $("respaldo");
+    if (!datos) { caja.hidden = true; return; }
+    var op = datos.operacion;
+    $("respaldo-texto").textContent = "Hay un respaldo automático de este navegador: «" + (op.meta.referencia || "sin referencia") +
+      "», " + op.especificos.items.length + " ítem(s), del " + fechaHora(datos.guardadoEl) + ". No se carga solo: elige si lo recuperas.";
+    caja.hidden = false;
+  }
+
+  // ---------------------------------------------------------------- Inicio
+
+  function pintarRevisionDiccionario() {
     var r = DICCIONARIO.revisarContraModelo();
     var cob = DICCIONARIO.revisarCobertura();
     var okCob = !cob.sinRequisito.length && !cob.patronesHuerfanos.length;
@@ -553,55 +599,40 @@
     $("revision-diccionario").className = ok ? "ok" : "error";
   }
 
-  // Prepara todo lo nuevo y, solo si no hubo errores, reemplaza lo anterior.
-  function cargar(op, texto) {
-    var nueva, vista, resultados, revision, panel, resumen, huella;
-    try {
-      nueva = Modelo.clonar(op);
-      vista = construirDatos(nueva);
-      var resultado = Calculos.calcular(nueva);
-      resultados = construirResultados(nueva, resultado);
-      revision = Validaciones.validar(nueva, resultado);
-      panel = construirRevision(revision);
-      resumen = textoResumen(nueva);
-      huella = Modelo.huella(nueva);
-    } catch (e) {
-      mensaje("No se pudo mostrar la operación (" + (e && e.message ? e.message : String(e)) +
-        "). Se conserva lo que había en pantalla.", "error");
-      return false;
-    }
-    operacion = nueva;
-    $("vista-datos").textContent = "";
-    $("vista-datos").appendChild(vista);
-    $("vista-resultados").textContent = "";
-    $("vista-resultados").appendChild(resultados);
-    $("vista-revision").textContent = "";
-    $("vista-revision").appendChild(panel);
-    $("revision-contador").textContent = textoContador(revision);
-    $("revision-contador").className = "rev-contador " + (Validaciones.hayErrores(revision) ? "rev-con-errores" : "rev-sin-errores");
-    $("resumen").textContent = resumen;
-    $("huella").textContent = huella;
-    mensaje(texto.replace("{huella}", huella), "ok");
-    return true;
-  }
-
   function iniciar() {
     EJEMPLOS.forEach(function (ej) {
       var b = el("button", null, ej.titulo);
       b.type = "button";
-      b.addEventListener("click", function () { cargar(ej.operacion, "Se cargó el " + ej.titulo + ". Huella: {huella}."); });
+      b.addEventListener("click", function () {
+        if (!puedeReemplazar("cargas el ejemplo")) { return; }
+        cargar(ej.operacion, "Se cargó el " + ej.titulo + ". Huella: {huella}. Edita cualquier dato: los totales y la revisión se actualizan solos.");
+      });
       $("botones-ejemplo").appendChild(b);
     });
     $("btn-nueva").addEventListener("click", function () {
-      cargar(Modelo.operacionVacia(), "Se creó una operación vacía.");
+      if (!puedeReemplazar("creas una operación nueva")) { return; }
+      cargar(Formulario.operacionNueva(), "Se creó una operación nueva con los valores sugeridos del plan (editables). Empieza por «Referencia interna».");
     });
     $("btn-guardar").addEventListener("click", function () {
-      if (!operacion) { mensaje("No hay nada que guardar: primero carga un ejemplo o una operación.", "error"); return; }
-      var nombre = Modelo.guardar(operacion);
-      mensaje("Se descargó '" + nombre + "'. Huella: " + Modelo.huella(operacion) + ".", "ok");
+      if (!form) { mensaje("No hay nada que guardar: primero carga un ejemplo o una operación.", "error"); return; }
+      clearTimeout(temporizador);
+      recalcular();
+      var pend = form.pendientes();
+      if (pend.length) {
+        mensaje("Hay " + pend.length + " dato(s) que no se pudieron usar (E20 en «Revisión»). Corrígelos antes de guardar: " +
+          "el archivo llevaría el valor anterior y no el que ves.", "error");
+        return;
+      }
+      var nombre = Modelo.guardar(form.operacion());
+      huellaGuardada = Modelo.huella(form.operacion());
+      pintarEstadoGuardado();
+      mensaje("Se descargó '" + nombre + "'. Huella: " + huellaGuardada + ". Ese archivo es tu copia de trabajo.", "ok");
     });
     // Botón real (enfocable con Tab) que abre el selector de archivos oculto.
-    $("btn-abrir").addEventListener("click", function () { $("input-abrir").click(); });
+    $("btn-abrir").addEventListener("click", function () {
+      if (!puedeReemplazar("abres otro archivo")) { return; }
+      $("input-abrir").click();
+    });
     $("input-abrir").addEventListener("change", function (ev) {
       var entrada = ev.target;
       var archivo = entrada.files && entrada.files[0];
@@ -624,10 +655,60 @@
         entrada.value = "";
       }
     });
-    pintarRevision();
-    $("vista-datos").appendChild(el("p", "vacio", "No hay una operación cargada. Usa un ejemplo, «Nueva» o «Abrir JSON»."));
+
+    // Respaldo automático: casilla, recuperar y descartar.
+    var chk = $("chk-autoguardado");
+    if (!almacen()) {
+      chk.checked = false;
+      chk.disabled = true;
+      $("nota-autoguardado").textContent = "Este navegador no permite guardar un respaldo (almacenamiento bloqueado). Usa «Guardar JSON».";
+    } else {
+      chk.checked = autoguardadoActivo();
+    }
+    chk.addEventListener("change", function () {
+      var a = almacen();
+      if (!a) { return; }
+      if (chk.checked) {
+        a.removeItem(CLAVE_PREFERENCIA);
+        respaldar();
+        mensaje("Respaldo automático activado: mientras haya cambios sin guardar, se copian en este navegador.", "ok");
+      } else {
+        a.setItem(CLAVE_PREFERENCIA, "no");
+        borrarRespaldo();
+        $("respaldo").hidden = true;
+        mensaje("Respaldo automático desactivado y respaldo borrado. Tu copia es el .json.", "ok");
+      }
+    });
+    $("btn-recuperar").addEventListener("click", function () {
+      var datos = leerRespaldo();
+      if (!datos) { $("respaldo").hidden = true; mensaje("El respaldo ya no está disponible.", "error"); return; }
+      if (!puedeReemplazar("recuperas el respaldo")) { return; }
+      if (cargar(datos.operacion, "Se recuperó la última operación del respaldo (" + fechaHora(datos.guardadoEl) + "). " +
+          "Guárdala con «Guardar JSON»: el respaldo del navegador no reemplaza al archivo.", false)) {
+        $("respaldo").hidden = true;
+      }
+    });
+    $("btn-descartar-respaldo").addEventListener("click", function () {
+      borrarRespaldo();
+      $("respaldo").hidden = true;
+      mensaje("Se descartó el respaldo automático.", "ok");
+    });
+
+    // Aviso del navegador antes de cerrar la pestaña con cambios sin guardar.
+    window.addEventListener("beforeunload", function (ev) {
+      if (cambiosSinGuardar()) {
+        respaldar();
+        ev.preventDefault();
+        ev.returnValue = "";
+      }
+    });
+
+    pintarRevisionDiccionario();
+    $("formulario").appendChild(el("p", "vacio", "No hay una operación cargada. Usa «Nueva», un ejemplo o «Abrir JSON»."));
     $("vista-resultados").appendChild(el("p", "vacio", "Carga una operación para ver sus cálculos."));
     $("revision-contador").textContent = "Carga una operación para revisarla.";
+    pintarDocumentos(null);
+    ofrecerRespaldo();
   }
 
   if (document.readyState === "loading") {

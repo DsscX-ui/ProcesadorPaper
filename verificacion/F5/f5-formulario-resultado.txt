@@ -1,0 +1,52 @@
+Prueba F5 (formulario en index.html, Chrome headless) — 2026-10-03T23:33:56.027Z
+47 de 47 comprobaciones correctas
+
+✔ Inicio: sin desborde horizontal a 1280 px
+✔ Inicio: no hay respaldo que ofrecer (navegador limpio)
+✔ Caso 1: huella 7945E0E3 — 7945E0E3
+✔ Caso 1: contador A01, A08, A19, A20 — ✔ Sin errores · 6 advertencias (A01, A08, A19, A20), que no bloquean. Los documentos se podrán generar.
+✔ Caso 1: «Sin cambios por guardar»
+✔ Caso 1: totales 390 bultos y factura 20,040.00 — 390 bultos (1–390) · neto 1,960.00 kg · bruto 2,289.00 kg · 25.440 m³ · factura USD 20,040.00
+✔ Cantidad 400.5: el panel muestra E06 (error) — ✘ 1 error (E06) y 7 advertencias (A01, A06, A08, A19, A20). Los errores bloquean los documentos: corrígelos antes de generarlos.
+✔ Cantidad 400.5: el campo queda marcado (aria-invalid)
+✔ «Ir al dato» (E06) pone el foco en la cantidad del ítem 1 — especificos.items.0.cantidad
+✔ Cantidad 400: totales 590 bultos y factura 23,940.00 — 590 bultos (1–590) · neto 2,860.00 kg · bruto 3,329.00 kg · 37.440 m³ · factura USD 23,940.00
+✔ Cantidad 400: E06 desaparece del panel — ✔ Sin errores · 7 advertencias (A01, A06, A08, A19, A20), que no bloquean. Los documentos se podrán generar.
+✔ Resultados del cálculo: total de bultos 590 — 590
+✔ Resumen de la tarjeta del ítem 1 actualizado — · Ventilador de pie · 400 U · USD 7,800.00 · 400 bultos
+✔ Huella cambió y la barra dice «Cambios sin guardar»
+✔ Respaldo automático escrito en localStorage
+✔ Precio 2,000,000: revisión en pausa con E20 — ✘ Cálculo en pausa: 1 dato por corregir (E20). Los demás avisos y los resultados vuelven al corregirlo.
+✔ Precio 2,000,000: resultados en pausa
+✔ Guardar se niega mientras haya un dato pendiente — Hay 1 dato(s) que no se pudieron usar (E20 en «Revisión»). Corrígelos antes de guardar: el archivo llevaría el valor anterior y no el que ves.
+✔ Precio corregido: vuelve la revisión normal — ✔ Sin errores · 7 advertencias (A01, A06, A08, A19, A20), que no bloquean. Los documentos se podrán generar.
+✔ Agregar ítem: 4 tarjetas — 4
+✔ Agregar ítem: el foco va al nombre del ítem 4 — f1-especificos-items-3-nombre
+✔ Ítem 4 vacío: el panel muestra E01 de sus datos
+✔ Eliminar ítem pide confirmación — confirm: ¿Eliminar el ítem 4? Se borran sus datos y sus marcas; para recuperarlos tendrías que volv
+✔ Eliminar ítem: quedan 3 tarjetas
+✔ Bajar el ítem 1: pasa a la posición 2
+✔ Importación: A6, B8, tipo de cambio y tributos del ítem visibles; UBIGEO de fabricación oculto — {"A6":true,"B8":true,"ubigeoOrigen":false,"tipoCambio":true,"tributosItem":true}
+✔ Exportación: A6, B8, tipo de cambio y tributos del ítem ocultos; UBIGEO de fabricación visible — {"A6":false,"B8":false,"ubigeoOrigen":true,"tipoCambio":false,"tributosItem":false}
+✔ Exportación: destinación derivada 40
+✔ Exportación: los resultados muestran el FOB de exportación (S 6.5)
+✔ Exportación: sin desborde a 1280 px
+✔ Exportación: sin desborde a 390 px
+✔ Tabulación en orden lógico desde «Referencia interna» — descripcion:btn-ayuda → descripcion:cf-control → ficticio:btn-ayuda → ficticio:cf-control → SUMMARY:SUMMARY → tipo:btn-ayuda
+✔ Foco visible (outline) en un control
+✔ Al cerrar con cambios sin guardar, el navegador avisa (beforeunload) — 1 aviso(s)
+✔ Al volver: se ofrece «Recuperar la última operación» (no se carga sola) — Hay un respaldo automático de este navegador: «OP-2026-001», 3 ítem(s), del 03-10-2026 a las 18:33. No se carga solo: elige si lo recuperas.
+✔ Recuperar: misma huella que antes de cerrar y «Cambios sin guardar» — 08F18FF9
+✔ Nueva con cambios sin guardar pide confirmación — confirm: La operación «OP-2026-001» tiene cambios sin guardar. Si creas una operación nueva, se per
+✔ Nueva: sugeridos del plan (forma de envío 1/1)
+✔ Descartar el respaldo lo borra
+✔ caso1 con todo abierto: sin desborde a 1280 px
+✔ caso1 con todo abierto: sin desborde a 390 px
+✔ caso2 con todo abierto: sin desborde a 1280 px
+✔ caso2 con todo abierto: sin desborde a 390 px
+✔ 50 ítems: se abren
+✔ 50 ítems: una edición se refleja en menos de 600 ms (incluye la espera de 250 ms) — 288 ms
+✔ 50 ítems: sin desborde a 1280 px
+✔ Sin errores ni advertencias de consola — ninguno
+
+Diálogos vistos: confirm: ¿Eliminar el ítem 4? Se borran sus datos y sus marcas; para recuperarlos tendrías que volv | beforeunload:  | confirm: La operación «OP-2026-001» tiene cambios sin guardar. Si creas una operación nueva, se per

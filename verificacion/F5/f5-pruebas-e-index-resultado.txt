@@ -1,0 +1,24 @@
+== pruebas.html 1280
+EVAL ["438 de 438 pruebas correctas",0]
+overflow false
+== pruebas.html 390
+EVAL ["438 de 438 pruebas correctas",0]
+overflow false
+== index.html 1280 (inicio, caso 1, caso 2)
+ERRORES: ninguno
+DESBORDE_HORIZONTAL: false
+EVAL: "✔ Sin errores · 6 advertencias (A01, A08, A19, A20), que no bloquean. Los documentos se podrán generar."
+ERRORES: ninguno
+DESBORDE_HORIZONTAL: false
+EVAL: "✔ Sin errores · 4 advertencias (A01, A08, A19), que no bloquean. Los documentos se podrán generar."
+ERRORES: ninguno
+DESBORDE_HORIZONTAL: false
+== index.html 390 (inicio, caso 1, caso 2)
+ERRORES: ninguno
+DESBORDE_HORIZONTAL: false
+EVAL: "✔ Sin errores · 6 advertencias (A01, A08, A19, A20), que no bloquean. Los documentos se podrán generar."
+ERRORES: ninguno
+DESBORDE_HORIZONTAL: false
+EVAL: "✔ Sin errores · 4 advertencias (A01, A08, A19), que no bloquean. Los documentos se podrán generar."
+ERRORES: ninguno
+DESBORDE_HORIZONTAL: false

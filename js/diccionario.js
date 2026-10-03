@@ -14,6 +14,10 @@
      casilla  { importacion, exportacion }: casilla DAM en cada operación ("" = sin casilla)
               A = Formato A ingreso, S = Formato A salida, B = Formato B, C = Formato C
      ayuda    qué es, en una frase
+     si       (F5) condición para PEDIR el campo en el formulario (clave de CONDICIONES_VISIBLES); "" = siempre.
+              Un campo que no se pide queda oculto y no es obligatorio, pero conserva su dato.
+     sugerido (F5) valor que propone una operación nueva (PLAN §4: "por defecto"); sigue siendo editable.
+   DERIVADOS: datos de §4 C que no se ingresan; el formulario los muestra en solo lectura.
    Script clásico: deja el objeto global DICCIONARIO. */
 
 var DICCIONARIO = (function () {
@@ -45,7 +49,7 @@ var DICCIONARIO = (function () {
     campos.push({
       grupo: grupo, ruta: ruta, es: es, en: en, tipo: tipo, marca: marca, fuente: fuente,
       lista: extra.lista || "", obl: extra.obl || "sí", solo: extra.solo || "", docs: extra.docs || "",
-      casilla: { importacion: cas[0], exportacion: cas[1] }, ayuda: extra.ayuda || ""
+      casilla: { importacion: cas[0], exportacion: cas[1] }, ayuda: extra.ayuda || "", si: "", sugerido: undefined
     });
   }
 
@@ -81,10 +85,10 @@ var DICCIONARIO = (function () {
   d("A2", P + "comprador.idFiscal", "Identificación fiscal del comprador", "Buyer tax ID", "texto", "H", "IT A 1.2", { docs: "FC DAM", cas: ["A 1.2, B 1.2 (RUC, código 4)", ""], ayuda: "En importación, RUC de 11 dígitos; el código de documento 4 = RUC se deriva (IT A 1.2)." });
   d("A2", P + "comprador.ubigeo", "UBIGEO del importador", "Importer UBIGEO", "codigo", "H*", "INEI (tabla SUNAT: F0b)", { lista: "ubigeo", obl: "importación", solo: "importacion", docs: "DAM", cas: ["A 1.4", ""], ayuda: "Código de ubicación geográfica del domicilio del importador." });
 
-  d("A2", P + "consignatario.tipo", "Consignatario", "Consignee", "texto", "S", "—", { docs: "FC BL", cas: SC, ayuda: "'comprador', 'otro' o 'a_la_orden'. Es quien recibe la carga según el B/L." });
+  d("A2", P + "consignatario.tipo", "Consignatario", "Consignee", "codigo", "S", "—", { lista: "tipoConsignatario", docs: "FC BL", cas: SC, ayuda: "Quien recibe la carga según el B/L: el comprador (por defecto), otra persona o «a la orden de…»." });
   d("A2", P + "consignatario.razonSocial", "Consignatario: nombre", "Consignee name", "texto", "S", "—", { obl: "si no es el comprador", docs: "FC BL", ayuda: "Solo si el consignatario no es el comprador." });
   d("A2", P + "consignatario.direccion", "Consignatario: dirección", "Consignee address", "texto", "S", "—", { obl: "si no es el comprador", docs: "FC BL", ayuda: "Solo si el consignatario no es el comprador." });
-  d("A2", P + "notify.tipo", "Parte a notificar", "Notify party", "texto", "S", "—", { docs: "BL", cas: SC, ayuda: "'consignatario' u 'otro'. Recibe el aviso de llegada." });
+  d("A2", P + "notify.tipo", "Parte a notificar", "Notify party", "codigo", "S", "—", { lista: "tipoNotify", docs: "BL", cas: SC, ayuda: "Recibe el aviso de llegada: el consignatario (por defecto) u otra persona." });
   d("A2", P + "notify.razonSocial", "Notify: nombre", "Notify name", "texto", "S", "—", { obl: "si no es el consignatario", docs: "BL", ayuda: "Solo si el notify no es el consignatario." });
   d("A2", P + "notify.direccion", "Notify: dirección", "Notify address", "texto", "S", "—", { obl: "si no es el consignatario", docs: "BL", ayuda: "Solo si el notify no es el consignatario." });
   d("A2", P + "naviera.nombre", "Naviera", "Shipping line", "texto", "S", "—", { docs: "BL HR", cas: "Sin casilla (A 3.1 es el agente marítimo)", ayuda: "Empresa que transporta y emite el B/L." });
@@ -279,6 +283,149 @@ var DICCIONARIO = (function () {
   d("B8", I + "tipoA720", "Código 'Tipo' (ISC o antidumping)", "'Type' code", "texto", "H", "IT A 7.20", { obl: "no", solo: "importacion", docs: "DAM", cas: ["A 7.20", ""], ayuda: "Solo si hay ISC diferenciado o antidumping." });
   d("B8", E + "tributos.tasaPercepcion", "Tasa de percepción del IGV (%)", "VAT perception rate (%)", "numero", "PV", "PV-01", { obl: "importación", solo: "importacion", docs: "DAM HR", cas: ["Fuera del Formato C", ""], ayuda: "Un solo valor por operación (decisiones D2 y D6). La tasa depende del importador y, en algunos casos, de la mercancía (bienes usados, exclusiones); no figura en el Formato C (PV-01)." });
 
+  // ---------------------------------------------------------------- Formulario (F5)
+  // Cuándo se PIDE cada campo condicional (PLAN §4: "Cond."). fn(op, i): i = índice del ítem (campos de ítem).
+  function regla(op) { return INCOTERMS.regla(op.generales.comercial.incoterm); }
+  function digitos(t) { return String(t || "").replace(/\D/g, ""); }
+  // Casillas de la sección 8 que dependen del Incoterm: se piden si la fórmula del FOB (IT C 5.9) las usa,
+  // si aún no hay Incoterm válido o si ya tienen un monto (nunca se oculta una cifra que entra en el cálculo).
+  function enFormula(clave) {
+    return function (op) {
+      var r = regla(op), v = op.especificos.valoracion[clave];
+      if (!r || (v !== 0 && v !== null)) { return true; }
+      var casilla = Object.keys(INCOTERMS.campoCasilla).filter(function (c) { return INCOTERMS.campoCasilla[c] === clave; })[0];
+      return INCOTERMS.formulasFob[r.codigo].some(function (t) { return t[0] === casilla; });
+    };
+  }
+  var CONDICIONES_VISIBLES = {
+    "consignatario distinto del comprador": function (op) { return op.generales.partes.consignatario.tipo !== "comprador"; },
+    "notify distinto del consignatario": function (op) { return op.generales.partes.notify.tipo !== "consignatario"; },
+    "hay seguro": function (op) { return op.especificos.seguro.hay === true; },
+    "sin seguro": function (op) { return op.especificos.seguro.hay !== true; },
+    "trato preferencial": function (op) { return op.especificos.origen.solicitaPreferencia === true; },
+    "pago a crédito (modalidad 2)": function (op) { return op.generales.comercial.modalidadPago === "2"; },
+    "hubo intermediario (6.1 = Sí)": function (op) { return op.generales.valor.intermediario.hubo === "1"; },
+    "7.1 = Sí": function (op) { return op.generales.valor.rubro7.p7_1 === "1"; },
+    "7.5 = Sí": function (op) { return op.generales.valor.rubro7.p7_5 === "1"; },
+    "exportación": function (op) { return op.generales.operacion.tipo === "exportacion"; },
+    "celulares (8517.13 / 8517.14)": function (op, i) {
+      var it = op.especificos.items[i];
+      return !!it && (it.equipos.length > 0 || NORMATIVA.valores.imei.subpartidas.map(digitos).indexOf(digitos(it.subpartida)) !== -1);
+    },
+    "EXW (casilla 8.1.5)": enFormula("gastosExw815"),
+    "grupo D (casilla 8.3.2)": enFormula("gastosDestino832"),
+    "grupo D (casilla 8.5.1)": enFormula("posteriores851"),
+    "DDP (casilla 8.5.2)": enFormula("montaje852"),
+    "DDP (casilla 8.5.3)": enFormula("tributos853"),
+    "exportación en C o D (S 6.3)": function (op) {
+      var r = regla(op);
+      return !r || r.grupo === "C" || r.grupo === "D" || !!op.especificos.valoracion.expOtrosDeducibles;
+    },
+    "exportación en EXW (S 6.4)": function (op) {
+      var r = regla(op);
+      return !r || r.codigo === "EXW" || !!op.especificos.valoracion.expAjustes;
+    }
+  };
+  var VISIBILIDAD = {};
+  function siempreQue(cond, rutas) { rutas.forEach(function (r) { VISIBILIDAD[r] = cond; }); }
+  siempreQue("consignatario distinto del comprador", [P + "consignatario.razonSocial", P + "consignatario.direccion"]);
+  siempreQue("notify distinto del consignatario", [P + "notify.razonSocial", P + "notify.direccion"]);
+  siempreQue("hay seguro", [P + "aseguradora.razonSocial", P + "aseguradora.direccion"].concat(
+    ["tipoPoliza", "poliza", "certificado", "fechaEmision", "clausulas", "guerra", "huelgas", "coberturaPct", "tasaPrimaPct",
+      "lugarPagoSiniestros", "agenteReclamos"].map(function (k) { return S + k; })));
+  siempreQue("sin seguro", [S + "pctTablaSunat"]);
+  siempreQue("trato preferencial", [P + "productor.razonSocial", P + "productor.direccion", P + "entidadCO.nombre",
+    O + "acuerdo", O + "criterio", O + "certificadoNumero", O + "certificadoFecha", I + "tpi"]);
+  siempreQue("pago a crédito (modalidad 2)", ["porcentaje", "plazoDias", "evento", "fecha"].map(function (k) { return G + "comercial.pagoDiferido." + k; }));
+  siempreQue("hubo intermediario (6.1 = Sí)", ["nombre", "direccion", "ciudad", "pais", "tipo", "contacto"].map(function (k) { return V + "intermediario." + k; }));
+  siempreQue("7.1 = Sí", [V + "rubro7.p7_2", V + "rubro7.p7_3"]);
+  siempreQue("7.5 = Sí", [V + "rubro7.p7_6"]);
+  siempreQue("exportación", [G + "aduana.tipoDespacho"]);
+  siempreQue("celulares (8517.13 / 8517.14)", [I + "equipos"]);
+  siempreQue("EXW (casilla 8.1.5)", [VA + "gastosExw815"]);
+  siempreQue("grupo D (casilla 8.3.2)", [VA + "gastosDestino832"]);
+  siempreQue("grupo D (casilla 8.5.1)", [VA + "posteriores851"]);
+  siempreQue("DDP (casilla 8.5.2)", [VA + "montaje852"]);
+  siempreQue("DDP (casilla 8.5.3)", [VA + "tributos853"]);
+  siempreQue("exportación en C o D (S 6.3)", [VA + "expOtrosDeducibles"]);
+  siempreQue("exportación en EXW (S 6.4)", [VA + "expAjustes"]);
+
+  // Valores "por defecto" de PLAN §4 que propone una operación nueva. Los que dependen de otro dato
+  // (flete del B/L según el Incoterm, país de adquisición = país del proveedor, seguro en CIF/CIP,
+  // tipo de despacho 00 en exportación) los aplica js/formulario.js al cambiar ese dato.
+  var SUGERIDOS = {};
+  SUGERIDOS[P + "consignatario.tipo"] = "comprador";
+  SUGERIDOS[P + "notify.tipo"] = "consignatario";
+  SUGERIDOS[G + "comercial.moneda"] = "USD";
+  SUGERIDOS[V + "formaEnvio"] = "1/1";
+  SUGERIDOS[V + "intermediario.hubo"] = "2";
+  SUGERIDOS[S + "coberturaPct"] = 110;
+  SUGERIDOS[E + "transporte.blOriginales"] = 3;
+  SUGERIDOS[C + "estibaTrincaje"] = 0;
+  SUGERIDOS[I + "objetoAjuste"] = true;
+  SUGERIDOS[I + "estado"] = "10";
+
+  campos.forEach(function (c) {
+    c.si = VISIBILIDAD[c.ruta] || "";
+    if (Object.prototype.hasOwnProperty.call(SUGERIDOS, c.ruta)) { c.sugerido = SUGERIDOS[c.ruta]; }
+  });
+  Object.keys(VISIBILIDAD).forEach(function (r) {
+    if (!campos.some(function (c) { return c.ruta === r; }) || !CONDICIONES_VISIBLES[VISIBILIDAD[r]]) {
+      throw new Error("Diccionario: condición de formulario inválida en " + r);
+    }
+  });
+
+  // ¿Se pide el campo en esta operación? (solo importación/exportación y condición "si"). i = índice del ítem.
+  function sePide(campo, op, i) {
+    if (campo.solo && campo.solo !== op.generales.operacion.tipo) { return false; }
+    return !campo.si || CONDICIONES_VISIBLES[campo.si](op, i);
+  }
+
+  // Datos derivados de §4 C: no se ingresan; el formulario los muestra en solo lectura, junto a su grupo.
+  // valor(op, r): r = resultado de Calculos.calcular (puede ser null si el cálculo está en pausa).
+  // Solo leen el resultado o una tabla de normativa.js; no calculan cifras propias.
+  function opcionTexto(lista, codigo) { var o = NORMATIVA.opcion(lista, codigo); return o ? codigo + " — " + o.texto : "—"; }
+  function paisDe(locode) {
+    var cod = String(locode || "").slice(0, 2).toUpperCase();
+    if (!cod) { return "—"; }
+    var o = NORMATIVA.opcion("pais", cod);
+    return cod + (o ? " — " + o.texto : "");
+  }
+  var F = function () { return Calculos.formato; };
+  var DERIVADOS = [
+    { grupo: "A1", id: "destinacion", es: "Destinación", en: "Customs regime", marca: "H", fuente: "IT A y B, DESTINACIÓN", cas: ["Cabecera", "Cabecera"],
+      valor: function (op) { return op.generales.operacion.tipo === "importacion" ? opcionTexto("destinacion", "10") : opcionTexto("destinacion", "40"); } },
+    { grupo: "A2", id: "codigoDocumento", es: "Código de documento del importador", en: "Importer ID type", marca: "H", fuente: "IT A 1.2", solo: "importacion", cas: ["A 1.2", ""],
+      valor: function () { return opcionTexto("documentoIdentidad", "4"); } },
+    { grupo: "A3", id: "paisEmbarque", es: "País de embarque", en: "Country of loading", marca: "H*", fuente: "Prefijo del UN/LOCODE de embarque", solo: "importacion", cas: ["B 5.8", ""],
+      valor: function (op) { return paisDe(op.generales.ruta.puertoEmbarque.locode); } },
+    { grupo: "A3", id: "paisDestino", es: "País de destino", en: "Country of destination", marca: "H*", fuente: "Prefijo del UN/LOCODE de descarga", solo: "exportacion", cas: ["", "S 7.27"],
+      valor: function (op) { return paisDe(op.generales.ruta.puertoDescarga.locode); } },
+    { grupo: "A4", id: "versionIncoterm", es: "Versión del Incoterm", en: "Incoterms version", marca: "H", fuente: "IT C 5.4", solo: "importacion", cas: ["B 5.4", ""],
+      valor: function () { return opcionTexto("versionIncoterm", "4"); } },
+    { grupo: "B1", id: "totalesCarga", es: "Totales de la mercancía", en: "Cargo totals", marca: "S", fuente: "PLAN §6.2 (calculos.js)", cas: ["", ""],
+      valor: function (op, r) {
+        if (!r) { return "—"; }
+        return r.totales.bultos + " bultos (" + r.totales.numeracion.replace("-", "–") + ") · neto " + F().kg(r.totales.pesoNeto) + " kg · bruto " +
+          F().kg(r.totales.pesoBruto) + " kg · " + F().m3(r.totales.volumen) + " m³ · factura USD " + F().comercial(r.totales.valorFactura);
+      } },
+    { grupo: "B3", id: "unidadCarga", es: "Unidad de carga", en: "Cargo unit", marca: "H", fuente: "IT A 7.37 k)", solo: "importacion", cas: ["A 7.37 k", ""],
+      valor: function () { return opcionTexto("unidadCarga", "02"); } },
+    { grupo: "B3", id: "vgm", es: "VGM (masa bruta verificada)", en: "Verified gross mass", marca: "H*", fuente: "SOLAS VI/2 (calculos.js)", cas: ["", ""],
+      valor: function (op, r) { return r ? F().kg(r.vgm.total) + " kg = peso bruto + estiba + tara" : "—"; } },
+    { grupo: "B4", id: "fleteSugerido", es: "Flete usual para el Incoterm", en: "Usual freight term", marca: "S", fuente: "PLAN §6.8 (D8)", cas: ["", ""],
+      valor: function (op, r) { return r && r.fleteBl.sugerido ? r.fleteBl.sugerido + (r.fleteBl.coincide ? " (coincide con el B/L)" : " (el B/L dice otra cosa: A05)") : "— (elige el Incoterm)"; } },
+    { grupo: "B5", id: "tipoSeguro", es: "Tipo de seguro", en: "Insurance type", marca: "H", fuente: "IT A 7.32", solo: "importacion", cas: ["A 7.32", ""],
+      valor: function (op, r) { return r && r.seguro.tipoSeguro ? opcionTexto("tipoSeguro", r.seguro.tipoSeguro) : "—"; } },
+    { grupo: "B5", id: "primaSeguro", es: "Suma asegurada y prima", en: "Sum insured and premium", marca: "S", fuente: "PLAN §6.4 (calculos.js)", cas: ["", ""],
+      valor: function (op, r) { return r && r.seguro.hay ? "USD " + F().comercial(r.seguro.sumaAsegurada) + " asegurados · prima USD " + F().comercial(r.seguro.prima) : "Sin seguro"; } },
+    { grupo: "B7", id: "fobTotal", es: "FOB", en: "FOB value", marca: "H", fuente: "IT C 5.9 / IT B 6.5 (calculos.js)", cas: ["B 8 → A 6.1", "S 6.5"],
+      valor: function (op, r) {
+        if (!r) { return "—"; }
+        return "USD " + F().damAC(r.tipo === "importacion" ? r.fob.total : r.exportacion.s65);
+      } }
+  ];
+
   // Revisión interna: toda entrada declara marca y fuente.
   campos.forEach(function (c) {
     if (MARCAS.indexOf(c.marca) === -1 || !c.fuente) { throw new Error("Diccionario: marca o fuente inválida en " + c.ruta); }
@@ -409,5 +556,6 @@ var DICCIONARIO = (function () {
   }
 
   return { grupos: GRUPOS, campos: campos, buscar: buscar, casilla: casilla, revisarContraModelo: revisarContraModelo,
-    cobertura: COBERTURA, revisarCobertura: revisarCobertura };
+    cobertura: COBERTURA, revisarCobertura: revisarCobertura,
+    condicionesVisibles: CONDICIONES_VISIBLES, sePide: sePide, derivados: DERIVADOS };
 })();

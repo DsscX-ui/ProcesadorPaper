@@ -23,7 +23,7 @@ body {
   line-height: 1.5;
 }
 
-body > * { max-width: 960px; margin-left: auto; margin-right: auto; }
+body > * { max-width: 1180px; margin-left: auto; margin-right: auto; }
 
 h1 { font-size: 1.5rem; margin: 0 0 4px; }
 h2 { font-size: 1.15rem; margin: 0 0 8px; }
@@ -62,8 +62,9 @@ section {
 .fases { margin: 8px 0 0; padding-left: 1.4em; color: var(--suave); }
 .fases .hecha { color: var(--texto); font-weight: 600; }
 
-/* Hoja A4 de prueba: en pantalla se ve como papel. */
+/* Hoja A4 de prueba (F1): solo se imprime, hasta que existan los documentos reales (F6). */
 .hoja { min-height: 60vh; position: relative; }
+@media screen { .hoja-prueba { display: none; } }
 .hoja-encabezado {
   margin: 0 0 12px;
   padding-bottom: 6px;
@@ -143,7 +144,7 @@ table.datos tr.detalle p { margin: 2px 0; }
   body { background: #fff; padding: 0; }
   body > * { max-width: none; }
   /* Solo se imprimen las hojas de documentos. */
-  .cabecera, .aviso, .marcas, .estado, .operacion, .revision { display: none; }
+  .cabecera, .aviso, .marcas, .estado, .operacion, .revision, .documentos, .barra-pasos { display: none; }
   section.hoja { border: none; padding: 0; margin: 0; min-height: auto; break-after: page; }
   .marca-agua {
     display: block;
@@ -243,3 +244,120 @@ table.resultados tr.fila-total td { font-weight: 700; border-top: 2px solid var(
 tr.resaltado td { background: #fff3b0 !important; }
 tr.resaltado { outline: 3px solid #1d4ed8; outline-offset: -3px; }
 summary.resaltado, .bloque-resultado.resaltado { outline: 3px solid #1d4ed8; outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ F5: barra de pasos, formulario e ítems */
+html { scroll-padding-top: 76px; }
+.paso-num {
+  display: inline-block; min-width: 1.5em; padding: 0 5px; margin-right: 4px; border-radius: 999px;
+  background: #1d4ed8; color: #fff; font-size: 0.8em; text-align: center; font-weight: 700;
+}
+.barra-pasos {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(255, 255, 255, 0.97); border: 1px solid var(--borde); border-radius: 6px;
+  padding: 6px 10px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px;
+}
+.barra-pasos ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.barra-pasos a { color: var(--texto); text-decoration: none; font-weight: 600; white-space: nowrap; }
+.barra-pasos a:hover { text-decoration: underline; }
+.barra-estado { margin: 0 0 0 auto; font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 4px 10px; min-width: 0; }
+.barra-contador { font-size: 0.8rem; font-weight: 700; padding: 0 6px; border-radius: 4px; }
+.barra-contador.con-errores { color: #b42318; background: #fdecea; }
+.barra-contador.sin-errores { color: #1a7f37; background: #eaf6ec; }
+.barra-guardado.sucio { color: #8a4b00; font-weight: 700; }
+.barra-guardado.limpio { color: #1a7f37; }
+.barra-mensaje { color: var(--suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 46ch; }
+.barra-mensaje.error { color: #b42318; }
+
+.autoguardado { margin: 4px 0; font-size: 0.9rem; }
+.respaldo { border: 2px solid #93c5fd; background: #eff6ff; border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+.respaldo p { margin: 0 0 4px; font-weight: 600; }
+.rev-pausa { background: #fdecea; border: 1px solid #f5b5ae; border-radius: 6px; padding: 6px 10px; font-weight: 600; color: #b42318; }
+.documentos #estado-documentos { font-weight: 700; }
+
+/* Formulario: índice lateral en escritorio, fichas en móvil. */
+.formulario { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.indice-grupos ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.indice-grupos a {
+  display: inline-block; padding: 2px 8px; border: 1px solid var(--borde); border-radius: 999px;
+  background: #f8fafc; color: var(--texto); text-decoration: none; font-size: 0.85rem;
+}
+.indice-grupos a:hover { background: #e1e7ef; }
+.indice-cuenta { color: #b42318; font-weight: 700; }
+@media (min-width: 1000px) {
+  .formulario { grid-template-columns: 210px minmax(0, 1fr); align-items: start; }
+  .indice-grupos { position: sticky; top: 64px; max-height: calc(100vh - 80px); overflow-y: auto; }
+  .indice-grupos ul { flex-direction: column; flex-wrap: nowrap; gap: 2px; }
+  .indice-grupos a { display: block; border-radius: 4px; border-color: transparent; background: none; }
+  .indice-grupos a:hover { border-color: var(--borde); }
+}
+.formulario-principal { min-width: 0; }
+.grupos-acciones { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 4px; }
+.grupos-acciones button { font-size: 0.85rem; padding: 2px 10px; }
+.grupo-form > summary { padding: 4px 0; font-size: 1.02rem; }
+.grupo-cuenta { color: #b42318; font-weight: 700; }
+.grupo-cuerpo { padding: 4px 0 8px; }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 16px; }
+.cf { min-width: 0; padding: 4px 6px; border-radius: 6px; border: 1px solid transparent; }
+.cf-ancho { grid-column: 1 / -1; }
+.cf-cab { display: flex; align-items: flex-start; gap: 4px; flex-wrap: wrap; }
+.cf-cab label { flex: 0 1 auto; font-weight: 600; font-size: 0.92rem; min-width: 0; overflow-wrap: anywhere; }
+.cf-cab label .en { font-size: 0.85rem; }
+.cf-cab .marca { min-width: 0; font-size: 0.7rem; margin: 2px 0 0; }
+.cf-cab .btn-ayuda { margin: 0; }
+.cf-req { color: #b42318; font-weight: 700; }
+.cf-caja { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.cf-control { font: inherit; padding: 4px 6px; border: 1px solid #8c959f; border-radius: 4px; background: #fff; width: 100%; min-width: 0; }
+input[type="checkbox"].cf-control { width: 1.2em; height: 1.2em; flex: none; }
+textarea.cf-control { resize: vertical; font-family: inherit; }
+.cf-control:disabled { background: #f0f2f5; }
+.cf-unidad, .cf-sino { color: var(--suave); font-size: 0.85rem; white-space: nowrap; }
+.cf-pista, .cf-desc { margin: 2px 0 0; color: var(--suave); font-size: 0.78rem; overflow-wrap: anywhere; }
+.cf-pista .marca { min-width: 0; font-size: 0.68rem; margin-right: 3px; }
+.cf-desc { color: var(--texto); }
+.cf-error { margin: 3px 0 0; color: #b42318; font-weight: 600; font-size: 0.85rem; overflow-wrap: anywhere; }
+.cf-marca-dato { margin: 3px 0 0; font-size: 0.8rem; overflow-wrap: anywhere; }
+.cf-marca-dato .marca { min-width: 0; font-size: 0.7rem; }
+.cf-ayuda { margin-top: 4px; padding: 6px 8px; background: #f8fafc; border-left: 3px solid #93c5fd; font-size: 0.88rem; }
+.cf-ayuda p { margin: 2px 0; }
+.cf-ayuda .marca { min-width: 0; font-size: 0.7rem; }
+.cf-con-error { border-color: #f5b5ae; background: #fff8f7; }
+.cf-con-error .cf-control { border-color: #b42318; border-width: 2px; }
+.cf.resaltado { outline: 3px solid #1d4ed8; outline-offset: 1px; background: #fff3b0; }
+
+.derivados { margin-top: 10px; padding: 6px 10px; border: 1px dashed #93c5fd; border-radius: 6px; background: #f8fbff; }
+.derivados-titulo { margin: 0 0 4px; font-weight: 700; font-size: 0.85rem; color: #1e3a8a; }
+.derivados dl { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: 2px 12px; margin: 0; font-size: 0.88rem; }
+.derivados dt { font-weight: 600; }
+.derivados dd { margin: 0; overflow-wrap: anywhere; }
+.derivados .marca { min-width: 0; font-size: 0.68rem; margin: 0 4px; }
+.derivado-valor { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.zona-items { margin-top: 12px; }
+.items-titulo { font-size: 1rem; margin: 4px 0; }
+.item-tarjeta { border: 1px solid var(--borde); border-left: 4px solid #1d4ed8; border-radius: 6px; padding: 6px 10px; margin: 8px 0; background: #fff; }
+.item-tarjeta > summary { overflow-wrap: anywhere; }
+.item-num { font-weight: 700; }
+.item-resumen { font-weight: 400; color: var(--suave); }
+.item-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.btn-item { font-size: 0.85rem; padding: 2px 10px; }
+.btn-item:disabled { opacity: 0.45; cursor: default; }
+.btn-agregar { background: #e0ecff; border-color: #93c5fd; font-weight: 600; }
+.item-seccion { border: 1px solid var(--borde); border-radius: 6px; margin: 8px 0; padding: 4px 8px 8px; min-width: 0; }
+.item-seccion legend { font-weight: 600; font-size: 0.9rem; padding: 0 4px; }
+
+@media (max-width: 600px) {
+  html { scroll-padding-top: 96px; }
+  .paso-largo, .barra-pasos .nota { display: none; }
+  .barra-pasos { padding: 4px 8px; gap: 2px 10px; font-size: 0.9rem; }
+  .barra-pasos ol { gap: 2px 10px; }
+  .barra-estado { margin-left: 0; }
+  /* En el celular el eco del mensaje no cabe: el mensaje completo está en «Datos» (y lo anuncia el lector). */
+  .barra-mensaje { display: none; }
+  .rejilla { grid-template-columns: minmax(0, 1fr); }
+  .derivados dl { grid-template-columns: minmax(0, 1fr); }
+  .derivados dd { margin-bottom: 4px; }
+  .grupos-acciones { justify-content: flex-start; }
+}
+/* Impresión: la barra de pasos y los paneles de trabajo no se imprimen (va después de sus reglas de pantalla). */
+@media print { .barra-pasos, .documentos, .formulario { display: none !important; } }

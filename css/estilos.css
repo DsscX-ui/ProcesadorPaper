@@ -430,12 +430,14 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .doc-nota { font-size: 7pt; color: #444; margin: 1mm 0; }
 .doc-nota-hr { font-size: 7.6pt; padding: 1.2mm 2mm; background: #eff6ff; border-left: 2pt solid #1d4ed8; }
 .doc-marcas { white-space: pre-wrap; font-family: ui-monospace, Consolas, monospace; font-size: 8pt; }
-.doc-cifra { font-weight: 700; }
+.doc-cifra { font-weight: 700; white-space: nowrap; }
 .doc-lista { margin: 1mm 0; padding-left: 5mm; }
 .doc-lista li { margin: 0.5mm 0; break-inside: avoid; }
 .doc-firma { margin-top: 5mm; break-inside: avoid; }
 .doc-firma p { margin: 1mm 0; }
 .doc-linea-firma { margin-top: 7mm; }
+.doc-borrador { margin: 0 0 2mm; padding: 1.5mm; text-align: center; font-weight: 800; font-size: 10pt; letter-spacing: 0.05em; color: #8a4b00; border: 1.5pt dashed #d97706; background: #fff8e1; }
+.doc-carga td { font-size: 8pt; }
 .doc-pie { margin-top: 6mm; padding-top: 1mm; border-top: 0.5pt solid #9aa0a6; font-size: 7pt; color: #555; }
 .doc-seccion p { margin: 1mm 0; }
 
@@ -450,7 +452,7 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
   .hoja-doc { zoom: 1 !important; width: auto; min-height: 0; padding: 0; margin: 0; box-shadow: none; overflow: visible; }
   .doc-tabla thead { display: table-header-group; }
   .doc-tabla tfoot { display: table-row-group; }
-  .doc-elegido td, .doc-tabla th, .doc-tabla tfoot td, .doc-nota-hr {
+  .doc-elegido td, .doc-tabla th, .doc-tabla tfoot td, .doc-nota-hr, .doc-borrador {
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .doc-bloqueo { border: 1px solid #b42318; }

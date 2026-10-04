@@ -33,6 +33,7 @@
   <script src="js/documentos/comun.js"></script>
   <script src="js/documentos/factura.js"></script>
   <script src="js/documentos/packing.js"></script>
+  <script src="js/documentos/bl.js"></script>
   <script src="js/documentos/resumen.js"></script>
   <script>
   /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
@@ -1063,7 +1064,7 @@
       ["caso2", "140", "1,470.00", "1,588.00", "13.200", "39,550.00", "EJMU2600025", "SD-000124"]].forEach(function (c) {
       var x = documentosDe(ejemplo(c[0]));
       var fc = x.porId.factura.cifras, pl = x.porId.packing.cifras;
-      prueba(c[0] + ": se generan FC, PL y HR (sin errores)", "factura,packing,resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
+      prueba(c[0] + ": se generan FC, PL y HR (sin errores)", "true", String(["factura", "packing", "resumen"].every(function (id) { return !!x.porId[id]; })));
       prueba(c[0] + ": bultos FC = PL = §9", c[1] + " · " + c[1], fc.bultos + " · " + pl.bultos);
       prueba(c[0] + ": peso neto FC = PL", c[2] + " · " + c[2], fc.pesoNeto + " · " + pl.pesoNeto);
       prueba(c[0] + ": peso bruto FC = PL", c[3] + " · " + c[3], fc.pesoBruto + " · " + pl.pesoBruto);
@@ -1091,7 +1092,7 @@
       var z = documentosDe(o);
       prueba("CFR: desglose FOB + flete (sin seguro)", "base:18,190.00 · flete:1,850.00",
         z.r.factura.desglose.lineas.map(function (l) { return l.id + ":" + F.comercial(l.valor); }).join(" · "));
-      prueba("Marcas en cada hoja: aviso didáctico, marca de agua y pie con referencia y fecha", "3 · 3 · 3",
+      prueba("Marcas en cada hoja: aviso didáctico, marca de agua y pie con referencia y fecha", [x.gen.docs.length, x.gen.docs.length, x.gen.docs.length].join(" · "),
         [".doc-aviso", ".doc-marca-agua", ".doc-pie"].map(function (sel) {
           return x.gen.docs.filter(function (d) { return d.hoja.querySelector(sel) && (sel !== ".doc-pie" || /OP-2026-001.*03-10-2026 10:00/.test(d.hoja.querySelector(sel).textContent)); }).length;
         }).join(" · "));
@@ -1107,7 +1108,7 @@
       prueba("Datos del usuario como texto (nombre con <img>): 0 imágenes en los documentos", "0 · true",
         dx.gen.docs.reduce(function (n, d) { return n + d.hoja.querySelectorAll("img,b").length; }, 0) + " · " +
         String(dx.porId.factura.hoja.textContent.indexOf("<img src=x onerror=alert(1)>") !== -1));
-      prueba("Cada hoja es un <article class=hoja-doc> con data-doc", "factura,packing,resumen", x.gen.docs.map(function (d) { return d.hoja.getAttribute("data-doc"); }).join(","));
+      prueba("Cada hoja es un <article class=hoja-doc> con data-doc", x.gen.docs.map(function (d) { return d.def.id; }).join(","), x.gen.docs.map(function (d) { return d.hoja.tagName === "ARTICLE" && d.hoja.className === "hoja-doc" ? d.hoja.getAttribute("data-doc") : "?"; }).join(","));
       prueba("Precio unitario: 2 decimales mínimo; más si el dato los trae, sin redondear", "4.10 · 0.000001 · 1.1234",
         [Documentos.precio(fx("4.100000")), Documentos.precio(fx("0.000001")), Documentos.precio(fx("1.123400"))].join(" · "));
     })();
@@ -1164,6 +1165,54 @@
       var cambiada = Documentos.trazabilidad(o).filter(function (f) { return /precinto/.test(f.requisito); })[0].docs.CO === true;
       c0.docs = antes;
       prueba("Si cambia el diccionario, cambia la tabla (precinto + CO)", "true", String(cambiada));
+    })();
+
+    // ============================================================ F7: instrucciones de embarque, B/L y VGM
+    grupo("F7-1. Bultos, peso bruto, volumen y contenedor del B/L = lista de empaque",
+      "Se leen las cifras (data-cuadre) que MUESTRAN las instrucciones de embarque (IE), el borrador de B/L y la declaración VGM, y se comparan con la PL.");
+    [["caso1", "4,489.00"], ["caso2", "3,788.00"]].forEach(function (c) {
+      var x = documentosDe(ejemplo(c[0]));
+      var pl = x.porId.packing.cifras;
+      prueba(c[0] + ": orden de los documentos", "factura,packing,instrucciones,bl,vgm,resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
+      ["instrucciones", "bl"].forEach(function (id) {
+        var k = x.porId[id].cifras;
+        prueba(c[0] + " · " + id + ": bultos, peso bruto, volumen, contenedor y precinto = PL",
+          [pl.bultos, pl.pesoBruto, pl.volumen, pl.contenedor, pl.precinto].join(" · "), [k.bultos, k.pesoBruto, k.volumen, k.contenedor, k.precinto].join(" · "));
+      });
+      var v = x.porId.vgm.cifras;
+      prueba(c[0] + " · VGM: carga = peso bruto de la PL; contenedor y precinto = PL", [pl.pesoBruto, pl.contenedor, pl.precinto].join(" · "), [v.pesoBruto, v.contenedor, v.precinto].join(" · "));
+      prueba(c[0] + " · VGM = carga + estiba + tara (§6.7, §9)", c[1], v.vgm);
+      prueba(c[0] + " · VGM de las instrucciones = declaración VGM", v.vgm, x.porId.instrucciones.cifras.vgm);
+      prueba(c[0] + " · cuadro de cuadre de la HR con 6 documentos: todo ✔", "true", String(Documentos.cuadre(x.gen.ctx).todoCuadra));
+    });
+
+    grupo("F7-2. Contenido del borrador de B/L y de la declaración VGM", "Leyenda BORRADOR – DRAFT, flete, originales, consignatario según el tipo de B/L, método VGM y marca H* SOLAS.");
+    (function () {
+      var x = documentosDe(ejemplo("caso1")), y = documentosDe(ejemplo("caso2"));
+      var bl1 = x.porId.bl.hoja, bl2 = y.porId.bl.hoja;
+      prueba("Leyenda «BORRADOR – DRAFT»", "true", String(/BORRADOR – DRAFT/.test(bl1.querySelector(".doc-borrador").textContent)));
+      prueba("Flete: caso 1 prepaid, caso 2 collect (dato fleteBl, D8)", "true · true",
+        String(/FREIGHT PREPAID/.test(bl1.textContent)) + " · " + String(/FREIGHT COLLECT/.test(bl2.textContent)));
+      prueba("N° de originales en letras", "true", String(/TRES \(3\)/.test(bl1.textContent)));
+      prueba("Cláusulas SLAC y STC, fecha shipped on board y emisión", "true", String(/SHIPPER'S LOAD, STOW AND COUNT/.test(bl1.textContent) &&
+        /SAID TO CONTAIN/.test(bl1.textContent) && /Ningbo, 14-10-2026/.test(bl1.textContent)));
+      prueba("Nominativo: el consignatario es el comprador", "true", String(/Importadora Didáctica Andina/.test(bl1.querySelectorAll(".doc-parte")[1].textContent)));
+      var o = ejemplo("caso1"); o.especificos.transporte.blTipo = "a_la_orden";
+      prueba("A la orden: «A la orden de / To the order of: …»", "true",
+        String(/To the order of: Importadora/.test(documentosDe(o).porId.bl.hoja.querySelectorAll(".doc-parte")[1].textContent)));
+      var o2 = ejemplo("caso1"); o2.generales.partes.consignatario = { tipo: "a_la_orden", razonSocial: "Banco Didáctico — FICTICIO", direccion: "Av. Ejemplo 1, Lima" };
+      prueba("Consignatario «a la orden de» un banco y notify = consignatario → se pide indicar a quién notificar", "true · true",
+        String(/To the order of: Banco/.test(documentosDe(o2).porId.bl.hoja.textContent)) + " · " +
+        String(/indicar a quién notificar/.test(documentosDe(o2).porId.bl.hoja.textContent)));
+      prueba("Descripción genérica (STC) sin precios", "true · false", String(/Ventilador de pie; Cargador USB-C/.test(bl1.textContent)) + " · " + String(/19\.50/.test(bl1.textContent)));
+      var vg = x.porId.vgm.hoja;
+      prueba("VGM: método, responsable, fecha y marca H* (SOLAS)", "true", String(/Método 2/.test(vg.textContent) && /12-10-2026/.test(vg.textContent) &&
+        !!vg.querySelector(".marca-hx") && /SOLAS/.test(vg.textContent)));
+      prueba("VGM: la tara lleva POR VERIFICAR (PV-16)", "true", String(!!vg.querySelector(".doc-tabla-vgm .marca-pv")));
+      var o3 = ejemplo("caso2"); o3.especificos.contenedor.estibaTrincaje = 150.5;
+      prueba("Estiba 150.50 kg → VGM 3,938.50 (lo calcula calculos.js)", "3,938.50", documentosDe(o3).porId.vgm.cifras.vgm);
+      var o4 = ejemplo("caso1"); o4.especificos.transporte.fleteBl = "collect";
+      prueba("Flete del B/L distinto del usual (A05): las instrucciones lo avisan", "true", String(/advertencia A05/.test(documentosDe(o4).porId.instrucciones.hoja.textContent)));
     })();
 
     // ============================================================ Pintar

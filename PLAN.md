@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) y **F6** (factura comercial, lista de empaque y hoja resumen; `pruebas.html`: 509 de 509 pruebas correctas). **Fase actual: F7** (instrucciones de embarque, borrador de B/L y VGM). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) y **F7** (instrucciones de embarque, borrador de B/L y VGM; `pruebas.html`: 535 de 535 pruebas correctas). **Fase actual: F8a** (DAM Formato A; pausa obligatoria para la revisión de Aarón). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -100,6 +100,7 @@ ProcesadorPaper/
         ├── comun.js      ← registro, marco de la hoja A4 (marca de agua, aviso, pie), formato e importe en letras
         ├── factura.js    ← factura comercial (FC)
         ├── packing.js    ← lista de empaque (PL)
+        ├── bl.js         ← instrucciones de embarque, borrador de B/L y declaración VGM (BL, F7)
         └── resumen.js    ← hoja resumen, de cuadre y de trazabilidad (HR); va al final porque lee a las demás
 ```
 
@@ -880,7 +881,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | F4 ✔ | Validaciones + panel de errores y advertencias | Cada caso muestra solo sus advertencias esperadas; si alteras un dato a propósito, sale el error esperado |
 | F5 ✔ | Formulario completo: ítems variables, secciones condicionales, ayuda por campo y marcas H\*/PV visibles | Cambias una cantidad y los totales se actualizan; ves las etiquetas H\* y PV |
 | F6 ✔ | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |
-| F7 | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
+| F7 ✔ | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
 | **F8a** | **DAM Formato A** (ingreso y salida, con A1) | Series, casillas y valores = §9.1 y §9.2. **Pausa: revisión de Aarón antes de seguir.** |
 | F8b | DAM Formato B (+B1), solo con tu aprobación de F8a | FOB unitarios y sección 8 = §9.1 |
 | F8c | DAM Formato C (liquidación) | Tributos = §9.1 |
@@ -977,6 +978,13 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - **Lista de empaque:** pesos por bulto «neto / bruto» y m³ por bulto bajo las medidas, para que la tabla quepa en A4 vertical.
 - **Hoja resumen:** cifras de la DAM con 3 decimales (IT IV.3) y comerciales con 2; no se vuelven a redondear. La **tabla de trazabilidad** se genera desde `DICCIONARIO.cobertura` (anexo A): una fila por requisito con campos aplicables a la operación; documentos = unión de `docs` de sus campos; DAM = sus casillas para el tipo de operación; marca = marcas de los campos.
 - **Pantalla e impresión:** pestañas por documento (flechas, Inicio y Fin), hoja A4 a escala del ancho disponible (o «tamaño real» con desplazamiento dentro del visor), «Imprimir este documento» e «Imprimir todos» (Ctrl+P imprime todos). Al imprimir: `@page` A4 con márgenes, el aviso didáctico arriba de cada página, la referencia y la fecha de generación abajo y «Página X de Y» (en «Imprimir todos», X de Y cuenta todas las hojas del archivo); encabezados de tabla repetidos y filas sin cortar; cada documento empieza en una página nueva. La hoja de prueba de F1 se retiró.
+
+**Instrucciones de embarque, B/L y VGM (F7)** [S]
+
+- `js/documentos/bl.js` genera tres hojas (columna BL de §5): **instrucciones de embarque** del embarcador a la naviera; **borrador de B/L** con la leyenda «BORRADOR – DRAFT» (no es un título valor); **declaración VGM** del embarcador (método 1 o 2, responsable, fecha; VGM = peso bruto de la carga + estiba y trincaje + tara, §6.7, calculado en `calculos.js`; SOLAS VI/2 [H\*]; tara PV-16).
+- Consignatario en el B/L: nominativo → el consignatario elegido; **a la orden** → «A la orden de / To the order of: …». Si el consignatario es «a la orden de…» y el notify es «el consignatario», el B/L pide indicar a quién notificar.
+- Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
+- Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
 
 **Correcciones de la auditoría de F5 (Codex), aplicadas en F5.1**
 

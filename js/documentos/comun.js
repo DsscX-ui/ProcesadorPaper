@@ -352,6 +352,6 @@ var Documentos = (function () {
     el: el, rotulo: rotulo, etiquetaMarca: etiquetaMarca, marcaDato: marcaDato, conMarca: conMarca, cifra: cifra,
     datos: datos, tabla: tabla, hoja: hoja, parte: parte, idFiscal: idFiscal,
     consignatario: consignatario, notify: notify, embarcador: embarcador, clasesBulto: clasesBulto, contenedor: contenedor,
-    fecha: fecha, fechaHora: fechaHora, opcion: opcion, sa6: sa6, precio: precio, puerto: puerto, enLetras: enLetras
+    fecha: fecha, fechaHora: fechaHora, enteroEnLetras: enteroEnLetras, opcion: opcion, sa6: sa6, precio: precio, puerto: puerto, enLetras: enLetras
   };
 })();

@@ -1,0 +1,34 @@
+31 de 31 comprobaciones correctas
+✔ Sin operación: la sección pide cargar una — Carga una operación para generar sus documentos.
+✔ Caso 1: documentos generados — ✔ 6 documentos generados (con 6 advertencia(s), listadas en la hoja resumen).
+   pestañas: FC Factura comercial | PL Lista de empaque | IE Instrucciones de embarque | B/L Borrador de B/L | VGM Declaración VGM | HR Hoja resumen
+✔ Caso 1: cuadro de cuadre todo ✔ — ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí
+✔ Caso 1 · factura · 1280px: sin desborde horizontal
+✔ Caso 1 · packing · 1280px: sin desborde horizontal
+✔ Caso 1 · instrucciones · 1280px: sin desborde horizontal
+✔ Caso 1 · bl · 1280px: sin desborde horizontal
+✔ Caso 1 · vgm · 1280px: sin desborde horizontal
+✔ Caso 1 · resumen · 1280px: sin desborde horizontal
+✔ Caso 1 · factura · 390px: sin desborde horizontal
+✔ Caso 1 · packing · 390px: sin desborde horizontal
+✔ Caso 1 · instrucciones · 390px: sin desborde horizontal
+✔ Caso 1 · bl · 390px: sin desborde horizontal
+✔ Caso 1 · vgm · 390px: sin desborde horizontal
+✔ Caso 1 · resumen · 390px: sin desborde horizontal
+✔ Caso 2: documentos generados — ✔ 6 documentos generados (con 4 advertencia(s), listadas en la hoja resumen).
+   pestañas: FC Factura comercial | PL Lista de empaque | IE Instrucciones de embarque | B/L Borrador de B/L | VGM Declaración VGM | HR Hoja resumen
+✔ Caso 2: cuadro de cuadre todo ✔ — ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí ✔ Sí
+✔ Caso 2 · factura · 1280px: sin desborde horizontal
+✔ Caso 2 · packing · 1280px: sin desborde horizontal
+✔ Caso 2 · instrucciones · 1280px: sin desborde horizontal
+✔ Caso 2 · bl · 1280px: sin desborde horizontal
+✔ Caso 2 · vgm · 1280px: sin desborde horizontal
+✔ Caso 2 · resumen · 1280px: sin desborde horizontal
+✔ Caso 2 · factura · 390px: sin desborde horizontal
+✔ Caso 2 · packing · 390px: sin desborde horizontal
+✔ Caso 2 · instrucciones · 390px: sin desborde horizontal
+✔ Caso 2 · bl · 390px: sin desborde horizontal
+✔ Caso 2 · vgm · 390px: sin desborde horizontal
+✔ Caso 2 · resumen · 390px: sin desborde horizontal
+✔ Con un error (E05): documentos NO generados, sin hojas y con enlace a Revisión — Documentos NO generados: hay 1 error(es) en «Revisión». Los errores bloquean los documentos para que no salgan cifras que no cuadran.
+✔ Sin errores ni advertencias de consola — ninguno

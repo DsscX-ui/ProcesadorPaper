@@ -8,10 +8,10 @@ Todo lo que genera es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 1. Abre la carpeta del proyecto.
 2. Haz doble clic en `index.html`. Se abre en el navegador (Chrome o Edge) sin instalar nada.
 
-## Qué puedes hacer ahora (fases F6 y F7 hechas; sigue F8a)
+## Qué puedes hacer ahora (F8a hecha; pausa de revisión antes de F8b)
 
 La página tiene cuatro pasos, siempre a mano en la **barra fija de arriba**: **1 Datos** (el formulario),
-**2 Revisión** (con el contador de errores y advertencias), **3 Resultados** del cálculo y **4 Documentos** (factura comercial, lista de empaque, instrucciones de embarque, borrador de B/L, declaración VGM y hoja resumen).
+**2 Revisión** (con el contador de errores y advertencias), **3 Resultados** del cálculo y **4 Documentos** (factura comercial, lista de empaque, instrucciones de embarque, borrador de B/L, declaración VGM, DAM Formato A y A1, y hoja resumen).
 La barra también dice si hay **cambios sin guardar**.
 
 - **Caso 1 / Caso 2:** cargan los ejemplos de `PLAN.md` §9 (datos 100 % ficticios). Puedes editarlos.
@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"550 de 550 pruebas correctas"** en verde.
+2. Arriba debe decir **"582 de 582 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -95,7 +95,9 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    Los grupos F6-1 a F6-4 prueban los documentos: que las cifras que muestra cada uno cuadran con el cálculo, el importe
    en letras, que con errores no se generan y que la trazabilidad sale del diccionario. Los grupos F7-1 y F7-2 comprueban
    que bultos, peso bruto, volumen, contenedor y precinto del B/L y de las instrucciones son los de la lista de empaque,
-   el VGM (carga + estiba + tara) y el contenido del borrador de B/L.
+   el VGM (carga + estiba + tara) y el contenido del borrador de B/L. El grupo F7.1 son las regresiones de la auditoría de F6/F7.
+   El grupo F8a comprueba que las casillas del Formato A (series, 6.1–6.5, 7.30–7.34, S 7.26…) son las de `PLAN.md` §9.1 y §9.2
+   y que la hoja A1 solo aparece con más de una serie.
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -109,7 +111,8 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 
 1. Carga un ejemplo o llena tu operación. Si la **Revisión** no tiene errores, en **4 Documentos** aparecen las pestañas:
    **FC** factura comercial, **PL** lista de empaque, **IE** instrucciones de embarque, **B/L** borrador del conocimiento de
-   embarque (con la leyenda «BORRADOR – DRAFT»), **VGM** declaración de masa bruta verificada y **HR** hoja resumen. Con algún error no se genera ninguno: la sección
+   embarque (con la leyenda «BORRADOR – DRAFT»), **VGM** declaración de masa bruta verificada, **DAM A** y **DAM A1** (Formato A de la
+   declaración aduanera; el A1 solo si hay más de una serie) y **HR** hoja resumen. Con algún error no se genera ninguno: la sección
    explica por qué y te lleva a «Revisión». Las advertencias no bloquean; la hoja resumen las lista.
 2. Cada documento se ve en una hoja A4. En el celular la hoja se reduce al ancho de la pantalla; **Ver en tamaño real**
    la muestra a su tamaño (desliza dentro del recuadro gris).
@@ -122,11 +125,32 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
    coinciden), la **matriz Incoterms® 2020** con tu regla resaltada, los resultados clave, las advertencias, el recuento
    de datos H* y POR VERIFICAR (A19) y la **tabla de trazabilidad**, generada desde `js/diccionario.js`.
 
+## Cómo leer la DAM didáctica (Formato A y A1)
+
+- Es una **representación didáctica**: las casillas y su contenido siguen el instructivo DESPA-IT.00.04 (IT A para la
+  importación, IT B para la exportación), pero el diseño gráfico oficial no está en la copia local (PV-23). La DAM real se
+  transmite por vía electrónica y prevalece (IT IV.8). Solo en español.
+- **Formato A** = cabecera (aduana, N° de orden, destinación, modalidad o tipo de despacho) + rubros 1 a 6 + la **serie 1**
+  + rubros 8, 9 y las casillas reservadas. **Formato A1** = las series 2 en adelante (IT IV.1). Una serie agrupa los ítems
+  con la misma subpartida (y, en importación, mismo origen, B/L, seguro, moneda…; §6.5).
+- Cada casilla muestra su **número** («7.35»), su rótulo, el valor y, abajo en gris pequeño, la **fuente** («IT A 7.35»);
+  al pasar el cursor también se ve.
+- **Recuadro gris** = el instructivo manda «No llenar», la casilla es de la Aduana o no aplica al régimen (por ejemplo,
+  S 7.31 a 7.34 en la exportación). **POR VERIFICAR** (amarillo) = no se puede afirmar con las fuentes de la carpeta: nunca se
+  inventa (dígito verificador de la subpartida PV-27; A 3.4 en despacho anticipado PV-26; códigos de tablas PV-09;
+  RUC o código de los agentes PV-28; reparto del flete y del seguro entre series PV-04). **H*** = conocimiento general.
+- El registro de aduana dice **«NO NUMERADA»**: el número, la fecha de numeración y el canal los pone SUNAT.
+- Cifras con **3 decimales** en USD y fechas **DD MM AAAA** (IT IV.3, IV.4, IV.6). La casilla **7.35** de importación lleva la
+  nota del párrafo añadido por la **RS 129-2026** (series e IMEI de celulares, vigente desde el 05-10-2026).
+- Para estudiar: compara 6.1 a 6.5 con la suma de las series (7.30 a 7.34) y con la hoja resumen; en el caso 1, la serie 2
+  pesa poco y vale mucho, por eso recibe poco flete (reparto por peso) y su valor en aduana (11,346.370) es menor que su
+  valor en la factura.
+
 ## Estado
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen) y F7 (instrucciones de embarque, borrador de B/L y VGM).
-Siguiente: F8a (DAM Formato A), con pausa para la revisión de Aarón antes de F8b.
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7) y F8a (DAM Formato A de ingreso y salida, con A1).
+Ahora: **pausa de revisión de Aarón antes de F8b** (DAM Formato B).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

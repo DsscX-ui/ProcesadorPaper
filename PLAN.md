@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7; `pruebas.html`: 550 de 550 pruebas correctas). **Fase actual: F8a** (DAM Formato A; pausa obligatoria para la revisión de Aarón). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) y **F8a** (DAM Formato A de ingreso y salida, con A1; `pruebas.html`: 582 de 582 pruebas correctas). **Fase actual: pausa de revisión de Aarón antes de F8b.** Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -883,7 +883,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | F5 ✔ | Formulario completo: ítems variables, secciones condicionales, ayuda por campo y marcas H\*/PV visibles | Cambias una cantidad y los totales se actualizan; ves las etiquetas H\* y PV |
 | F6 ✔ | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |
 | F7 ✔ | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
-| **F8a** | **DAM Formato A** (ingreso y salida, con A1) | Series, casillas y valores = §9.1 y §9.2. **Pausa: revisión de Aarón antes de seguir.** |
+| **F8a** ✔ | **DAM Formato A** (ingreso y salida, con A1) | Series, casillas y valores = §9.1 y §9.2. **Pausa: revisión de Aarón antes de seguir.** |
 | F8b | DAM Formato B (+B1), solo con tu aprobación de F8a | FOB unitarios y sección 8 = §9.1 |
 | F8c | DAM Formato C (liquidación) | Tributos = §9.1 |
 | F9 | Certificado de seguro + certificado de origen (condicionales) | Con FOB no hay seguro; con CIF sí; sin preferencia no hay CO |
@@ -986,6 +986,17 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - Consignatario en el B/L: nominativo → el consignatario elegido; **a la orden** → «A la orden de / To the order of: …». Si el consignatario es «a la orden de…» y el notify es «el consignatario», el B/L pide indicar a quién notificar.
 - Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
 - Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
+
+**DAM Formato A y A1 (F8a)** [S salvo donde se cita]
+
+- `js/documentos/dam_a.js` genera dos hojas: **Formato A** (cabecera, rubros 1–6, la **serie 1**, rubros 8, 9 y casillas 10–15) y **Formato A1** (series 2 a N), que solo aparece con más de una serie [H: IT IV.1]. Cuántas series caben en cada hoja A1 depende del diseño gráfico del anexo, que no está en la copia (PV-23): aquí las series siguen una tras otra y la cabecera (aduana, N° de orden, destinación, modalidad / tipo de despacho) se repite en el A1 [S].
+- Casillas de **IT A** (ingreso, destinación 10) e **IT B** (salida, destinación 40), con su número, rótulo, valor y **fuente** visible (también impresa) y en la ayuda emergente. Las que el IT manda «No llenar», las reservadas a la Aduana y las que no aplican al régimen se muestran en gris con el motivo (ej. S 7.31–7.34, S 7.9, S 7.29; A 3.5–3.7, 4.2, 4.3, 7.3, 7.4, 7.17, 7.18, 7.21, 7.28; 10–15).
+- **POR VERIFICAR** visible en lugar de casillas en blanco o inventadas: dígito verificador de 7.19 (PV-27); A 3.4 en despacho anticipado (PV-26); tipo de despacho en importación (sin lista en IT A); códigos de entidad financiera, clase de bulto, unidad física y moneda (PV-09); RUC o código de agentes (PV-28); reparto de 7.31 y 7.32 entre series (PV-04); 7.16 si la unidad física difiere de la comercial (PV-09); quién llena S 13 (recepción en zona primaria).
+- **RS 129-2026:** de la copia local del control de cambios, el único cambio es el párrafo final de **A 7.35** (series e IMEI de 8517.13.00.00 y 8517.14.00.00). La casilla A 7.35 lleva la nota «párrafo añadido por RS 129-2026, vigente desde el 05-10-2026» y, si el ítem tiene equipos, los lista. No hay cambios en IT B.
+- La plantilla **solo lee** `calculos.js`: series, 7.30–7.34 y 6.1–6.5 (importación) o S 6.1–6.5 (exportación). Para 7.10 y 7.16 `calculos.js` suma por serie la cantidad comercial y, si todos los ítems usan como unidad física su unidad comercial, la cantidad física (si no, `null` → PV). Formato: 3 decimales (IT IV.3) también en pesos y cantidades no enteras; fechas «DD MM AAAA» (IT IV.6).
+- Contenido de casillas sin dato en v1: 7.2 = números de ítem de la operación (el Formato B los numerará igual en F8b) [S]; 7.5, 7.20, 7.22–7.25 «—» si no corresponden; 7.37 importación = k) unidad de carga 02 y l) región de destino; S 7.27 = país de destino y el puerto de desembarque «que se transmite»; S 7.28 «— (no se acoge)» [S]; S 13.2 = bultos sin contenedor ni paletas.
+- Rubro 9 lleva el contenedor y el precinto con `data-cuadre`: el cuadro de cuadre de la hoja resumen comprueba que son los de la lista de empaque.
+- Regresiones en `pruebas.html` (grupo F8a).
 
 **Correcciones de la auditoría de F6/F7 (Codex), aplicadas en F7.1**
 

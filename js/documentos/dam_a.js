@@ -357,10 +357,13 @@
 
   // ---------------------------------------------------------------- Hojas
 
+  // "la serie 2" o "las series 2 a 4".
+  function seriesA1(ctx) { var n = ctx.r.series.length; return n === 2 ? "la serie 2" : "las series 2 a " + n; }
+
   function nota(ctx, cuerpo, a1) {
     var imp = esImp(ctx), p = el("p", "doc-nota doc-nota-hr");
-    p.appendChild(document.createTextNode((a1 ? "Formato A1: series 2 a " + ctx.r.series.length + " (IT IV.1: se usa cuando el despacho comprende más de una serie). " :
-      "Formato A: datos generales y la primera serie (IT IV.1)" + (ctx.r.series.length > 1 ? "; las series 2 a " + ctx.r.series.length + " van en el Formato A1. " : ". ")) +
+    p.appendChild(document.createTextNode((a1 ? "Formato A1: " + seriesA1(ctx) + " (IT IV.1: se usa cuando el despacho comprende más de una serie). " :
+      "Formato A: datos generales y la primera serie (IT IV.1)" + (ctx.r.series.length > 1 ? "; " + seriesA1(ctx) + (ctx.r.series.length === 2 ? " va" : " van") + " en el Formato A1. " : ". ")) +
       "Casillas y contenido según el instructivo DESPA-IT.00.04, " + (imp ? "IT A (ingreso)" : "IT B (salida)") +
       "; el diseño gráfico del anexo no está en la copia local, por eso la disposición es didáctica (PV-23). Cifras con 3 decimales en USD; fechas DD MM AAAA (IT IV.3, IV.4, IV.6). " +
       "La DAM real se transmite electrónicamente y prevalece sobre el papel (IT IV.8). "));
@@ -391,7 +394,7 @@
 
   function formatoA1(ctx) {
     var imp = esImp(ctx), op = ctx.op;
-    var marco = D.hoja(this, ctx, "Series 2 a " + ctx.r.series.length + " · N° de orden " + (op.generales.aduana.numeroOrden || "—"));
+    var marco = D.hoja(this, ctx, (ctx.r.series.length === 2 ? "Serie 2" : "Series 2 a " + ctx.r.series.length) + " · N° de orden " + (op.generales.aduana.numeroOrden || "—"));
     var cuerpo = marco.cuerpo;
     marco.hoja.classList.add("hoja-dam");
     nota(ctx, cuerpo, true);

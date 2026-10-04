@@ -1265,6 +1265,81 @@
         String(/Fuente/.test(traza.querySelector("thead").textContent)) + " · " + String(/IT A 7\.35/.test(traza.querySelector("tbody").textContent)));
     })();
 
+    grupo("F8a. DAM Formato A (+A1) = PLAN §9.1 y §9.2", "Se leen las casillas que MUESTRA la hoja generada (data-casilla, dentro de cada serie con data-serie). La plantilla solo lee calculos.js.");
+    (function () {
+      // Texto de una casilla. serie: número de serie o null (casillas generales). cifra: solo la cifra inicial.
+      function cas(hoja, serie, num, soloCifra) {
+        var sel = (serie ? '[data-serie="' + serie + '"] ' : ".dam-rubro:not(.dam-serie) ") + '[data-casilla="' + num + '"] .dam-valor';
+        var n = hoja && hoja.querySelector(sel);
+        if (!n) { return "(no está)"; }
+        var t = n.textContent.trim();
+        if (soloCifra) { var m = /^[\d,.]+/.exec(t); return m ? m[0] : t; }
+        return t;
+      }
+      function gris(hoja, serie, num) {
+        var n = hoja.querySelector('[data-serie="' + serie + '"] [data-casilla="' + num + '"]');
+        return !!n && n.classList.contains("dam-gris") && /No llenar/.test(n.textContent);
+      }
+      var x = documentosDe(ejemplo("caso1")), a = x.porId.dam_a && x.porId.dam_a.hoja, a1 = x.porId.dam_a1 && x.porId.dam_a1.hoja;
+      prueba("Caso 1: se generan el Formato A y el A1 (2 series)", "true · true", String(!!a) + " · " + String(!!a1));
+      prueba("Caso 1: el Formato A lleva solo la serie 1 y el A1 solo la serie 2 (IT IV.1)", "1 | 2",
+        Array.prototype.map.call(a.querySelectorAll("[data-serie]"), function (n) { return n.getAttribute("data-serie"); }).join(",") + " | " +
+        Array.prototype.map.call(a1.querySelectorAll("[data-serie]"), function (n) { return n.getAttribute("data-serie"); }).join(","));
+      prueba("Cabecera: aduana 118, destinación 10, modalidad 1-0, N° de orden", "true", /118 — Intendencia de Aduana Marítima del Callao/.test(a.querySelector(".dam-cabecera").textContent) &&
+        /10 — Importación para el consumo/.test(a.querySelector(".dam-cabecera").textContent) && /1-0 — Despacho anticipado/.test(a.querySelector(".dam-cabecera").textContent) &&
+        /2026-000001/.test(a.querySelector(".dam-cabecera").textContent) ? "true" : "false");
+      prueba("Registro de aduana (2): «NO NUMERADA»", "true", String(/NO NUMERADA/.test(cas(a, null, "2"))));
+      prueba("A 6.1–6.5 = 18,123.870 · 1,850.000 · 66.130 · 0.000 · 20,040.000", "18,123.870 · 1,850.000 · 66.130 · 0.000 · 20,040.000",
+        ["6.1", "6.2", "6.3", "6.4", "6.5"].map(function (n) { return cas(a, null, n, true); }).join(" · "));
+      prueba("Serie 1/2: 7.1 · 7.30 · 7.31 · 7.32 · 7.34 (§9.1)", "1/2 · 6,999.937 · 1,668.152 · 25.541 · 8,693.630",
+        ["7.1", "7.30", "7.31", "7.32", "7.34"].map(function (n) { return cas(a, 1, n, n !== "7.1"); }).join(" · "));
+      prueba("Serie 2/2 (A1): 7.1 · 7.30 · 7.31 · 7.32 · 7.34 (§9.1)", "2/2 · 11,123.933 · 181.848 · 40.589 · 11,346.370",
+        ["7.1", "7.30", "7.31", "7.32", "7.34"].map(function (n) { return cas(a1, 2, n, n !== "7.1"); }).join(" · "));
+      prueba("Series 1 y 2: bultos 7.12 · PN 7.14 · PB 7.15 · cantidad 7.10 · ítems B 7.2", "360 · 1,780.000 · 2,064.000 · 360 · 1, 2 | 30 · 180.000 · 225.000 · 3,000 · 3",
+        [[a, 1], [a1, 2]].map(function (p) { return ["7.12", "7.14", "7.15", "7.10", "7.2"].map(function (n) { return cas(p[0], p[1], n, n !== "7.2"); }).join(" · "); }).join(" | "));
+      prueba("Tipo de seguro (7.32): 3 — póliza flotante", "true", String(/Tipo 3 — Con póliza de seguro flotante/.test(cas(a, 1, "7.32"))));
+      prueba("Subpartida 7.19 con DV «POR VERIFICAR» (PV-27), no inventado", "true · true", String(/8414\.51\.00\.00/.test(cas(a, 1, "7.19"))) + " · " +
+        String(!!a.querySelector('[data-serie="1"] [data-casilla="7.19"] .marca-pv') && /PV-27/.test(cas(a, 1, "7.19"))));
+      prueba("A 3.4 en despacho anticipado sin fecha: «POR VERIFICAR» (PV-26)", "true", String(/POR VERIFICAR/.test(cas(a, null, "3.4")) && /PV-26/.test(cas(a, null, "3.4"))));
+      prueba("A 7.35 lleva la nota «párrafo añadido por RS 129-2026, vigente desde el 05-10-2026»", "true · true",
+        String(/párrafo añadido por RS 129-2026, vigente desde el 05-10-2026/.test(a.querySelector('[data-serie="1"] [data-casilla="7.35"]').textContent)) + " · " +
+        String(/párrafo añadido por RS 129-2026/.test(a1.querySelector('[data-serie="2"] [data-casilla="7.35"]').textContent)));
+      prueba("Fechas DD MM AAAA (IT IV.6): 7.7 = 14 10 2026", "14 10 2026 · 14 10 2026", cas(a, 1, "7.7") + " · " + Documentos.fechaDam("2026-10-14"));
+      prueba("A 7.37: unidad de carga 02 y región 40615", "true", String(/02 — Contenedores/.test(cas(a, 1, "7.37")) && /40615/.test(cas(a, 1, "7.37"))));
+      prueba("Rubro 9: contenedor y precinto = lista de empaque (cuadre)", "EJMU2610147 · SD-000123", x.porId.dam_a.cifras.contenedor + " · " + x.porId.dam_a.cifras.precinto);
+      prueba("Cada casilla muestra su número y su fuente (IT A x.y)", "true", String(Array.prototype.every.call(a.querySelectorAll("[data-casilla]"), function (n) {
+        return /Fuente: /.test(n.querySelector(".dam-fuente").textContent) && (n.getAttribute("data-casilla") === "" || n.querySelector(".dam-num").textContent === n.getAttribute("data-casilla"));
+      })));
+      prueba("H* y POR VERIFICAR visibles en la hoja (aduana 118, UN/LOCODE, PV-28)", "true · true", String(!!a.querySelector(".marca-hx")) + " · " + String(a.querySelectorAll(".marca-pv").length > 5));
+
+      var y = documentosDe(ejemplo("caso2")), b = y.porId.dam_a && y.porId.dam_a.hoja, b1 = y.porId.dam_a1 && y.porId.dam_a1.hoja;
+      prueba("Caso 2: Formato A (salida) y A1", "true · true", String(!!b) + " · " + String(!!b1));
+      prueba("Cabecera salida: destinación 40, modalidad no aplica, tipo de despacho 00", "true", String(/40 — Exportación definitiva/.test(b.querySelector(".dam-cabecera").textContent) &&
+        /No aplica/.test(b.querySelector(".dam-cabecera").textContent) && /00 — Normal/.test(b.querySelector(".dam-cabecera").textContent)));
+      prueba("S 6.1 = S 6.5 = 39,550.000; S 6.3 = S 6.4 = 0.000", "39,550.000 · 0.000 · 0.000 · 39,550.000",
+        ["6.1", "6.3", "6.4", "6.5"].map(function (n) { return cas(b, null, n, true); }).join(" · "));
+      prueba("S 7.30 por serie: 20,800.000 / 18,750.000 (§9.2)", "20,800.000 / 18,750.000", cas(b, 1, "7.30", true) + " / " + cas(b1, 2, "7.30", true));
+      prueba("S bultos · PN · PB por serie (§9.2)", "80 · 720.000 · 784.000 | 60 · 750.000 · 804.000",
+        [[b, 1], [b1, 2]].map(function (p) { return ["7.12", "7.14", "7.15"].map(function (n) { return cas(p[0], p[1], n, true); }).join(" · "); }).join(" | "));
+      prueba("S 7.31–7.34 no se llenan (gris, «No llenar») en ambas series", "true", String(["7.31", "7.32", "7.33", "7.34"].every(function (n) { return gris(b, 1, n) && gris(b1, 2, n); })));
+      prueba("S 7.26 = UBIGEO 150101 del lugar de fabricación", "true", String(/^150101 — /.test(cas(b, 1, "7.26"))));
+      prueba("S 7.27 = CL y puerto de desembarque CLSAI", "true", String(/CL — Chile/.test(cas(b, 1, "7.27")) && /CLSAI/.test(cas(b, 1, "7.27"))));
+      prueba("S 3.4 término de embarque 24 10 2026 · S 3.7 aduana de salida 118", "true", String(cas(b, null, "3.4") === "24 10 2026" && /^118 — /.test(cas(b, null, "3.7"))));
+      prueba("S 13.2: 140 bultos (sin contenedor ni paletas)", "true", String(/^140 /.test(cas(b, null, "13.2"))));
+      prueba("S 7.9 (certificado de origen) no se llena aunque haya CO", "true", String(gris(b, 1, "7.9")));
+      prueba("S 7.35 sin la nota RS 129 (solo aplica a la importación)", "false", String(/RS 129-2026/.test(b.querySelector('[data-serie="1"] [data-casilla="7.35"]').textContent)));
+
+      // A1 solo con más de una serie.
+      var u = ejemplo("caso1"); u.especificos.items[2].subpartida = "8414.51.00.00"; u.especificos.items[2].tasaAV = 6;   // misma tasa: si no, E16
+      var du = documentosDe(u);
+      prueba("Caso 1 con una sola subpartida → 1 serie: Formato A sí, A1 no; 7.1 = 1/1", "true · false · 1/1",
+        String(!!du.porId.dam_a) + " · " + String(!!du.porId.dam_a1) + " · " + cas(du.porId.dam_a.hoja, 1, "7.1"));
+      var v = ejemplo("caso2"); v.especificos.items[1].subpartida = "6109.10.00.00";
+      prueba("Caso 2 con una sola subpartida → sin A1", "false", String(!!documentosDe(v).porId.dam_a1));
+      var w = ejemplo("caso1"); w.especificos.items[0].pesoBrutoBulto = 1;
+      prueba("Con errores (E05) no se genera la DAM", "true · false", String(documentosDe(w).gen.bloqueado) + " · " + String(!!documentosDe(w).porId.dam_a));
+    })();
+
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");
     var indice = document.getElementById("indice");

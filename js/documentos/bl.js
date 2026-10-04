@@ -28,10 +28,17 @@
     return nombres.join("; ");
   }
 
+  // Subpartidas del SA (6 dígitos), sin repetir, cada una con sus marcas (H*; PV si la nacional está por verificar).
   function subpartidasSa(ctx) {
-    var v = [];
-    ctx.op.especificos.items.forEach(function (it) { var s = D.sa6(it.subpartida); if (v.indexOf(s) === -1) { v.push(s); } });
-    return v.join(", ");
+    var vistas = [], s = el("span", "doc-linea", "SA / HS: ");
+    ctx.op.especificos.items.forEach(function (it, i) {
+      var c = D.sa6(it.subpartida);
+      if (vistas.indexOf(c) !== -1) { return; }
+      if (vistas.length) { s.appendChild(document.createTextNode(", ")); }
+      vistas.push(c);
+      s.appendChild(D.sa6Marcado(ctx, i));
+    });
+    return s;
   }
 
   function flete(ctx) {
@@ -51,8 +58,8 @@
     var g = ctx.op.generales, t = ctx.op.especificos.transporte;
     col2.appendChild(D.datos(["Ruta", "Routing"], [
       g.ruta.lugarRecepcion ? ["Lugar de recepción", "Place of receipt", g.ruta.lugarRecepcion] : null,
-      ["Puerto de embarque", "Port of loading", D.puerto(g.ruta.puertoEmbarque)],
-      ["Puerto de descarga", "Port of discharge", D.puerto(g.ruta.puertoDescarga)],
+      ["Puerto de embarque", "Port of loading", D.puertoMarcado(ctx, "puertoEmbarque")],
+      ["Puerto de descarga", "Port of discharge", D.puertoMarcado(ctx, "puertoDescarga")],
       g.ruta.lugarEntrega ? ["Lugar de entrega", "Place of delivery", g.ruta.lugarEntrega] : null,
       ["Nave / viaje", "Vessel / voyage", [t.nave, t.viaje].filter(Boolean).join(" / ") || "—"]
     ]));
@@ -72,9 +79,11 @@
     bultos.appendChild(document.createTextNode(" " + D.clasesBulto(ctx).toLowerCase()));
     bultos.appendChild(el("span", "doc-linea", "C/No. " + r.totales.numeracion.replace("-", "–")));
     var desc = el("span");
-    desc.appendChild(el("strong", null, "1 × " + (cont.tipo.split(" — ")[1] || cont.tipo) + " FCL — STC (dice contener / said to contain):"));
+    // «STC (dice contener)» solo si la cláusula STC está elegida (F7.1, auditoría F7-M2).
+    var stc = e.transporte.clausulaStc ? " — STC (dice contener / said to contain):" : ":";
+    desc.appendChild(el("strong", null, "1 × " + (cont.tipo.split(" — ")[1] || cont.tipo) + " FCL" + stc));
     desc.appendChild(el("span", "doc-linea", descripcionGenerica(ctx)));
-    desc.appendChild(el("span", "doc-linea", "SA / HS: " + subpartidasSa(ctx)));
+    desc.appendChild(subpartidasSa(ctx));
     desc.appendChild(el("span", "doc-linea", "Factura / Invoice " + (ctx.op.generales.comercial.facturaNumero || "—")));
     var pb = el("span"); pb.appendChild(D.cifra(Fm.kg(r.totales.pesoBruto), "pesoBruto")); pb.appendChild(document.createTextNode(" kg"));
     var vol = el("span"); vol.appendChild(D.cifra(Fm.m3(r.totales.volumen), "volumen")); vol.appendChild(document.createTextNode(" m³"));
@@ -135,7 +144,7 @@
     var col = el("div", "doc-columnas");
     col.appendChild(D.datos(["Flete y originales", "Freight and originals"], [
       ["Flete", "Freight", flete(ctx)],
-      ["Pagadero en", "Payable at", t.fleteBl === "prepaid" ? D.puerto(op.generales.ruta.puertoEmbarque) : (t.fleteBl === "collect" ? D.puerto(op.generales.ruta.puertoDescarga) : "—")],
+      ["Pagadero en", "Payable at", t.fleteBl === "prepaid" ? D.puertoMarcado(ctx, "puertoEmbarque") : (t.fleteBl === "collect" ? D.puertoMarcado(ctx, "puertoDescarga") : "—")],
       ["N° de originales", "No. of original B/L", t.blOriginales == null ? "—" : D.enteroEnLetras(t.blOriginales) + " (" + t.blOriginales + ")"]
     ]));
     col.appendChild(D.datos(["Emisión y embarque", "Issue and shipment"], [
@@ -168,15 +177,18 @@
       ["Tipo (ISO)", "Size/type", cont.tipo],
       ["Precinto", "Seal No.", D.cifra(cont.precinto, "precinto")],
       ["Naviera / nave / viaje", "Carrier / vessel / voyage", [op.generales.partes.naviera.nombre, t.nave, t.viaje].filter(Boolean).join(" / ")],
-      ["Puerto de embarque", "Port of loading", D.puerto(op.generales.ruta.puertoEmbarque)]
+      ["Puerto de embarque", "Port of loading", D.puertoMarcado(ctx, "puertoEmbarque")]
     ]));
     cuerpo.appendChild(col);
     var v = r.vgm;
     var carga = D.cifra(Fm.kg(v.pesoBruto), "pesoBruto");
     var total = D.cifra(Fm.kg(v.total), "vgm");
-    var tara = D.conMarca(ctx, Fm.kg(v.tara), "especificos.contenedor.tara");
-    tara.appendChild(document.createTextNode(" "));
-    tara.appendChild(D.etiquetaMarca("PV", "PV-16: la tara real está en la placa del contenedor"));
+    // La tara siempre lleva POR VERIFICAR (PV-16), aunque el dato tenga su propia marca (SUPUESTO en los ejemplos).
+    var tara = D.conMarca(ctx, Fm.kg(v.tara), "especificos.contenedor.tara", "(PV-16: la tara real está en la placa del contenedor.)");
+    if (!tara.querySelector(".marca-pv")) {
+      tara.appendChild(document.createTextNode(" "));
+      tara.appendChild(D.etiquetaMarca("PV", "PV-16: la tara real está en la placa del contenedor"));
+    }
     cuerpo.appendChild(D.tabla([{ es: "Concepto", en: "Item" }, { es: "kg", en: "kg", num: true }, { es: "De dónde sale", en: "Source" }], [
       ["Peso bruto de la carga (todos los bultos)", carga, "Lista de empaque: Σ bultos × peso bruto por bulto"],
       ["+ Estiba y trincaje (materiales de sujeción)", Fm.kg(v.estiba), "Dato del embarcador (0 si no hay)"],

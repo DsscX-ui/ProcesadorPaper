@@ -26,17 +26,27 @@
     var marco = D.hoja(this, ctx, "Factura N° / Invoice No. " + (c.facturaNumero || "—") + " · Fecha / Date: " + D.fecha(c.facturaFecha));
     var cuerpo = marco.cuerpo;
 
+    // Partes (PLAN §5): embarcador y consignatario; además el vendedor y el comprador cuando no son los mismos
+    // (F7.1, auditoría F6-M2), para no confundir las partes comerciales con las del transporte.
     var partes = el("div", "doc-columnas");
-    var emb = D.embarcador(ctx), cons = D.consignatario(ctx);
-    partes.appendChild(D.datos(["Embarcador / vendedor", "Shipper / seller"], [["Nombre", "Name", emb.nombre], ["Dirección", "Address", emb.direccion]], "doc-parte"));
-    partes.appendChild(D.datos(["Consignatario", "Consignee"], [["Nombre", "Name", cons.nombre], ["Dirección", "Address", cons.direccion]], "doc-parte"));
+    var emb = D.embarcador(ctx), cons = D.consignatario(ctx), v = g.partes.vendedor, comp = g.partes.comprador;
+    var shipperOtro = !!e.transporte.shipper;
+    partes.appendChild(D.datos([shipperOtro ? "Embarcador" : "Embarcador / vendedor", shipperOtro ? "Shipper" : "Shipper / seller"], [["Nombre", "Name", emb.nombre], ["Dirección", "Address", emb.direccion]], "doc-parte"));
+    partes.appendChild(D.datos([cons.tipo === "comprador" ? "Consignatario / comprador" : "Consignatario", cons.tipo === "comprador" ? "Consignee / buyer" : "Consignee"],
+      [["Nombre", "Name", cons.nombre], ["Dirección", "Address", cons.direccion]], "doc-parte"));
     cuerpo.appendChild(partes);
+    if (shipperOtro || cons.tipo !== "comprador") {
+      var comerciales = el("div", "doc-columnas");
+      comerciales.appendChild(shipperOtro ? D.parte(["Vendedor", "Seller"], v) : el("div"));
+      comerciales.appendChild(cons.tipo !== "comprador" ? D.parte(["Comprador", "Buyer"], comp) : el("div"));
+      cuerpo.appendChild(comerciales);
+    }
 
     var t = e.transporte, cont = D.contenedor(ctx);
     var embq = el("div", "doc-columnas");
     embq.appendChild(D.datos(["Embarque", "Shipment"], [
-      ["Puerto de embarque", "Port of loading", D.puerto(g.ruta.puertoEmbarque)],
-      ["Puerto de descarga", "Port of discharge", D.puerto(g.ruta.puertoDescarga)],
+      ["Puerto de embarque", "Port of loading", D.puertoMarcado(ctx, "puertoEmbarque")],
+      ["Puerto de descarga", "Port of discharge", D.puertoMarcado(ctx, "puertoDescarga")],
       t.nave || t.viaje ? ["Nave / viaje", "Vessel / voyage", [t.nave, t.viaje].filter(Boolean).join(" / ")] : null,
       t.booking ? ["N° de booking", "Booking No.", t.booking] : null
     ]));
@@ -66,6 +76,7 @@
       var it = op.especificos.items[i];
       var desc = el("span");
       desc.appendChild(el("strong", null, it.nombre || "—"));
+      if (it.descripcion) { desc.appendChild(el("span", "doc-linea", it.descripcion)); }
       if (it.marca || it.modelo) { desc.appendChild(el("span", "doc-linea", [it.marca, it.modelo].filter(Boolean).join(" ")) ); }
       return [String(ri.numero), desc, D.opcion("claseBulto", it.claseBulto, true), String(ri.bultos),
         ri.bultos ? ri.bultoDesde + "–" + ri.bultoHasta : "—",

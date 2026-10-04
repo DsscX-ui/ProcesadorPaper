@@ -50,13 +50,57 @@ var Documentos = (function () {
     return etiquetaMarca(m.marca, m.nota);
   }
 
-  // Valor con su marca (si la tiene). valor: texto o nodo.
-  function conMarca(ctx, valor, ruta) {
+  // Marca EFECTIVA de un dato (F7.1, auditoría F6-M1): la propia de la operación (op.marcas); si no tiene, la de
+  // su lista de códigos (campos «codigo») o la del campo en el diccionario. Devuelve { marca, nota } o null.
+  function marcaEfectiva(ctx, ruta) {
+    var m = ctx.op.marcas[ruta];
+    if (m) { return { marca: m.marca, nota: m.nota || "" }; }
+    var c = DICCIONARIO.buscar(ruta);
+    if (!c) { return null; }
+    var lista = c.tipo === "codigo" && c.lista ? NORMATIVA.listas[c.lista] : null;
+    if (lista && lista.marca) { return { marca: lista.marca, nota: lista.nombre + (lista.fuente ? ": " + lista.fuente : "") }; }
+    return { marca: c.marca, nota: "Fuente: " + c.fuente };
+  }
+
+  // Etiqueta de la marca efectiva si es H* o PV (las que deben verse también impresas, PLAN §3); si no, null.
+  function etiquetaEfectiva(ctx, ruta, notaExtra) {
+    var m = marcaEfectiva(ctx, ruta);
+    if (!m || (m.marca !== "PV" && m.marca !== "H*")) { return null; }
+    return etiquetaMarca(m.marca, m.nota + (notaExtra ? " " + notaExtra : ""));
+  }
+
+  // Valor con su marca efectiva (si es H* o PV). valor: texto o nodo.
+  function conMarca(ctx, valor, ruta, notaExtra) {
     var s = el("span");
     if (valor && valor.nodeType) { s.appendChild(valor); } else { s.appendChild(document.createTextNode(valor == null || valor === "" ? "—" : String(valor))); }
-    var m = ruta ? marcaDato(ctx, ruta) : null;
+    var m = ruta ? etiquetaEfectiva(ctx, ruta, notaExtra) : null;
     if (m) { s.appendChild(document.createTextNode(" ")); s.appendChild(m); }
     return s;
+  }
+
+  // Puerto con la marca de su UN/LOCODE (H*: lista abierta; PV-09): «Callao (PECLL) H*». cual: "puertoEmbarque"…
+  function puertoMarcado(ctx, cual) {
+    return conMarca(ctx, puerto(ctx.op.generales.ruta[cual]), "generales.ruta." + cual + ".locode");
+  }
+
+  // Subpartida del SA (6 dígitos) de un ítem con sus marcas: H* (Sistema Armonizado, conocimiento general) y,
+  // si la subpartida nacional está marcada PV, «POR VERIFICAR» con la explicación de qué parte falta confirmar.
+  function sa6Marcado(ctx, i) {
+    var it = ctx.op.especificos.items[i];
+    var s = el("span", null, sa6(it.subpartida));
+    s.appendChild(document.createTextNode(" "));
+    s.appendChild(etiquetaMarca("H*", "SA de 6 dígitos (Sistema Armonizado): conocimiento general, sin fuente en la carpeta."));
+    var m = ctx.op.marcas["especificos.items." + i + ".subpartida"];
+    if (m && m.marca === "PV") {
+      s.appendChild(document.createTextNode(" "));
+      s.appendChild(etiquetaMarca("PV", (m.nota || "Subpartida POR VERIFICAR.") + " Este documento solo usa los 6 dígitos del SA; lo pendiente son los 4 dígitos nacionales (PV-10)."));
+    }
+    return s;
+  }
+
+  // ¿Alguna subpartida de la operación está marcada PV? (para la nota que explica la marca en el documento)
+  function hayPvSubpartida(ctx) {
+    return ctx.op.especificos.items.some(function (it, i) { var m = ctx.op.marcas["especificos.items." + i + ".subpartida"]; return m && m.marca === "PV"; });
   }
 
   // Cifra de cuadre: el texto mostrado lleva data-cuadre para que la hoja resumen y las pruebas lo lean.
@@ -349,7 +393,8 @@ var Documentos = (function () {
   return {
     registrar: registrar, lista: lista, generar: generar, cifras: cifras, bloqueados: bloqueados, textoPie: textoPie,
     // utilidades para las plantillas
-    el: el, rotulo: rotulo, etiquetaMarca: etiquetaMarca, marcaDato: marcaDato, conMarca: conMarca, cifra: cifra,
+    el: el, rotulo: rotulo, etiquetaMarca: etiquetaMarca, marcaDato: marcaDato, marcaEfectiva: marcaEfectiva, etiquetaEfectiva: etiquetaEfectiva,
+    conMarca: conMarca, puertoMarcado: puertoMarcado, sa6Marcado: sa6Marcado, hayPvSubpartida: hayPvSubpartida, cifra: cifra,
     datos: datos, tabla: tabla, hoja: hoja, parte: parte, idFiscal: idFiscal,
     consignatario: consignatario, notify: notify, embarcador: embarcador, clasesBulto: clasesBulto, contenedor: contenedor,
     fecha: fecha, fechaHora: fechaHora, enteroEnLetras: enteroEnLetras, opcion: opcion, sa6: sa6, precio: precio, puerto: puerto, enLetras: enLetras

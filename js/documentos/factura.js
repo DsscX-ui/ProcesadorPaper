@@ -19,10 +19,14 @@
       [v.telefono || v.correo ? ["Contacto", "Contact", [v.telefono, v.correo].filter(Boolean).join(" · ")] : null]));
     partes.appendChild(D.parte(["Comprador / importador", "Buyer / importer"], g.partes.comprador));
     cuerpo.appendChild(partes);
-    var cons = D.consignatario(ctx);
-    if (cons.tipo !== "comprador") {
-      cuerpo.appendChild(D.datos(["Consignatario", "Consignee"], [["Nombre", "Name", cons.nombre], ["Dirección", "Address", cons.direccion]]));
-    }
+    // Consignatario y parte a notificar (PLAN §5: «Consignatario y notify → FC»; F7.1, auditoría F6-M2).
+    var cons = D.consignatario(ctx), nt = D.notify(ctx);
+    var transp = el("div", "doc-columnas");
+    transp.appendChild(D.datos(["Consignatario", "Consignee"], [["Nombre", "Name", cons.tipo === "comprador" ? cons.nombre + " (el comprador / same as buyer)" : cons.nombre],
+      cons.tipo === "comprador" ? null : ["Dirección", "Address", cons.direccion]]));
+    transp.appendChild(D.datos(["Notificar a", "Notify party"], [["Nombre", "Name", nt.igual && cons.tipo !== "a_la_orden" ? nt.nombre + " (el consignatario / same as consignee)" : nt.nombre],
+      nt.igual ? null : ["Dirección", "Address", nt.direccion]]));
+    cuerpo.appendChild(transp);
 
     // --- Condiciones de la venta y del embarque
     var cond = el("div", "doc-columnas");
@@ -40,8 +44,8 @@
     ]));
     var t = e.transporte;
     cond.appendChild(D.datos(["Embarque", "Shipment"], [
-      ["Puerto de embarque", "Port of loading", D.puerto(g.ruta.puertoEmbarque)],
-      ["Puerto de descarga", "Port of discharge", D.puerto(g.ruta.puertoDescarga)],
+      ["Puerto de embarque", "Port of loading", D.puertoMarcado(ctx, "puertoEmbarque")],
+      ["Puerto de descarga", "Port of discharge", D.puertoMarcado(ctx, "puertoDescarga")],
       t.nave || t.viaje ? ["Nave / viaje", "Vessel / voyage", [t.nave, t.viaje].filter(Boolean).join(" / ")] : null,
       t.fechaEmbarque ? ["Fecha de embarque", "Shipment date", D.fecha(t.fechaEmbarque)] : null,
       ["Medio de transporte", "Mode of transport", "Marítimo, contenedor completo (FCL) / Sea, FCL"]
@@ -66,7 +70,7 @@
       if (it.descripcion) { desc.appendChild(document.createTextNode(" — " + it.descripcion)); }
       var mm = [it.marca ? "Marca / Brand: " + it.marca : "", it.modelo ? "Modelo / Model: " + it.modelo : ""].filter(Boolean).join(" · ");
       if (mm) { desc.appendChild(el("span", "doc-linea", mm)); }
-      return [String(ri.numero), desc, D.sa6(it.subpartida), it.paisOrigen || "—", Fm.cantidad(ri.cantidad),
+      return [String(ri.numero), desc, D.sa6Marcado(ctx, i), it.paisOrigen || "—", Fm.cantidad(ri.cantidad),
         it.unidadComercial || "—", D.precio(ri.precioUnitario), Fm.comercial(ri.valor)];
     });
     var totalTexto = "Valor total " + (c.incoterm || "") + " " + (c.lugarConvenido || "") + " (USD) / Total invoice value";
@@ -80,6 +84,11 @@
     var nota = el("p", "doc-nota");
     nota.appendChild(document.createTextNode("SA = primeros 6 dígitos de la subpartida nacional (Sistema Armonizado) "));
     nota.appendChild(D.etiquetaMarca("H*"));
+    if (D.hayPvSubpartida(ctx)) {
+      nota.appendChild(document.createTextNode(" · "));
+      nota.appendChild(D.etiquetaMarca("PV"));
+      nota.appendChild(document.createTextNode(" junto al SA: la subpartida nacional del ítem está por verificar (PV-10); lo pendiente son sus 4 dígitos nacionales, que van en la DAM, no en esta factura"));
+    }
     nota.appendChild(document.createTextNode(r.factura.desglose.lineas.length ?
       " · Desglose del precio según el Incoterm: lo que el vendedor paga hasta el lugar convenido (flete" + (regla && regla.seguroObligatorio ? " y seguro" : "") + ") está incluido en el total; las cifras salen de calculos.js." :
       " · En " + (c.incoterm || "este Incoterm") + " el precio no incluye flete internacional ni seguro: no hay desglose."));

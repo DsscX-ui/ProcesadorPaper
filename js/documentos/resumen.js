@@ -28,14 +28,15 @@
         return (!c.solo || c.solo === tipo) && req.rutas.some(function (p) { return cubre(p, c.ruta); });
       });
       if (!campos.length) { return; }
-      var docs = {}, casillas = [], marcas = [];
+      var docs = {}, casillas = [], marcas = [], fuentes = [];
       campos.forEach(function (c) {
         (c.docs || "").split(" ").filter(Boolean).forEach(function (d) { docs[d] = true; });
         var cas = DICCIONARIO.casilla(c, tipo);
         if (cas && (c.docs || "").indexOf("DAM") !== -1 && casillas.indexOf(cas) === -1) { casillas.push(cas); }
         if (marcas.indexOf(c.marca) === -1) { marcas.push(c.marca); }
+        if (c.fuente && c.fuente !== "—" && fuentes.indexOf(c.fuente) === -1) { fuentes.push(c.fuente); }
       });
-      filas.push({ seccion: req.seccion, requisito: req.requisito, docs: docs, casilla: casillas.join("; "), marcas: marcas,
+      filas.push({ seccion: req.seccion, requisito: req.requisito, docs: docs, casilla: casillas.join("; "), marcas: marcas, fuentes: fuentes,
         campos: campos.length });
     });
     return filas;
@@ -228,11 +229,12 @@
         if (d === "DAM") { celdas.push(f.docs.DAM ? (f.casilla || "●") : ""); } else { celdas.push(f.docs[d] ? "●" : ""); }
       });
       celdas.push(f.marcas.join(" "));
+      celdas.push(f.fuentes.join("; ") || "—");
       return celdas;
     });
     s7.appendChild(D.tabla([{ es: "§4", en: "" }, { es: "Campo o grupo", en: "Field", clase: "doc-desc" },
       { es: "FC", en: "" }, { es: "PL", en: "" }, { es: "BL", en: "" }, { es: "DAM (casilla)", en: "" },
-      { es: "SEG", en: activos.SEG ? "" : "no aplica" }, { es: "CO", en: activos.CO ? "" : "no aplica" }, { es: "HR", en: "" }, { es: "Marca", en: "" }],
+      { es: "SEG", en: activos.SEG ? "" : "no aplica" }, { es: "CO", en: activos.CO ? "" : "no aplica" }, { es: "HR", en: "" }, { es: "Marca", en: "" }, { es: "Fuente", en: "Source", clase: "doc-fuente" }],
     filasT, { clase: "doc-tabla-traza" }));
     s7.appendChild(el("p", "doc-nota", "Generada desde js/diccionario.js (" + filasT.length + " grupos de campos de " +
       (imp ? "importación" : "exportación") + "): no está escrita a mano. FC factura · PL lista de empaque · BL instrucciones de embarque, B/L y VGM · " +

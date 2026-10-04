@@ -130,7 +130,8 @@ table.datos tr.detalle p { margin: 2px 0; }
 @page {
   size: A4;
   margin: 16mm 14mm 16mm 14mm;
-  @top-center { content: "DOCUMENTO DIDÁCTICO – NO VÁLIDO PARA TRÁMITES REALES"; font-family: system-ui, Arial, sans-serif; font-size: 7.5pt; font-weight: 700; color: #b42318; }
+  /* Único aviso impreso de cada página (F7.1): el recuadro .doc-aviso de la hoja solo se ve en pantalla. */
+  @top-center { content: "DOCUMENTO DIDÁCTICO – NO VÁLIDO PARA TRÁMITES REALES"; font-family: system-ui, Arial, sans-serif; font-size: 10pt; font-weight: 800; letter-spacing: 0.04em; color: #b42318; }
   @bottom-right { content: "Página " counter(page) " de " counter(pages); font-family: system-ui, Arial, sans-serif; font-size: 7pt; color: #555; }
 }
 
@@ -422,6 +423,7 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .doc-tabla-traza td { padding: 0.4mm 0.8mm; }
 .doc-tabla-traza td:first-child { white-space: nowrap; }
 .doc-tabla-traza td:nth-child(n+3):nth-child(-n+9) { text-align: center; }
+.doc-tabla-traza .doc-fuente { font-size: 6pt; color: #333; min-width: 22mm; }
 .doc-tabla-matriz { font-size: 6.8pt; }
 .doc-elegido td { background: #fff3b0; font-weight: 700; }
 .doc-ok { color: #1a7f37; font-weight: 700; }
@@ -444,7 +446,7 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 @media print {
   .documentos { border: none; padding: 0; margin: 0; background: none; }
   .documentos > :not(#vista-documentos) { display: none !important; }
-  .doc-controles, .doc-ayuda-vista, .doc-marca-agua, .doc-pie { display: none !important; }
+  .doc-controles, .doc-ayuda-vista, .doc-marca-agua, .doc-pie, .doc-aviso { display: none !important; }
   .doc-panel { display: none; }
   .doc-panel.a-imprimir { display: block; }
   .doc-panel.a-imprimir:not(.primera) { break-before: page; }

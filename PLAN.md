@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) y **F7** (instrucciones de embarque, borrador de B/L y VGM; `pruebas.html`: 535 de 535 pruebas correctas). **Fase actual: F8a** (DAM Formato A; pausa obligatoria para la revisión de Aarón). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7; `pruebas.html`: 550 de 550 pruebas correctas). **Fase actual: F8a** (DAM Formato A; pausa obligatoria para la revisión de Aarón). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -539,6 +539,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | E18 | Código fuera de su lista cerrada: destinación, modalidad, vía, tipo de seguro, estado, modalidad y medio de pago, nivel comercial, naturaleza, tipo de valor, versión del Incoterm |
 | E19 | Descuadre interno de la DAM: Σ FOB de ítems ≠ FOB total, Σ 7.30 ≠ 6.1, o Σ 7.34 ≠ 6.5. Delata un error de cálculo de la herramienta. |
 | E20 | (F5, decisión D14) Dato que la herramienta no puede calcular: en el formulario, un número que no es número, supera su máximo o tiene más decimales de los admitidos (§6.1), o un cálculo que sale del rango exacto. La revisión queda «en pausa» (solo E20) y los resultados no se muestran hasta corregirlo; la edición sigue libre [S]. |
+| E21 | (F7.1, auditoría F7-M1) B/L nominativo con consignatario «a la orden de…»: el documento mezclaría dos modalidades incompatibles [H\*] |
 
 **Advertencias (se puede generar, pero se muestran en pantalla y en la hoja resumen)**
 
@@ -985,6 +986,16 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - Consignatario en el B/L: nominativo → el consignatario elegido; **a la orden** → «A la orden de / To the order of: …». Si el consignatario es «a la orden de…» y el notify es «el consignatario», el B/L pide indicar a quién notificar.
 - Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
 - Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
+
+**Correcciones de la auditoría de F6/F7 (Codex), aplicadas en F7.1**
+
+- F7-M1: nuevo error **E21**: B/L nominativo con consignatario «a la orden de…» (bloquea los documentos hasta elegir B/L a la orden o un consignatario concreto).
+- F7-M2: «STC (dice contener / said to contain)» solo aparece en la descripción de la carga si la cláusula STC está elegida.
+- F6-M1: las plantillas muestran la **marca efectiva** de cada dato (la de la operación; si no tiene, la de su lista o la del diccionario): UN/LOCODE con H\*; el SA de 6 dígitos con H\* y, si la subpartida nacional está marcada PV, «POR VERIFICAR» con la explicación de que lo pendiente son los 4 dígitos nacionales (PV-10).
+- F6-M2: la lista de empaque imprime la descripción de cada ítem y, cuando difieren del embarcador o del consignatario, el vendedor y el comprador; la factura imprime el consignatario y la parte a notificar (§5), y el diccionario asigna el notify a FC y BL.
+- F6-B1: la tabla de trazabilidad tiene una columna «Fuente» con las citas del diccionario (sin repetir por grupo).
+- Observación del orquestador: al imprimir, el aviso «DOCUMENTO DIDÁCTICO – NO VÁLIDO PARA TRÁMITES REALES» aparece **una sola vez** por página (margen superior de `@page`, 10 pt); el recuadro de la hoja solo se ve en pantalla.
+- Regresiones en `pruebas.html` (grupo F7.1 y mutación E21).
 
 **Correcciones de la auditoría de F5 (Codex), aplicadas en F5.1**
 

@@ -504,7 +504,7 @@
       String(vacia.hallazgos.some(function (h) { return h.id === "E01" && h.rutas[0] === "especificos.items"; })));
     var catE = V.orden.filter(function (id) { return id.charAt(0) === "E"; });
     var catA = V.orden.filter(function (id) { return id.charAt(0) === "A"; });
-    prueba("Catálogo: errores E01–E20 (E20: cálculo en pausa, F5/D14)", "20", String(catE.length) + (catE[0] === "E01" && catE[19] === "E20" ? "" : " (desordenado)"));
+    prueba("Catálogo: errores E01–E21 (E20: cálculo en pausa, F5/D14; E21: B/L nominativo «a la orden», F7.1)", "21", String(catE.length) + (catE[0] === "E01" && catE[19] === "E20" && catE[20] === "E21" ? "" : " (desordenado)"));
     prueba("Catálogo: advertencias A01–A20", "20", String(catA.length) + (catA[0] === "A01" && catA[19] === "A20" ? "" : " (desordenado)"));
     prueba("Catálogo: cada regla tiene título, por qué, fuente y marca H/H*/S/PV", "[]", JSON.stringify(V.orden.filter(function (id) {
       var r = V.reglas[id];
@@ -566,6 +566,10 @@
         V.ids(rv).indexOf("E19") !== -1 ? "E19 presente" : "falta E19");
       prueba("E19 · hayErrores() = sí", "true", String(V.hayErrores(rv)));
     })();
+
+    mutacion("E21", "caso1", "B/L nominativo con consignatario «a la orden de un banco» (F7.1, auditoría F7-M1)", function (o) {
+      o.generales.partes.consignatario = { tipo: "a_la_orden", razonSocial: "Banco Didáctico — FICTICIO", direccion: "Av. Ejemplo 1, Lima" };
+    });
 
     (function () {
       // E20 (F5, D14): no viene de validar(), sino de la revisión «en pausa» que usa el formulario.
@@ -724,7 +728,7 @@
         return r.charAt(0) !== "#" && r !== "especificos.items" && !DICCIONARIO.buscar(r);
       }));
     }).map(function (h) { return h.id + ": " + h.rutas.join(" "); }).slice(0, 5)));
-    prueba("Se probaron todos los errores E01–E20", "[]", JSON.stringify(catE.filter(function (id) {
+    prueba("Se probaron todos los errores E01–E21", "[]", JSON.stringify(catE.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
     prueba("Se probaron todas las advertencias A01–A20", "[]", JSON.stringify(catA.filter(function (id) {
@@ -1100,7 +1104,7 @@
         return Array.prototype.every.call(d.hoja.querySelectorAll(".doc-items th"), function (th) { return / \/ /.test(th.textContent); });
       })));
       prueba("Subpartida en la factura: SA de 6 dígitos", "8414.51,8414.51,8504.40",
-        Array.prototype.map.call(x.porId.factura.hoja.querySelectorAll(".doc-items tbody tr"), function (tr) { return tr.children[2].textContent; }).join(","));
+        Array.prototype.map.call(x.porId.factura.hoja.querySelectorAll(".doc-items tbody tr"), function (tr) { return tr.children[2].firstChild.firstChild.textContent; }).join(","));
       prueba("Marca POR VERIFICAR del dato visible en el documento (contenedor del caso 1 no la tiene; tasa de percepción sí, en la HR)", "true",
         String(!!x.porId.resumen.hoja.querySelector(".marca-pv")));
       var xs = ejemplo("caso1"); xs.especificos.items[0].nombre = "<img src=x onerror=alert(1)>"; xs.meta.referencia = "<b>X</b>";
@@ -1201,6 +1205,7 @@
       prueba("A la orden: «A la orden de / To the order of: …»", "true",
         String(/To the order of: Importadora/.test(documentosDe(o).porId.bl.hoja.querySelectorAll(".doc-parte")[1].textContent)));
       var o2 = ejemplo("caso1"); o2.generales.partes.consignatario = { tipo: "a_la_orden", razonSocial: "Banco Didáctico — FICTICIO", direccion: "Av. Ejemplo 1, Lima" };
+      o2.especificos.transporte.blTipo = "a_la_orden";   // nominativo + «a la orden» es E21 (F7.1)
       prueba("Consignatario «a la orden de» un banco y notify = consignatario → se pide indicar a quién notificar", "true · true",
         String(/To the order of: Banco/.test(documentosDe(o2).porId.bl.hoja.textContent)) + " · " +
         String(/indicar a quién notificar/.test(documentosDe(o2).porId.bl.hoja.textContent)));
@@ -1213,6 +1218,50 @@
       prueba("Estiba 150.50 kg → VGM 3,938.50 (lo calcula calculos.js)", "3,938.50", documentosDe(o3).porId.vgm.cifras.vgm);
       var o4 = ejemplo("caso1"); o4.especificos.transporte.fleteBl = "collect";
       prueba("Flete del B/L distinto del usual (A05): las instrucciones lo avisan", "true", String(/advertencia A05/.test(documentosDe(o4).porId.instrucciones.hoja.textContent)));
+    })();
+
+    grupo("F7.1. Correcciones de la auditoría de F6/F7", "F7-M1 (E21), F7-M2 (STC solo si se elige), F6-M1 (marcas H*/PV impresas), F6-M2 (descripción y partes en PL, notify en FC), F6-B1 (fuentes en la trazabilidad).");
+    (function () {
+      // F7-M1: B/L nominativo + consignatario «a la orden» → E21 y no se generan documentos.
+      var o = ejemplo("caso1"); o.especificos.transporte.blTipo = "nominativo";
+      o.generales.partes.consignatario = { tipo: "a_la_orden", razonSocial: "BANCO PRUEBA", direccion: "Av. Ejemplo 1, Lima" };
+      o.generales.partes.notify = { tipo: "otro", razonSocial: "Importadora", direccion: "Lima" };
+      var r = Calculos.calcular(o), rv = Validaciones.validar(o, r);
+      prueba("F7-M1 · nominativo + «a la orden de…» → E21 y documentos bloqueados", "true · true",
+        String(Validaciones.ids(rv).indexOf("E21") !== -1) + " · " + String(Documentos.generar(o, r, rv, new Date(2026, 9, 3, 10, 0)).bloqueado));
+      o.especificos.transporte.blTipo = "a_la_orden";
+      prueba("F7-M1 · con B/L «a la orden» la misma combinación no es E21", "false", String(Validaciones.ids(Validaciones.validar(o, Calculos.calcular(o))).indexOf("E21") !== -1));
+      prueba("F7-M1 · los casos 1 y 2 no tienen E21", "false · false", ["caso1", "caso2"].map(function (k) { var e = ejemplo(k); return String(Validaciones.ids(Validaciones.validar(e, Calculos.calcular(e))).indexOf("E21") !== -1); }).join(" · "));
+      // F7-M2: STC desactivada → ni «STC» ni «said to contain» en instrucciones y B/L.
+      var s = ejemplo("caso1"); s.especificos.transporte.clausulaStc = false; s.especificos.transporte.clausulaSlac = false;
+      var ds = documentosDe(s);
+      prueba("F7-M2 · STC desactivada: instrucciones y B/L sin «STC» ni «said to contain»", "false · false",
+        String(/STC|said to contain/i.test(ds.porId.instrucciones.hoja.querySelector(".doc-carga").textContent)) + " · " + String(/STC|said to contain/i.test(ds.porId.bl.hoja.textContent)));
+      var d1 = documentosDe(ejemplo("caso1"));
+      prueba("F7-M2 · STC activada (caso 1): la descripción dice «STC (dice contener…)»", "true · true",
+        String(/STC \(dice contener/.test(d1.porId.instrucciones.hoja.textContent)) + " · " + String(/STC \(dice contener/.test(d1.porId.bl.hoja.textContent)));
+      // F6-M1: SA con H* y PV junto al código; UN/LOCODE con H*.
+      var celdaSa = d1.porId.factura.hoja.querySelector(".doc-items tbody tr td:nth-child(3)");
+      prueba("F6-M1 · factura: el SA lleva H* y POR VERIFICAR (subpartida PV-10)", "true · true",
+        String(!!celdaSa.querySelector(".marca-hx")) + " · " + String(!!celdaSa.querySelector(".marca-pv")));
+      prueba("F6-M1 · B/L: los SA llevan su marca PV", "true", String(!!d1.porId.bl.hoja.querySelector(".doc-carga .marca-pv")));
+      prueba("F6-M1 · UN/LOCODE con H* en FC, PL y B/L", "true · true · true", ["factura", "packing", "bl"].map(function (id) {
+        return String(Array.prototype.some.call(d1.porId[id].hoja.querySelectorAll("dd"), function (dd) { return /\(CNNGB\)/.test(dd.textContent) && !!dd.querySelector(".marca-hx"); }));
+      }).join(" · "));
+      prueba("F6-M1 · la PV de la factura explica qué falta (dígitos nacionales)", "true", String(/4 dígitos nacionales/.test(d1.porId.factura.hoja.querySelector(".doc-nota").textContent)));
+      // F6-M2: descripción en la PL; vendedor y comprador cuando difieren de embarcador y consignatario; notify en FC.
+      prueba("F6-M2 · PL: imprime la descripción de cada ítem", "true", String(/3 velocidades/.test(d1.porId.packing.hoja.textContent)));
+      var p = ejemplo("caso1"); p.especificos.transporte.shipper = "Embarcador Tercero — FICTICIO";
+      p.generales.partes.consignatario = { tipo: "otro", razonSocial: "Consignatario Tercero — FICTICIO", direccion: "Av. Otra 9, Lima" };
+      var dp = documentosDe(p).porId.packing.hoja.textContent;
+      prueba("F6-M2 · PL con partes distintas: muestra vendedor y comprador además de embarcador y consignatario", "true · true · true · true",
+        [/Embarcador Tercero/, /Consignatario Tercero/, /Ningbo Ejemplo Electric/, /Importadora Didáctica Andina/].map(function (re) { return String(re.test(dp)); }).join(" · "));
+      prueba("F6-M2 · factura: imprime la parte a notificar", "true", String(/Notificar a/.test(d1.porId.factura.hoja.textContent)));
+      prueba("F6-M2 · diccionario: notify alimenta FC y BL (§5)", "FC BL", DICCIONARIO.buscar("generales.partes.notify.tipo").docs);
+      // F6-B1: columna «Fuente» en la trazabilidad.
+      var traza = d1.porId.resumen.hoja.querySelector(".doc-tabla-traza");
+      prueba("F6-B1 · la tabla de trazabilidad tiene columna «Fuente» con citas (IT A 7.35…)", "true · true",
+        String(/Fuente/.test(traza.querySelector("thead").textContent)) + " · " + String(/IT A 7\.35/.test(traza.querySelector("tbody").textContent)));
     })();
 
     // ============================================================ Pintar

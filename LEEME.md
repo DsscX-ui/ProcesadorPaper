@@ -65,7 +65,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 
 - **Contador** (arriba, en verde o rojo): cuántos errores y advertencias hay y sus códigos.
   Ejemplo con el caso 1: «✔ Sin errores · 6 advertencias (A01, A08, A19, A20)».
-- **Errores (E01–E20), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
+- **Errores (E01–E21), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
   E20 significa que un número no se pudo usar (no es número, supera su máximo o tiene decimales de más): la revisión y
   los resultados quedan en pausa hasta corregirlo. Cada error también se marca en rojo junto a su campo del formulario.
 - **Advertencias (A01–A20), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"535 de 535 pruebas correctas"** en verde.
+2. Arriba debe decir **"550 de 550 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,

@@ -90,6 +90,11 @@ var Validaciones = (function () {
     "La herramienta calcula con cifras exactas dentro de ciertos límites. Con un dato que no es un número, que supera su máximo o que tiene más decimales de los admitidos, no calcula: así nunca muestra cifras distintas de las que escribiste. El resto de la revisión y los resultados vuelven al corregirlo.",
     "Corrige el dato: junto a cada campo numérico se indica su máximo y cuántos decimales admite.");
 
+  // E21 (F7.1, auditoría F7-M1): un B/L nominativo va a nombre de una persona; no puede decir «a la orden de…».
+  regla("E21", "B/L nominativo con consignatario «a la orden»", "H*", "Conocimiento general del B/L (nominativo / a la orden); PLAN §4 B4",
+    "Un B/L nominativo (straight) se emite a nombre de un consignatario concreto y no se transfiere por endoso; uno «a la orden» se transfiere por endoso. Si el consignatario dice «a la orden de…» y el B/L es nominativo, el documento enseña dos modalidades incompatibles.",
+    "Elige «A la orden» como tipo de B/L o cambia el consignatario a una persona concreta (el comprador u otra).");
+
   regla("A01", "Regla marítima con contenedor: considera FCA, CPT o CIP", "H*", "ICC, nota de orientación de Incoterms® 2020",
     "En FAS, FOB, CFR y CIF el riesgo pasa al costado o a bordo del buque, pero la carga en contenedor se entrega antes, en la terminal o el depósito. Entre la entrega y la carga a bordo el riesgo queda en una zona gris.",
     "");
@@ -571,6 +576,10 @@ var Validaciones = (function () {
     if (esFecha(t.eta) && esFecha(t.fechaEmbarque) && t.eta < t.fechaEmbarque) {
       agregar("E13", "La ETA (" + fechaTexto(t.eta) + ") es anterior al embarque (" + fechaTexto(t.fechaEmbarque) + ").",
         ["especificos.transporte.eta", "especificos.transporte.fechaEmbarque"]);
+    }
+    if (t.blTipo === "nominativo" && x.op.generales.partes.consignatario.tipo === "a_la_orden") {
+      agregar("E21", "El B/L es nominativo, pero el consignatario es «a la orden de…».",
+        ["especificos.transporte.blTipo", "generales.partes.consignatario.tipo"]);
     }
     var o = x.op.especificos.origen;
     if (o.solicitaPreferencia === true && esFecha(o.certificadoFecha) && esFecha(t.fechaEmbarque) && o.certificadoFecha > t.fechaEmbarque) {

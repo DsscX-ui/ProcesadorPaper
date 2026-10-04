@@ -1,2 +1,2 @@
-582 de 582 pruebas correctas
+592 de 592 pruebas correctas
 ERRORES: ninguno

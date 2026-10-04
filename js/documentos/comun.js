@@ -83,25 +83,54 @@ var Documentos = (function () {
     return conMarca(ctx, puerto(ctx.op.generales.ruta[cual]), "generales.ruta." + cual + ".locode");
   }
 
-  // Subpartida del SA (6 dígitos) de un ítem con sus marcas: H* (Sistema Armonizado, conocimiento general) y,
-  // si la subpartida nacional está marcada PV, «POR VERIFICAR» con la explicación de qué parte falta confirmar.
-  function sa6Marcado(ctx, i) {
-    var it = ctx.op.especificos.items[i];
+  // Estado de la subpartida de uno o varios ítems (F8a.1, auditoría F8a-M2), armonizado con A08:
+  //  - marca explícita PV del dato (op.marcas) → POR VERIFICAR con la nota de quien la puso;
+  //  - sin esa marca, «subpartida verificada» = No → POR VERIFICAR la subpartida COMPLETA (ni el SA de 6 dígitos
+  //    ni los dígitos nacionales están confirmados);
+  //  - verificada y sin marca PV → sin POR VERIFICAR.
+  // Devuelve { pv: bool, explicita: bool, nota }.
+  function estadoSubpartida(ctx, indices) {
+    var notas = [], explicita = false, sinVerificar = false;
+    [].concat(indices).forEach(function (i) {
+      var m = ctx.op.marcas["especificos.items." + i + ".subpartida"];
+      if (m && m.marca === "PV") { explicita = true; if (m.nota && notas.indexOf(m.nota) === -1) { notas.push(m.nota); } }
+      else if (ctx.op.especificos.items[i].subpartidaVerificada !== true) { sinVerificar = true; }
+    });
+    if (sinVerificar) { notas.push("Subpartida no verificada en el arancel (A08; PV-10): ni el SA de 6 dígitos ni los dígitos nacionales están confirmados."); }
+    return { pv: explicita || sinVerificar, explicita: explicita && !sinVerificar, nota: notas.join(" ") };
+  }
+
+  // Subpartida del SA (6 dígitos) con sus marcas. indices: ítem o ítems que comparten ese SA.
+  // H* (Sistema Armonizado, conocimiento general) solo si la subpartida no está «sin verificar» por completo;
+  // POR VERIFICAR según estadoSubpartida (la nota dice qué parte falta, sin suponerlo).
+  function sa6Marcado(ctx, indices) {
+    var lista = [].concat(indices), it = ctx.op.especificos.items[lista[0]];
+    var e = estadoSubpartida(ctx, lista);
     var s = el("span", null, sa6(it.subpartida));
-    s.appendChild(document.createTextNode(" "));
-    s.appendChild(etiquetaMarca("H*", "SA de 6 dígitos (Sistema Armonizado): conocimiento general, sin fuente en la carpeta."));
-    var m = ctx.op.marcas["especificos.items." + i + ".subpartida"];
-    if (m && m.marca === "PV") {
+    if (!e.pv || e.explicita) {
       s.appendChild(document.createTextNode(" "));
-      s.appendChild(etiquetaMarca("PV", (m.nota || "Subpartida POR VERIFICAR.") + " Este documento solo usa los 6 dígitos del SA; lo pendiente son los 4 dígitos nacionales (PV-10)."));
+      s.appendChild(etiquetaMarca("H*", "SA de 6 dígitos (Sistema Armonizado): conocimiento general, sin fuente en la carpeta."));
+    }
+    if (e.pv) {
+      s.appendChild(document.createTextNode(" "));
+      s.appendChild(etiquetaMarca("PV", e.nota));
     }
     return s;
   }
 
-  // ¿Alguna subpartida de la operación está marcada PV? (para la nota que explica la marca en el documento)
-  function hayPvSubpartida(ctx) {
-    return ctx.op.especificos.items.some(function (it, i) { var m = ctx.op.marcas["especificos.items." + i + ".subpartida"]; return m && m.marca === "PV"; });
+  // Subpartida nacional completa (DAM 7.19) con POR VERIFICAR si corresponde.
+  function subpartidaMarcada(ctx, indices) {
+    var lista = [].concat(indices), e = estadoSubpartida(ctx, lista);
+    var s = el("span", null, ctx.op.especificos.items[lista[0]].subpartida || "—");
+    if (e.pv) { s.appendChild(document.createTextNode(" ")); s.appendChild(etiquetaMarca("PV", e.nota)); }
+    return s;
   }
+
+  // ¿Alguna subpartida de la operación está POR VERIFICAR? (para la nota que explica la marca en el documento)
+  function hayPvSubpartida(ctx) {
+    return ctx.op.especificos.items.some(function (it, i) { return estadoSubpartida(ctx, i).pv; });
+  }
+
 
   // Cifra de cuadre: el texto mostrado lleva data-cuadre para que la hoja resumen y las pruebas lo lean.
   function cifra(texto, clave, clase) {
@@ -394,7 +423,7 @@ var Documentos = (function () {
     registrar: registrar, lista: lista, generar: generar, cifras: cifras, bloqueados: bloqueados, textoPie: textoPie,
     // utilidades para las plantillas
     el: el, rotulo: rotulo, etiquetaMarca: etiquetaMarca, marcaDato: marcaDato, marcaEfectiva: marcaEfectiva, etiquetaEfectiva: etiquetaEfectiva,
-    conMarca: conMarca, puertoMarcado: puertoMarcado, sa6Marcado: sa6Marcado, hayPvSubpartida: hayPvSubpartida, cifra: cifra,
+    conMarca: conMarca, puertoMarcado: puertoMarcado, sa6Marcado: sa6Marcado, subpartidaMarcada: subpartidaMarcada, estadoSubpartida: estadoSubpartida, hayPvSubpartida: hayPvSubpartida, cifra: cifra,
     datos: datos, tabla: tabla, hoja: hoja, parte: parte, idFiscal: idFiscal,
     consignatario: consignatario, notify: notify, embarcador: embarcador, clasesBulto: clasesBulto, contenedor: contenedor,
     fecha: fecha, fechaHora: fechaHora, enteroEnLetras: enteroEnLetras, opcion: opcion, sa6: sa6, precio: precio, puerto: puerto, enLetras: enLetras

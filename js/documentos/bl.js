@@ -31,12 +31,16 @@
   // Subpartidas del SA (6 dígitos), sin repetir, cada una con sus marcas (H*; PV si la nacional está por verificar).
   function subpartidasSa(ctx) {
     var vistas = [], s = el("span", "doc-linea", "SA / HS: ");
-    ctx.op.especificos.items.forEach(function (it, i) {
+    var items = ctx.op.especificos.items;
+    items.forEach(function (it) {
       var c = D.sa6(it.subpartida);
       if (vistas.indexOf(c) !== -1) { return; }
       if (vistas.length) { s.appendChild(document.createTextNode(", ")); }
       vistas.push(c);
-      s.appendChild(D.sa6Marcado(ctx, i));
+      // Todos los ítems con ese SA: si alguno está por verificar, el código lo está.
+      var mismos = [];
+      items.forEach(function (x, k) { if (D.sa6(x.subpartida) === c) { mismos.push(k); } });
+      s.appendChild(D.sa6Marcado(ctx, mismos));
     });
     return s;
   }

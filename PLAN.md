@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) y **F8a** (DAM Formato A de ingreso y salida, con A1; `pruebas.html`: 582 de 582 pruebas correctas). **Fase actual: pausa de revisión de Aarón antes de F8b.** Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) y **F8a.1** (correcciones de la auditoría de F8a; `pruebas.html`: 592 de 592 pruebas correctas). **Fase actual: pausa de revisión de Aarón antes de F8b.** Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -986,6 +986,14 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - Consignatario en el B/L: nominativo → el consignatario elegido; **a la orden** → «A la orden de / To the order of: …». Si el consignatario es «a la orden de…» y el notify es «el consignatario», el B/L pide indicar a quién notificar.
 - Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
 - Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
+
+**Correcciones de la auditoría de F8a (Codex), aplicadas en F8a.1**
+
+- F8a-M1: las cantidades de la DAM (A 7.10, 7.16) usan `Calculos.formato.damCantidad`: enteras sin decimales («360») y no enteras con 3 decimales («360.500») [H: IT IV.3].
+- F8a-M2: la marca de la subpartida se deriva de la marca explícita del dato **y** de «subpartida verificada» (la misma condición de A08), en la factura, el B/L y la DAM 7.19. Sin marca explícita y sin verificar, la nota dice que **ni el SA de 6 dígitos ni los dígitos nacionales** están confirmados (y el SA no lleva H\*); con marca explícita, la nota es la del dato. Verificada y sin marca PV → sin POR VERIFICAR (el DV sigue PV-27).
+- F8a-M3: S 13.1 ya no se atribuye a la Aduana: «Reservada para la recepción de la mercancía en zona primaria» y POR VERIFICAR quién la llena (como S 13.2).
+- F8a-B1: la cabecera didáctica del A1 lleva «NO NUMERADA» como recordatorio (no es una casilla oficial del A1).
+- Regresiones en `pruebas.html` (grupo F8a.1).
 
 **DAM Formato A y A1 (F8a)** [S salvo donde se cita]
 

@@ -125,7 +125,11 @@
       lista.push(casilla("", "Modalidad", "No aplica (IT B)", { fuente: "IT B, MODALIDAD", estado: "no-aplica" }));
       lista.push(casilla("", "Tipo de despacho", opc("tipoDespachoExportacion", g.aduana.tipoDespacho), { fuente: "IT B, TIPO DESPACHO" }));
     }
-    if (!a1) {
+    if (a1) {
+      // Recordatorio didáctico (F8a.1, auditoría F8a-B1): no es una casilla oficial del A1; el número lo asigna SUNAT (IT A / IT B rubro 2).
+      lista.push(casilla("", "Declaración (recordatorio didáctico)", el("strong", "dam-no-numerada", "NO NUMERADA"),
+        { fuente: "Rubro 2 del Formato A: el número lo asigna SUNAT; no es una casilla del A1", ancho: 2 }));
+    } else {
       lista.push(casilla("", imp ? "Número de declaración de importación" : "Número de declaración de exportación", "", { fuente: F + ", NÚMERO DE DECLARACIÓN", estado: "no-llenar", ancho: 2 }));
     }
     return rubro("", a1 ? "Datos de la declaración (se repiten en cada hoja A1)" : "Cabecera", lista, "dam-cabecera");
@@ -245,10 +249,10 @@
     var na = function (num, rot, fuenteExtra, ancho) { return casilla(num, rot, "", { fuente: F + " " + num + (fuenteExtra || ""), estado: "no-aplica", ancho: ancho }); };
     var numItems = s.items.map(function (i) { return r.items[i].numero; });
 
-    var subp = lineas([marcado(ctx, s.subpartida, rutaItem(i0, "subpartida")), lineas(["DV: ", porVerificar("PV-27: cálculo del dígito verificador")])]);
+    var subp = lineas([D.subpartidaMarcada(ctx, s.items), lineas(["DV: ", porVerificar("PV-27: cálculo del dígito verificador")])]);
     var bultos = String(s.bultos);
     var clase = marcado(ctx, opc("claseBulto", x0.claseBulto, true), rutaItem(i0, "claseBulto"), "(código SUNAT: PV-09)");
-    var fisica = s.cantidadFisica ? marcado(ctx, Fm.cantidad(s.cantidadFisica) + " " + (s.unidadFisica || ""), rutaItem(i0, "unidadFisica"))
+    var fisica = s.cantidadFisica ? marcado(ctx, Fm.damCantidad(s.cantidadFisica) + " " + (s.unidadFisica || ""), rutaItem(i0, "unidadFisica"))
       : porVerificar("PV-09: la unidad física de la subpartida difiere de la comercial");
     var factura = (g.comercial.facturaNumero || "—") + " · " + fechaDam(g.comercial.facturaFecha);
 
@@ -263,7 +267,7 @@
       casilla("7.8", "Documento de transporte – detalle", t.blNumero, { fuente: F + " 7.8 (B/L)", ancho: 2 }),
       imp ? casilla("7.9", "Nº certificado de origen / fecha", o.solicitaPreferencia ? (o.certificadoNumero || "—") + " · " + fechaDam(o.certificadoFecha) : "— (sin certificado de origen)",
         { fuente: "IT A 7.9 (cuando sea exigible)", ancho: 2 }) : nl("7.9", "Nº certificado de origen / fecha"),
-      imp ? casilla("7.10", "Cantidad unidad comercial", Fm.cantidad(s.cantidad), { fuente: "IT A 7.10 (Σ de la serie)" }) : nl("7.10", "Cantidad unidad comercial"),
+      imp ? casilla("7.10", "Cantidad unidad comercial", Fm.damCantidad(s.cantidad), { fuente: "IT A 7.10 (Σ de la serie)" }) : nl("7.10", "Cantidad unidad comercial"),
       nl("7.11", "—"),
       casilla("7.12", "Cantidad de bultos", bultos, { fuente: F + " 7.12" }),
       casilla("7.13", "Clase de bultos", clase, { fuente: F + " 7.13", ancho: 2 }),
@@ -345,7 +349,9 @@
     if (imp) {
       reservadas.push(casilla("13", "Depósito aduanero", "", { fuente: "IT A 13 (régimen de depósito aduanero)", estado: "no-aplica", ancho: 2 }));
     } else {
-      reservadas.push(casilla("13.1", "Zona primaria: fecha término de recepción", "", { fuente: "IT B 13.1 (recepción en zona primaria)", estado: "reservada", ancho: 2 }));
+      // IT B 13 reserva el rubro para la recepción en zona primaria, pero no dice quién lo llena (F8a.1, auditoría F8a-M3).
+      reservadas.push(casilla("13.1", "Zona primaria: fecha término de recepción", lineas(["Reservada para la recepción de la mercancía en zona primaria",
+        porVerificar("quién llena la casilla 13 (recepción en zona primaria)")]), { fuente: "IT B 13 y 13.1", ancho: 2 }));
       var b132 = lineas([String(r.totales.bultos) + " " + D.clasesBulto(ctx).toLowerCase() + " (sin contar contenedor ni paletas)",
         porVerificar("quién llena la casilla 13 (recepción en zona primaria)")]);
       reservadas.push(casilla("13.2", "Zona primaria: cantidad y clase de bultos", b132, { fuente: "IT B 13.2", ancho: 2 }));

@@ -1249,7 +1249,7 @@
       prueba("F6-M1 · UN/LOCODE con H* en FC, PL y B/L", "true · true · true", ["factura", "packing", "bl"].map(function (id) {
         return String(Array.prototype.some.call(d1.porId[id].hoja.querySelectorAll("dd"), function (dd) { return /\(CNNGB\)/.test(dd.textContent) && !!dd.querySelector(".marca-hx"); }));
       }).join(" · "));
-      prueba("F6-M1 · la PV de la factura explica qué falta (dígitos nacionales)", "true", String(/4 dígitos nacionales/.test(d1.porId.factura.hoja.querySelector(".doc-nota").textContent)));
+      prueba("F6-M1 · la PV de la factura remite a la nota de cada marca (qué parte falta)", "true", String(/qué parte falta confirmar/.test(d1.porId.factura.hoja.querySelector(".doc-nota").textContent)));
       // F6-M2: descripción en la PL; vendedor y comprador cuando difieren de embarcador y consignatario; notify en FC.
       prueba("F6-M2 · PL: imprime la descripción de cada ítem", "true", String(/3 velocidades/.test(d1.porId.packing.hoja.textContent)));
       var p = ejemplo("caso1"); p.especificos.transporte.shipper = "Embarcador Tercero — FICTICIO";
@@ -1338,6 +1338,54 @@
       prueba("Caso 2 con una sola subpartida → sin A1", "false", String(!!documentosDe(v).porId.dam_a1));
       var w = ejemplo("caso1"); w.especificos.items[0].pesoBrutoBulto = 1;
       prueba("Con errores (E05) no se genera la DAM", "true · false", String(documentosDe(w).gen.bloqueado) + " · " + String(!!documentosDe(w).porId.dam_a));
+    })();
+
+    grupo("F8a.1. Correcciones de la auditoría de F8a", "F8a-M1 (cantidades con 3 decimales), F8a-M2 (marca de la subpartida desde «verificada»), F8a-M3 (S 13.1 sin atribuir a la Aduana), F8a-B1 (NO NUMERADA en el A1).");
+    (function () {
+      function cas(hoja, serie, num) {
+        var n = hoja.querySelector((serie ? '[data-serie="' + serie + '"] ' : ".dam-rubro:not(.dam-serie) ") + '[data-casilla="' + num + '"] .dam-valor');
+        return n ? n.textContent.trim() : "(no está)";
+      }
+      // M1: cantidades fraccionarias en A (serie 1) y A1 (serie 2).
+      var o = ejemplo("caso1");
+      o.especificos.items[0].cantidad = 200.5; o.especificos.items[0].unidadesPorBulto = 0.5;
+      o.especificos.items[2].cantidad = 3000.25; o.especificos.items[2].unidadesPorBulto = 3000.25;
+      var d = documentosDe(o);
+      prueba("F8a-M1 · sin errores con las cantidades fraccionarias", "true", String(!!d.porId.dam_a && !!d.porId.dam_a1) + (d.rv.errores.length ? " " + Validaciones.ids(d.rv).join(",") : ""));
+      if (d.porId.dam_a && d.porId.dam_a1) {
+        prueba("F8a-M1 · A 7.10 y 7.16 con 3 decimales (serie 1, Formato A)", "360.500 · 360.500 U", cas(d.porId.dam_a.hoja, 1, "7.10") + " · " + cas(d.porId.dam_a.hoja, 1, "7.16").replace(/\s*POR VERIFICAR.*$/, ""));
+        prueba("F8a-M1 · A 7.10 y 7.16 con 3 decimales (serie 2, A1)", "3,000.250 · 3,000.250 U", cas(d.porId.dam_a1.hoja, 2, "7.10") + " · " + cas(d.porId.dam_a1.hoja, 2, "7.16").replace(/\s*POR VERIFICAR.*$/, ""));
+      }
+      var e = documentosDe(ejemplo("caso1"));
+      prueba("F8a-M1 · enteros sin decimales (360 · 3,000)", "360 · 3,000", cas(e.porId.dam_a.hoja, 1, "7.10") + " · " + cas(e.porId.dam_a1.hoja, 2, "7.10"));
+      prueba("F8a-M1 · formateador: 360 → «360»; 360.5 → «360.500»; 0.001 → «0.001»", "360 · 360.500 · 0.001",
+        [360, 360.5, 0.001].map(function (v) { return Calculos.formato.damCantidad(Calculos.aFijo(v, 3)); }).join(" · "));
+      // M2: sin la marca explícita, «verificada» = No sigue dando POR VERIFICAR en FC, B/L y DAM 7.19; sin afirmar que solo faltan dígitos nacionales.
+      var m = ejemplo("caso1");
+      [0, 1, 2].forEach(function (i) { delete m.marcas["especificos.items." + i + ".subpartida"]; });
+      var dm = documentosDe(m);
+      var celda = dm.porId.factura.hoja.querySelector(".doc-items tbody tr td:nth-child(3)");
+      prueba("F8a-M2 · sin marca explícita y no verificada: A08 y PV en factura, B/L y DAM 7.19", "true · true · true · true",
+        [Validaciones.ids(dm.rv).indexOf("A08") !== -1, !!celda.querySelector(".marca-pv"), !!dm.porId.bl.hoja.querySelector(".doc-carga .marca-pv"),
+          !!dm.porId.dam_a.hoja.querySelector('[data-serie="1"] [data-casilla="7.19"] .dam-valor > span > span:first-child > .marca-pv')].map(String).join(" · "));
+      var pv = celda.querySelector(".marca-pv");
+      prueba("F8a-M2 · no verificada: la nota dice que tampoco el SA está confirmado (y no lleva H*)", "true · false",
+        String(/ni el SA de 6 dígitos/.test(pv.title)) + " · " + String(!!celda.querySelector(".marca-hx")));
+      [0, 1, 2].forEach(function (i) { m.especificos.items[i].subpartidaVerificada = true; });
+      var dv = documentosDe(m);
+      prueba("F8a-M2 · verificada y sin marca: sin A08 ni PV en la subpartida (el DV sigue PV-27)", "false · false · false · true",
+        [Validaciones.ids(dv.rv).indexOf("A08") !== -1, !!dv.porId.factura.hoja.querySelector(".doc-items tbody .marca-pv"),
+          !!dv.porId.dam_a.hoja.querySelector('[data-serie="1"] [data-casilla="7.19"] .dam-valor > span > span:first-child > .marca-pv'),
+          /PV-27/.test(cas(dv.porId.dam_a.hoja, 1, "7.19"))].map(String).join(" · "));
+      // M3: S 13.1 no se atribuye a la Aduana.
+      var x2 = documentosDe(ejemplo("caso2")).porId.dam_a.hoja, c131 = x2.querySelector('[data-casilla="13.1"]');
+      prueba("F8a-M3 · S 13.1: reservada para la recepción, POR VERIFICAR quién la llena, sin «Administración Aduanera»", "true · true · false",
+        String(/recepción de la mercancía en zona primaria/.test(c131.textContent)) + " · " + String(!!c131.querySelector(".marca-pv") && /quién llena/.test(c131.textContent)) + " · " +
+        String(/Administración Aduanera/.test(c131.textContent)));
+      // B1: NO NUMERADA en el A1 de ambos casos.
+      prueba("F8a-B1 · «NO NUMERADA» en la cabecera del A1 (casos 1 y 2)", "true · true",
+        String(/NO NUMERADA/.test(e.porId.dam_a1.hoja.querySelector(".dam-cabecera").textContent)) + " · " +
+        String(/NO NUMERADA/.test(documentosDe(ejemplo("caso2")).porId.dam_a1.hoja.querySelector(".dam-cabecera").textContent)));
     })();
 
     // ============================================================ Pintar

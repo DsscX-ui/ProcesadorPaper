@@ -87,7 +87,7 @@
     if (D.hayPvSubpartida(ctx)) {
       nota.appendChild(document.createTextNode(" · "));
       nota.appendChild(D.etiquetaMarca("PV"));
-      nota.appendChild(document.createTextNode(" junto al SA: la subpartida nacional del ítem está por verificar (PV-10); lo pendiente son sus 4 dígitos nacionales, que van en la DAM, no en esta factura"));
+      nota.appendChild(document.createTextNode(" junto al SA: la subpartida del ítem está por verificar (A08; PV-10); la nota de cada marca dice qué parte falta confirmar (si no se verificó, tampoco el SA de 6 dígitos)"));
     }
     nota.appendChild(document.createTextNode(r.factura.desglose.lineas.length ?
       " · Desglose del precio según el Incoterm: lo que el vendedor paga hasta el lugar convenido (flete" + (regla && regla.seguroObligatorio ? " y seguro" : "") + ") está incluido en el total; las cifras salen de calculos.js." :

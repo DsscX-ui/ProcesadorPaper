@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"582 de 582 pruebas correctas"** en verde.
+2. Arriba debe decir **"592 de 592 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -97,7 +97,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    que bultos, peso bruto, volumen, contenedor y precinto del B/L y de las instrucciones son los de la lista de empaque,
    el VGM (carga + estiba + tara) y el contenido del borrador de B/L. El grupo F7.1 son las regresiones de la auditoría de F6/F7.
    El grupo F8a comprueba que las casillas del Formato A (series, 6.1–6.5, 7.30–7.34, S 7.26…) son las de `PLAN.md` §9.1 y §9.2
-   y que la hoja A1 solo aparece con más de una serie.
+   y que la hoja A1 solo aparece con más de una serie. El grupo F8a.1 son las regresiones de la auditoría de F8a.
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -150,7 +150,7 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7) y F8a (DAM Formato A de ingreso y salida, con A1).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1) y F8a.1 (correcciones de la auditoría de F8a).
 Ahora: **pausa de revisión de Aarón antes de F8b** (DAM Formato B).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

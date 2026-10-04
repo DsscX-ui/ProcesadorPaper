@@ -39,7 +39,7 @@
       <li><a href="#paso-datos"><span class="paso-num">1</span> Datos<span class="paso-largo"> de la operación</span></a></li>
       <li><a href="#paso-revision"><span class="paso-num">2</span> Revisión <span id="barra-contador" class="barra-contador"></span></a></li>
       <li><a href="#paso-resultados"><span class="paso-num">3</span> Resultados<span class="paso-largo"> del cálculo</span></a></li>
-      <li><a href="#paso-documentos"><span class="paso-num">4</span> Documentos <span class="nota">(F6)</span></a></li>
+      <li><a href="#paso-documentos"><span class="paso-num">4</span> Documentos</a></li>
     </ol>
     <p class="barra-estado"><span id="barra-guardado" class="barra-guardado"></span> <span id="barra-mensaje" class="barra-mensaje" aria-hidden="true"></span></p>
   </nav>
@@ -92,44 +92,38 @@
   <section class="resultados-calculo" id="paso-resultados" aria-labelledby="res-titulo">
     <h2 id="res-titulo"><span class="paso-num">3</span> Resultados del cálculo <span class="en">/ Calculation results</span></h2>
     <p class="ayuda-seccion">Lo que la herramienta calcula a partir de los datos de la operación, paso a paso y con la fórmula de cada cifra.
-      Todas las cifras salen de un único módulo de cálculo (<code>js/calculos.js</code>); los documentos (desde F6) mostrarán estas mismas cifras.
+      Todas las cifras salen de un único módulo de cálculo (<code>js/calculos.js</code>); los documentos muestran estas mismas cifras.
       Para comprobar el módulo con las cifras del plan, abre <a href="pruebas.html">pruebas.html</a>.</p>
     <div id="vista-resultados"></div>
   </section>
 
   <section class="documentos" id="paso-documentos" aria-labelledby="doc-titulo">
     <h2 id="doc-titulo"><span class="paso-num">4</span> Documentos <span class="en">/ Documents</span></h2>
-    <p>La factura comercial, la lista de empaque y la hoja resumen llegan en <strong>F6</strong>; luego el B/L y el VGM (F7), la DAM (F8) y el seguro y el certificado de origen (F9).
-      Mientras haya errores en la revisión, los documentos no se generarán.</p>
+    <p class="ayuda-seccion">Los documentos se generan con los datos de la operación y las cifras de «Resultados del cálculo»: todos leen la misma fuente, por eso cuadran.
+      Elige un documento para verlo en una hoja A4; <strong>Imprimir este documento</strong> o <strong>Imprimir todos</strong> abre el diálogo del navegador
+      (elige <em>Guardar como PDF</em> y tamaño A4). Al imprimir solo salen los documentos, nunca el formulario ni los paneles.
+      Si la revisión tiene errores, los documentos no se generan; las advertencias sí dejan generarlos y la hoja resumen las lista.
+      Luego llegan la DAM (F8) y el seguro y el certificado de origen (F9).</p>
     <p id="estado-documentos" role="status" aria-live="polite"></p>
+    <div id="vista-documentos"></div>
   </section>
 
   <section class="estado" aria-labelledby="estado-titulo">
     <h2 id="estado-titulo">Estado de la construcción</h2>
-    <p>Fase <strong>F5</strong> hecha: formulario completo, generado desde el diccionario, con ítems variables, secciones condicionales, ayuda por campo y marcas visibles. Sigue <strong>F6</strong>: factura comercial, lista de empaque y hoja resumen (ver <code>PLAN.md</code>, §10).
-      Mientras llegan los documentos, <em>Imprimir</em> saca una hoja de prueba del formato A4 con la marca de agua.</p>
+    <p>Fase <strong>F6</strong> hecha: factura comercial, lista de empaque y hoja resumen (con cuadro de cuadre, matriz Incoterms® y tabla de trazabilidad), en hojas A4 listas para imprimir. Sigue <strong>F7</strong>: instrucciones de embarque, borrador de B/L y VGM (ver <code>PLAN.md</code>, §10).</p>
     <ol class="fases">
       <li class="hecha">F1 · Estructura y aviso didáctico</li>
       <li class="hecha">F2 · Datos, ejemplos y Guardar/Abrir (F2.1: correcciones de la auditoría)</li>
       <li class="hecha">F3 · Cálculos y página de pruebas (<a href="pruebas.html">abrir pruebas</a>; F3.1: correcciones de la auditoría)</li>
       <li class="hecha">F4 · Validaciones y panel de errores y advertencias (F4.1 y F4.2: correcciones de las auditorías)</li>
-      <li class="hecha">F5 · Formulario editable</li>
-      <li>F6 · Factura, lista de empaque y hoja resumen</li>
+      <li class="hecha">F5 · Formulario editable (F5.1: correcciones de la auditoría)</li>
+      <li class="hecha">F6 · Factura, lista de empaque y hoja resumen</li>
       <li>F7 · Instrucciones de embarque, B/L y VGM</li>
       <li>F8a · DAM Formato A (pausa de revisión)</li>
       <li>F8b · DAM Formato B · F8c · DAM Formato C</li>
       <li>F9 · Seguro y certificado de origen</li>
       <li>F10 · Impresión final y guía</li>
     </ol>
-  </section>
-
-  <!-- Hoja de prueba A4 (F1): solo se imprime; comprueba el formato A4, el encabezado y la marca de agua
-       hasta que existan los documentos reales (F6). En pantalla no se muestra. -->
-  <section class="hoja hoja-prueba" aria-labelledby="hoja-titulo">
-    <p class="hoja-encabezado">DOCUMENTO DIDÁCTICO – NO VÁLIDO PARA TRÁMITES REALES</p>
-    <h2 id="hoja-titulo">Hoja de prueba de impresión <span class="en">/ Print test sheet</span></h2>
-    <p>Esta hoja solo sirve para comprobar el formato A4, el encabezado y la marca de agua. Desaparecerá cuando existan los documentos reales (F6).</p>
-    <p class="hoja-pie">Referencia: — · Generado: <span id="fecha-generacion">—</span></p>
   </section>
 
   <script src="js/normativa.js"></script>
@@ -140,11 +134,10 @@
   <script src="js/ejemplos.js"></script>
   <script src="js/validaciones.js"></script>
   <script src="js/formulario.js"></script>
+  <script src="js/documentos/comun.js"></script>
+  <script src="js/documentos/factura.js"></script>
+  <script src="js/documentos/packing.js"></script>
+  <script src="js/documentos/resumen.js"></script>
   <script src="js/pantalla.js"></script>
-  <script>
-    // Fecha de generación en el pie de la hoja de prueba.
-    document.getElementById("fecha-generacion").textContent =
-      new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
-  </script>
 </body>
 </html>

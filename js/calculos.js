@@ -377,6 +377,27 @@ var Calculos = (function () {
       return { terminos: terminos, total: escalar(total, 2) };
     }
 
+    // --- Desglose del precio en la factura comercial (F6, PLAN §5: «flete: desglose C/D»; «prima: desglose CIF/CIP»).
+    // Solo en los grupos C y D: el precio pactado (Vc) incluye el flete (y en CIF/CIP la prima; en el grupo D,
+    // además, los gastos en destino de 8.3.2). La primera línea es el resto del precio: Vc − lo incluido.
+    function desgloseFactura() {
+      if (!regla || (regla.grupo !== "C" && regla.grupo !== "D")) { return { lineas: [], total: totales.valorFactura }; }
+      var incluidos = [{ id: "flete", es: "Flete internacional", en: "Ocean freight", valor: flete }];
+      if (regla.seguroObligatorio) {
+        incluidos.push({ id: "seguro", es: "Seguro (prima)", en: "Insurance (premium)", valor: seguro.prima });
+      }
+      if (regla.grupo === "D") {
+        var gd = aFijo(val.gastosDestino832, 2);
+        if (!esCero(gd)) { incluidos.push({ id: "gastosDestino", es: "Gastos en destino", en: "Destination charges", valor: gd }); }
+      }
+      var resto = escalar(restar(totales.valorFactura, sumar(incluidos.map(function (x) { return x.valor; }))), 2);
+      var base = regla.codigo === "CFR" || regla.codigo === "CIF" ? { id: "base", es: "Valor FOB", en: "FOB value" } :
+        (regla.codigo === "CPT" || regla.codigo === "CIP" ? { id: "base", es: "Valor FCA", en: "FCA value" } :
+          { id: "base", es: "Valor de la mercancía", en: "Value of goods" });
+      base.valor = resto;
+      return { lineas: [base].concat(incluidos), total: totales.valorFactura };
+    }
+
     var resultado = {
       version: 1,
       tipo: tipo,
@@ -387,6 +408,7 @@ var Calculos = (function () {
       vgm: vgm,
       fleteBl: fleteBl,
       seguro: seguro,
+      factura: { desglose: desgloseFactura() },
       avisos: avisos,
       repartosIguales: {}    // concepto → true si se repartió en partes iguales por base cero (C01)
     };

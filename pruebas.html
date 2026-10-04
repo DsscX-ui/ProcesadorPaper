@@ -30,6 +30,10 @@
   <script src="js/diccionario.js"></script>
   <script src="js/validaciones.js"></script>
   <script src="js/formulario.js"></script>
+  <script src="js/documentos/comun.js"></script>
+  <script src="js/documentos/factura.js"></script>
+  <script src="js/documentos/packing.js"></script>
+  <script src="js/documentos/resumen.js"></script>
   <script>
   /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
      Los valores esperados son textos decimales con todos sus decimales ("18123.870"). */
@@ -1041,6 +1045,125 @@
       prueba("En el formulario: 5,001 caracteres → E20 y la operación conserva los equipos válidos anteriores", "E20 · " + antes,
         V.ids(est.rv).join(",") + " · " + JSON.stringify(f.operacion().especificos.items[2].equipos));
       prueba("…y la operación sigue siendo válida para Abrir", "", Modelo.revisarArchivo(f.operacion()));
+    })();
+
+    // ============================================================ F6: documentos
+    // Genera los documentos de un caso (fecha fija) y devuelve { gen, porId: id → cifras que MUESTRA cada hoja }.
+    function documentosDe(o) {
+      var r = Calculos.calcular(o), rv = V.validar(o, r);
+      var gen = Documentos.generar(o, r, rv, new Date(2026, 9, 3, 10, 0));
+      var porId = {};
+      gen.docs.forEach(function (d) { porId[d.def.id] = { cifras: Documentos.cifras(d.hoja), hoja: d.hoja }; });
+      return { r: r, rv: rv, gen: gen, porId: porId };
+    }
+
+    grupo("F6-1. Cuadre entre documentos: lo que muestra cada plantilla = resultado de calculos.js",
+      "Se leen las cifras marcadas (data-cuadre) en las hojas generadas de la factura (FC), la lista de empaque (PL) y la hoja resumen.");
+    [["caso1", "390", "1,960.00", "2,289.00", "25.440", "20,040.00", "EJMU2610147", "SD-000123"],
+      ["caso2", "140", "1,470.00", "1,588.00", "13.200", "39,550.00", "EJMU2600025", "SD-000124"]].forEach(function (c) {
+      var x = documentosDe(ejemplo(c[0]));
+      var fc = x.porId.factura.cifras, pl = x.porId.packing.cifras;
+      prueba(c[0] + ": se generan FC, PL y HR (sin errores)", "factura,packing,resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
+      prueba(c[0] + ": bultos FC = PL = §9", c[1] + " · " + c[1], fc.bultos + " · " + pl.bultos);
+      prueba(c[0] + ": peso neto FC = PL", c[2] + " · " + c[2], fc.pesoNeto + " · " + pl.pesoNeto);
+      prueba(c[0] + ": peso bruto FC = PL", c[3] + " · " + c[3], fc.pesoBruto + " · " + pl.pesoBruto);
+      prueba(c[0] + ": volumen PL (m³)", c[4], pl.volumen);
+      prueba(c[0] + ": valor total de la factura (USD)", c[5], fc.valorFactura);
+      prueba(c[0] + ": contenedor y precinto PL", c[6] + " · " + c[7], pl.contenedor + " · " + pl.precinto);
+      prueba(c[0] + ": las cifras coinciden con el resultado formateado", "true", String(
+        fc.bultos === String(x.r.totales.bultos) && pl.pesoBruto === F.kg(x.r.totales.pesoBruto) &&
+        pl.volumen === F.m3(x.r.totales.volumen) && fc.valorFactura === F.comercial(x.r.totales.valorFactura)));
+      var cq = Documentos.cuadre(x.gen.ctx);
+      prueba(c[0] + ": cuadro de cuadre de la hoja resumen: todo ✔", "true · 0", String(cq.todoCuadra) + " · " +
+        x.porId.resumen.hoja.querySelectorAll(".doc-tabla-cuadre .doc-mal").length);
+      prueba(c[0] + ": numeración correlativa de bultos en la PL", c[0] === "caso1" ? "1–200,201–360,361–390" : "1–80,81–140",
+        Array.prototype.map.call(x.porId.packing.hoja.querySelectorAll(".doc-packing tbody tr"), function (tr) { return tr.children[4].textContent; }).join(","));
+    });
+    (function () {
+      var x = documentosDe(ejemplo("caso1"));
+      var pie = Array.prototype.map.call(x.porId.factura.hoja.querySelectorAll(".doc-items tfoot tr"), function (tr) { return tr.lastChild.textContent; });
+      prueba("Caso 1 (CIF): desglose FOB + flete + seguro = total, en la factura", "18,123.87 · 1,850.00 · 66.13 · 20,040.00", pie.join(" · "));
+      prueba("…el FOB del desglose es el FOB de IT C 5.9 de calculos.js", "true", String(Calculos.igual(x.r.factura.desglose.lineas[0].valor, x.r.fob.total)));
+      var y = documentosDe(ejemplo("caso2"));
+      prueba("Caso 2 (FOB): sin desglose (solo el total)", "1", String(y.porId.factura.hoja.querySelectorAll(".doc-items tfoot tr").length));
+      var o = ejemplo("caso1"); o.generales.comercial.incoterm = "CFR"; o.especificos.seguro.hay = false; o.especificos.seguro.pctTablaSunat = 1;
+      o.generales.comercial.lugarConvenido = "Callao";
+      var z = documentosDe(o);
+      prueba("CFR: desglose FOB + flete (sin seguro)", "base:18,190.00 · flete:1,850.00",
+        z.r.factura.desglose.lineas.map(function (l) { return l.id + ":" + F.comercial(l.valor); }).join(" · "));
+      prueba("Marcas en cada hoja: aviso didáctico, marca de agua y pie con referencia y fecha", "3 · 3 · 3",
+        [".doc-aviso", ".doc-marca-agua", ".doc-pie"].map(function (sel) {
+          return x.gen.docs.filter(function (d) { return d.hoja.querySelector(sel) && (sel !== ".doc-pie" || /OP-2026-001.*03-10-2026 10:00/.test(d.hoja.querySelector(sel).textContent)); }).length;
+        }).join(" · "));
+      prueba("Etiquetas bilingües en los rótulos de las tablas (es / en)", "true", String(x.gen.docs.every(function (d) {
+        return Array.prototype.every.call(d.hoja.querySelectorAll(".doc-items th"), function (th) { return / \/ /.test(th.textContent); });
+      })));
+      prueba("Subpartida en la factura: SA de 6 dígitos", "8414.51,8414.51,8504.40",
+        Array.prototype.map.call(x.porId.factura.hoja.querySelectorAll(".doc-items tbody tr"), function (tr) { return tr.children[2].textContent; }).join(","));
+      prueba("Marca POR VERIFICAR del dato visible en el documento (contenedor del caso 1 no la tiene; tasa de percepción sí, en la HR)", "true",
+        String(!!x.porId.resumen.hoja.querySelector(".marca-pv")));
+      var xs = ejemplo("caso1"); xs.especificos.items[0].nombre = "<img src=x onerror=alert(1)>"; xs.meta.referencia = "<b>X</b>";
+      var dx = documentosDe(xs);
+      prueba("Datos del usuario como texto (nombre con <img>): 0 imágenes en los documentos", "0 · true",
+        dx.gen.docs.reduce(function (n, d) { return n + d.hoja.querySelectorAll("img,b").length; }, 0) + " · " +
+        String(dx.porId.factura.hoja.textContent.indexOf("<img src=x onerror=alert(1)>") !== -1));
+      prueba("Cada hoja es un <article class=hoja-doc> con data-doc", "factura,packing,resumen", x.gen.docs.map(function (d) { return d.hoja.getAttribute("data-doc"); }).join(","));
+      prueba("Precio unitario: 2 decimales mínimo; más si el dato los trae, sin redondear", "4.10 · 0.000001 · 1.1234",
+        [Documentos.precio(fx("4.100000")), Documentos.precio(fx("0.000001")), Documentos.precio(fx("1.123400"))].join(" · "));
+    })();
+
+    grupo("F6-2. Importe en letras (factura comercial)", "Lee los centavos exactos del monto ya calculado; no redondea.");
+    [["0.05", "SON: CERO Y 05/100 DÓLARES AMERICANOS"], ["1.00", "SON: UNO Y 00/100 DÓLARES AMERICANOS"],
+      ["21.00", "SON: VEINTIUNO Y 00/100 DÓLARES AMERICANOS"], ["100.00", "SON: CIEN Y 00/100 DÓLARES AMERICANOS"],
+      ["1000.00", "SON: MIL Y 00/100 DÓLARES AMERICANOS"], ["20040.00", "SON: VEINTE MIL CUARENTA Y 00/100 DÓLARES AMERICANOS"],
+      ["1000000.50", "SON: UN MILLÓN Y 50/100 DÓLARES AMERICANOS"], ["39550.00", "SON: TREINTA Y NUEVE MIL QUINIENTOS CINCUENTA Y 00/100 DÓLARES AMERICANOS"],
+      ["21000.00", "SON: VEINTIÚN MIL Y 00/100 DÓLARES AMERICANOS"], ["101.99", "SON: CIENTO UNO Y 99/100 DÓLARES AMERICANOS"],
+      ["31531.31", "SON: TREINTA Y UN MIL QUINIENTOS TREINTA Y UNO Y 31/100 DÓLARES AMERICANOS"],
+      ["2000000.00", "SON: DOS MILLONES Y 00/100 DÓLARES AMERICANOS"], ["1000000000.00", "SON: MIL MILLONES Y 00/100 DÓLARES AMERICANOS"],
+      ["999999999.99", "SON: NOVECIENTOS NOVENTA Y NUEVE MILLONES NOVECIENTOS NOVENTA Y NUEVE MIL NOVECIENTOS NOVENTA Y NUEVE Y 99/100 DÓLARES AMERICANOS"]
+    ].forEach(function (c) { prueba("USD " + F.comercial(fx(c[0])), c[1], Documentos.enLetras(fx(c[0]), "USD")); });
+    prueba("Caso 1: el importe en letras de la factura es el de su total", "SON: VEINTE MIL CUARENTA Y 00/100 DÓLARES AMERICANOS",
+      documentosDe(ejemplo("caso1")).porId.factura.hoja.querySelector(".doc-letras").textContent);
+
+    grupo("F6-3. Con errores no se generan documentos; con advertencias sí", "Validaciones.hayErrores(revisión) bloquea; la hoja resumen lista las advertencias.");
+    (function () {
+      var o = ejemplo("caso1"); o.especificos.items[0].pesoBrutoBulto = 4;
+      var x = documentosDe(o);
+      prueba("Peso bruto < neto (E05): bloqueado, 0 documentos", "true · 0 · 1", String(x.gen.bloqueado) + " · " + x.gen.docs.length + " · " + x.gen.errores);
+      var p = Documentos.generar(ejemplo("caso1"), null, V.revisionDetenida([{ ruta: "especificos.items.0.cantidad", texto: "No es un número." }]));
+      prueba("Cálculo en pausa (E20): bloqueado", "true · true · 0", String(p.bloqueado) + " · " + String(p.detenida) + " · " + p.docs.length);
+      prueba("Sin revisión: bloqueado", "true", String(Documentos.generar(ejemplo("caso1"), null, null).bloqueado));
+      var y = documentosDe(ejemplo("caso1"));
+      prueba("Caso 1 con 6 advertencias: se genera y la HR las lista (A01, A08 ×3, A19, A20)", "A01,A08,A08,A08,A19,A20",
+        Array.prototype.map.call(y.porId.resumen.hoja.querySelectorAll(".doc-advertencias li strong"), function (s) { return s.textContent.trim(); }).join(","));
+      prueba("Recuento A19 en la HR = el de la revisión", "true", String(y.porId.resumen.hoja.querySelector(".doc-a19").textContent.indexOf(" " + y.rv.marcas.pv.length + " dato(s)") !== -1));
+    })();
+
+    grupo("F6-4. Matriz Incoterm y tabla de trazabilidad (generada desde diccionario.js)", "La trazabilidad no se escribe a mano: sale de DICCIONARIO.cobertura y de los campos («docs», casilla, marca).");
+    (function () {
+      var x = documentosDe(ejemplo("caso1"));
+      var hr = x.porId.resumen.hoja;
+      prueba("Matriz: 11 reglas y la elegida (CIF) resaltada", "11 · ▶ CIF", hr.querySelectorAll(".doc-tabla-matriz tbody tr").length + " · " +
+        hr.querySelector(".doc-tabla-matriz tr.doc-elegido td").textContent);
+      var filas = Documentos.trazabilidad(ejemplo("caso1"));
+      prueba("Filas de la tabla de la HR = filas generadas desde el diccionario", String(filas.length), String(hr.querySelectorAll(".doc-tabla-traza tbody tr").length));
+      var esperadas = DICCIONARIO.cobertura.filter(function (q) {
+        return q.rutas.length && q.seccion !== "—" && DICCIONARIO.campos.some(function (c) {
+          return (!c.solo || c.solo === "importacion") && q.rutas.some(function (pt) { return pt.slice(-2) === ".*" ? c.ruta.indexOf(pt.slice(0, -1)) === 0 : pt === c.ruta; });
+        });
+      }).length;
+      prueba("Importación: una fila por requisito de la matriz de cobertura con campos aplicables", String(esperadas), String(filas.length));
+      var vend = filas.filter(function (f) { return /^Vendedor/.test(f.requisito); })[0];
+      prueba("Vendedor → FC PL BL DAM SEG CO HR (unión de «docs» de sus campos)", "FC,PL,BL,DAM,SEG,CO,HR",
+        ["FC", "PL", "BL", "DAM", "SEG", "CO", "HR"].filter(function (d) { return vend.docs[d]; }).join(","));
+      prueba("…con sus casillas de importación (B 3.x) y no las de exportación (S 1.x)", "true · false", String(/B 3\.1/.test(vend.casilla)) + " · " + String(/S 1\./.test(vend.casilla)));
+      var exp = Documentos.trazabilidad(ejemplo("caso2"));
+      prueba("Exportación: sin filas solo de importación (Formato B, tributos)", "false", String(exp.some(function (f) { return f.seccion === "A6" || f.seccion === "B8"; })));
+      var o = ejemplo("caso1"); var c0 = DICCIONARIO.buscar("especificos.contenedor.precinto"); var antes = c0.docs;
+      c0.docs = antes + " CO";
+      var cambiada = Documentos.trazabilidad(o).filter(function (f) { return /precinto/.test(f.requisito); })[0].docs.CO === true;
+      c0.docs = antes;
+      prueba("Si cambia el diccionario, cambia la tabla (precinto + CO)", "true", String(cambiada));
     })();
 
     // ============================================================ Pintar

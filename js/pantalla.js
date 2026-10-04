@@ -1,7 +1,7 @@
 /* Pantalla: conecta la interfaz. Botones de ejemplo, Nueva, Guardar y Abrir; formulario editable (F5,
    js/formulario.js, generado desde el diccionario); panel "Revisión de la operación" (Validaciones, F4)
    y panel didáctico "Resultados del cálculo" (F3); barra de pasos, respaldo automático en el navegador
-   y aviso de cambios sin guardar.
+   y aviso de cambios sin guardar; sección «Documentos» (F6+): pestañas, hoja A4 escalada e impresión.
    No calcula ni valida: tras cada cambio del formulario (con una pequeña espera) llama a Calculos.calcular
    y Validaciones.validar y les da formato. Si un dato no se puede calcular, la revisión queda «en pausa»
    (E20, decisión D14) sin bloquear la edición.
@@ -475,14 +475,174 @@
     $("resumen").textContent = textoResumen(form.operacion());
   }
 
-  function pintarDocumentos(rv) {
-    var p = $("estado-documentos");
-    if (!form) { p.textContent = "Carga una operación para saber si sus documentos se podrán generar."; p.className = ""; return; }
-    var bloqueados = Validaciones.hayErrores(rv);
-    p.textContent = bloqueados ?
-      "Con los datos actuales, los documentos quedarían BLOQUEADOS: hay " + rv.errores.length + " error(es) en «Revisión»." :
-      "Con los datos actuales, los documentos se podrán generar (no hay errores).";
-    p.className = bloqueados ? "error" : "ok";
+  // ---------------------------------------------------------------- Documentos (F6+)
+  // Genera los documentos con Documentos.generar (las plantillas solo leen) y los muestra en pestañas,
+  // cada uno en una hoja A4 escalada al ancho disponible. Con errores no se generan (PLAN §7).
+  var docActivo = "factura";     // pestaña elegida (se conserva entre recálculos)
+  var tamanoReal = false;        // false = la hoja se ajusta al ancho; true = tamaño real con desplazamiento
+  var ANCHO_A4_PX = 210 * 96 / 25.4;
+
+  // Texto seguro para la propiedad CSS content (el pie impreso lleva la referencia, que es un dato del usuario).
+  function textoCss(t) {
+    return '"' + String(t).replace(/[\\"]/g, "\\$&").replace(/[\u0000-\u001f\u007f]/g, " ") + '"';
+  }
+
+  function estiloPie(texto) {
+    var st = $("estilo-pie-impresion");
+    if (!st) {
+      st = document.createElement("style");
+      st.id = "estilo-pie-impresion";
+      document.head.appendChild(st);
+    }
+    st.textContent = "@page { @bottom-left { content: " + textoCss(texto) + "; font-family: system-ui, Arial, sans-serif; font-size: 7pt; color: #555; } }";
+  }
+
+  function ajustarEscala() {
+    Array.prototype.forEach.call(document.querySelectorAll("#vista-documentos .doc-panel.activa"), function (panel) {
+      var visor = panel.querySelector(".doc-visor"), hoja = panel.querySelector(".hoja-doc");
+      if (!visor || !hoja) { return; }
+      visor.classList.toggle("real", tamanoReal);
+      var disponible = visor.clientWidth - 16;
+      var f = tamanoReal ? 1 : Math.min(1, disponible / ANCHO_A4_PX);
+      hoja.style.zoom = f < 1 ? f.toFixed(3) : "";
+    });
+    var b = $("btn-doc-tamano");
+    if (b) {
+      b.textContent = tamanoReal ? "Ajustar al ancho" : "Ver en tamaño real";
+      b.setAttribute("aria-pressed", tamanoReal ? "true" : "false");
+    }
+  }
+
+  function activarDocumento(id, enfocar) {
+    docActivo = id;
+    Array.prototype.forEach.call(document.querySelectorAll("#vista-documentos [role=tab]"), function (t) {
+      var si = t.getAttribute("data-doc") === id;
+      t.setAttribute("aria-selected", si ? "true" : "false");
+      t.tabIndex = si ? 0 : -1;
+      if (si && enfocar) { t.focus(); }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#vista-documentos .doc-panel"), function (pn) {
+      pn.classList.toggle("activa", pn.getAttribute("data-doc") === id);
+    });
+    ajustarEscala();
+  }
+
+  // Marca qué hojas se imprimen: un documento o todos. Lo deshace «afterprint».
+  function prepararImpresion(soloId) {
+    var paneles = Array.prototype.slice.call(document.querySelectorAll("#vista-documentos .doc-panel"));
+    var primera = true;
+    paneles.forEach(function (pn) {
+      var va = !soloId || pn.getAttribute("data-doc") === soloId;
+      pn.classList.toggle("a-imprimir", va);
+      pn.classList.toggle("primera", va && primera);
+      if (va) { primera = false; }
+    });
+  }
+
+  function imprimir(soloId) {
+    if (Documentos.bloqueados(ultimaRevision)) { mensaje("No hay documentos que imprimir: corrige primero los errores de «Revisión».", "error"); return; }
+    prepararImpresion(soloId);
+    impresionPreparada = true;
+    window.print();
+  }
+  var impresionPreparada = false;
+
+  function construirDocumentos(gen) {
+    var frag = document.createDocumentFragment();
+    if (!gen.docs.some(function (d) { return d.def.id === docActivo; })) { docActivo = gen.docs[0].def.id; }
+    var controles = el("div", "doc-controles");
+    var tabs = el("div", "doc-pestanas");
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", "Documentos generados");
+    gen.docs.forEach(function (d) {
+      var t = el("button", "doc-pestana");
+      t.type = "button";
+      t.id = "pestana-" + d.def.id;
+      t.setAttribute("role", "tab");
+      t.setAttribute("data-doc", d.def.id);
+      t.setAttribute("aria-controls", "panel-" + d.def.id);
+      t.appendChild(el("span", "doc-codigo", d.def.codigo));
+      t.appendChild(document.createTextNode(" " + d.def.es));
+      t.addEventListener("click", function () { activarDocumento(d.def.id); });
+      tabs.appendChild(t);
+    });
+    tabs.addEventListener("keydown", function (ev) {
+      var lista = Array.prototype.slice.call(tabs.querySelectorAll("[role=tab]"));
+      var i = lista.indexOf(document.activeElement);
+      if (i === -1) { return; }
+      var j = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: lista.length - 1 }[ev.key];
+      if (j === undefined) { return; }
+      ev.preventDefault();
+      j = (j + lista.length) % lista.length;
+      activarDocumento(lista[j].getAttribute("data-doc"), true);
+    });
+    controles.appendChild(tabs);
+    var acciones = el("div", "botones doc-acciones");
+    var b1 = el("button", "btn-imprimir", "🖨 Imprimir este documento");
+    b1.type = "button";
+    b1.addEventListener("click", function () { imprimir(docActivo); });
+    var b2 = el("button", "btn-imprimir", "🖨 Imprimir todos (" + gen.docs.length + ")");
+    b2.type = "button";
+    b2.addEventListener("click", function () { imprimir(null); });
+    var b3 = el("button", null, "Ver en tamaño real");
+    b3.type = "button";
+    b3.id = "btn-doc-tamano";
+    b3.addEventListener("click", function () { tamanoReal = !tamanoReal; ajustarEscala(); });
+    acciones.appendChild(b1);
+    acciones.appendChild(b2);
+    acciones.appendChild(b3);
+    controles.appendChild(acciones);
+    frag.appendChild(controles);
+    gen.docs.forEach(function (d) {
+      var pn = el("div", "doc-panel");
+      pn.id = "panel-" + d.def.id;
+      pn.setAttribute("role", "tabpanel");
+      pn.setAttribute("data-doc", d.def.id);
+      pn.setAttribute("aria-labelledby", "pestana-" + d.def.id);
+      pn.appendChild(el("p", "nota doc-ayuda-vista", d.def.nota + " Vista previa en hoja A4 (210 × 297 mm)."));
+      var visor = el("div", "doc-visor");
+      visor.tabIndex = 0;
+      visor.setAttribute("role", "region");
+      visor.setAttribute("aria-label", "Hoja A4: " + d.def.es);
+      visor.appendChild(d.hoja);
+      pn.appendChild(visor);
+      frag.appendChild(pn);
+    });
+    return frag;
+  }
+
+  function pintarDocumentos(est) {
+    var p = $("estado-documentos"), vista = $("vista-documentos");
+    vista.textContent = "";
+    if (!form || !est) { p.textContent = "Carga una operación para generar sus documentos."; p.className = ""; return; }
+    var gen;
+    try {
+      gen = Documentos.generar(form.operacion(), est.r, est.rv);
+    } catch (e) {
+      p.textContent = "No se pudieron generar los documentos (" + (e && e.message ? e.message : String(e)) + "). Los datos no cambiaron.";
+      p.className = "error";
+      return;
+    }
+    if (gen.bloqueado) {
+      p.textContent = gen.detenida ?
+        "Documentos NO generados: el cálculo está en pausa (E20). Corrige el dato marcado y se generarán solos." :
+        "Documentos NO generados: hay " + gen.errores + " error(es) en «Revisión». Los errores bloquean los documentos para que no salgan cifras que no cuadran.";
+      p.className = "error";
+      var caja = el("div", "doc-bloqueo");
+      caja.appendChild(el("p", null, "¿Por qué? Cada error de la revisión indica un dato que falta o que no cuadra (por ejemplo, un peso bruto menor que el neto). " +
+        "Un documento con ese dato sería incorrecto. Las advertencias, en cambio, no bloquean."));
+      var a = el("a", "btn-ir", "Ir a «Revisión de la operación» y corregir");
+      a.href = "#paso-revision";
+      caja.appendChild(a);
+      vista.appendChild(caja);
+      return;
+    }
+    var nA = est.rv.advertencias.length;
+    p.textContent = "✔ " + gen.docs.length + " documentos generados" + (nA ? " (con " + nA + " advertencia(s), listadas en la hoja resumen)." : ".");
+    p.className = "ok";
+    estiloPie(Documentos.textoPie(gen.ctx));
+    vista.appendChild(construirDocumentos(gen));
+    activarDocumento(docActivo);
   }
 
   // Aplica al documento lo ya preparado.
@@ -500,7 +660,7 @@
     $("barra-contador").textContent = est.rv.detenida ? "✘ en pausa" : (e ? "✘ " + e + " error" + (e === 1 ? "" : "es") : "✔ 0 errores") + " · ⚠ " + a;
     $("barra-contador").className = "barra-contador " + (conErrores ? "con-errores" : "sin-errores");
     pintarEstadoGuardado();
-    pintarDocumentos(est.rv);
+    pintarDocumentos(est);
   }
 
   function recalcular() {
@@ -737,6 +897,12 @@
     $("revision-contador").textContent = "Carga una operación para revisarla.";
     pintarDocumentos(null);
     ofrecerRespaldo();
+    window.addEventListener("resize", ajustarEscala);
+    // Ctrl+P sin pasar por los botones: se imprimen todos los documentos.
+    window.addEventListener("beforeprint", function () {
+      if (!impresionPreparada) { prepararImpresion(null); }
+    });
+    window.addEventListener("afterprint", function () { impresionPreparada = false; });
   }
 
   if (document.readyState === "loading") {

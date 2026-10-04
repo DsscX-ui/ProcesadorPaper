@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable) y **F5.1** (correcciones de la auditoría de F5; `pruebas.html`: 451 de 451 pruebas correctas). **Fase actual: F6** (factura, lista de empaque y hoja resumen). Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) y **F6** (factura comercial, lista de empaque y hoja resumen; `pruebas.html`: 509 de 509 pruebas correctas). **Fase actual: F7** (instrucciones de embarque, borrador de B/L y VGM). Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -95,8 +95,12 @@ ProcesadorPaper/
     ├── calculos.js       ← ÚNICO lugar donde se calcula y redondea
     ├── validaciones.js   ← errores y advertencias (§7)
     ├── formulario.js     ← formulario editable, GENERADO desde diccionario.js (F5); no calcula
-    ├── pantalla.js       ← conecta la interfaz (botones, formulario, revisión, resultados, respaldo); no calcula (D3)
-    └── documentos/       ← una plantilla por documento; solo leen, no calculan
+    ├── pantalla.js       ← conecta la interfaz (botones, formulario, revisión, resultados, documentos, respaldo); no calcula (D3)
+    └── documentos/       ← una plantilla por documento; solo leen, no calculan (F6+)
+        ├── comun.js      ← registro, marco de la hoja A4 (marca de agua, aviso, pie), formato e importe en letras
+        ├── factura.js    ← factura comercial (FC)
+        ├── packing.js    ← lista de empaque (PL)
+        └── resumen.js    ← hoja resumen, de cuadre y de trazabilidad (HR); va al final porque lee a las demás
 ```
 
 - **`herramienta-comex/`** es solo referencia: no se copia ni se reutiliza su código.
@@ -875,7 +879,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | F3 ✔ | `calculos.js` + `incoterms.js` + `pruebas.html`, con controles negativos (RUC, ISO 6346, IMEI sintético); panel "Resultados del cálculo" en `index.html` | Todo en verde (175/175); las cifras coinciden con §9 |
 | F4 ✔ | Validaciones + panel de errores y advertencias | Cada caso muestra solo sus advertencias esperadas; si alteras un dato a propósito, sale el error esperado |
 | F5 ✔ | Formulario completo: ítems variables, secciones condicionales, ayuda por campo y marcas H\*/PV visibles | Cambias una cantidad y los totales se actualizan; ves las etiquetas H\* y PV |
-| F6 | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |
+| F6 ✔ | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |
 | F7 | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
 | **F8a** | **DAM Formato A** (ingreso y salida, con A1) | Series, casillas y valores = §9.1 y §9.2. **Pausa: revisión de Aarón antes de seguir.** |
 | F8b | DAM Formato B (+B1), solo con tu aprobación de F8a | FOB unitarios y sección 8 = §9.1 |
@@ -963,6 +967,16 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - **Equipos (D9):** editor de texto, una línea por equipo «serie;IMEI;IMEI» (también con tabulador, para pegar desde una hoja de cálculo); solo aparece con 8517.13.00.00 u 8517.14.00.00 (o si el ítem ya tiene equipos).
 - **Respaldo automático** (§2): `localStorage` del navegador, solo cuando hay cambios sin guardar y si la casilla está activa (por defecto, sí). Al abrir la página se **ofrece** «Recuperar la última operación» o «Descartar el respaldo»; nunca se carga solo. Un respaldo dañado o que no pasa la revisión de **Abrir** se descarta. Antes de Nueva, de cargar un ejemplo, de Abrir o de cerrar la pestaña con cambios sin guardar, se pide confirmación.
 - **Página:** barra de pasos fija (1 Datos · 2 Revisión con contador · 3 Resultados · 4 Documentos) con el estado «cambios sin guardar»; índice de secciones lateral en escritorio y en fichas en el celular, con los errores de cada sección. La hoja de prueba de impresión de F1 solo se imprime (no ocupa la pantalla) hasta que F6 traiga los documentos.
+
+**Documentos (F6)** [S]
+
+- **Plantillas** (`js/documentos/`): solo leen la operación, el resultado de `calculos.js` y la revisión. No calculan ni redondean: las cifras se muestran con `Calculos.formato` (§6.1). El **desglose del precio** de la factura (C/D: flete; CIF/CIP: FOB + flete + seguro; grupo D: además los gastos en destino de 8.3.2) lo calcula `calculos.js` (`resultado.factura.desglose`); su primera línea es el resto del precio (Vc − lo incluido), que en CIF importación coincide con el FOB de IT C 5.9. El **importe en letras** («SON: … Y 00/100 DÓLARES AMERICANOS») es formato: lee los centavos exactos del total ya calculado.
+- **Cifras de cuadre:** cada plantilla marca con `data-cuadre` las cifras que deben coincidir (bultos, pesos, volumen, valor, contenedor, precinto, VGM). La hoja resumen lee lo que **muestra** cada documento generado y lo compara con el cálculo (✔ / ✘); `pruebas.html` hace lo mismo.
+- **Bloqueo:** con errores (o con el cálculo en pausa, E20) no se genera ningún documento; se explica por qué y se enlaza a «Revisión». Las advertencias no bloquean y la hoja resumen las lista.
+- **Factura:** subpartida del SA a 6 dígitos [H\*] (§5); los 10 dígitos nacionales van en la DAM. Precio unitario con 2 decimales como mínimo y todos los que traiga el dato (hasta 6), sin redondear.
+- **Lista de empaque:** pesos por bulto «neto / bruto» y m³ por bulto bajo las medidas, para que la tabla quepa en A4 vertical.
+- **Hoja resumen:** cifras de la DAM con 3 decimales (IT IV.3) y comerciales con 2; no se vuelven a redondear. La **tabla de trazabilidad** se genera desde `DICCIONARIO.cobertura` (anexo A): una fila por requisito con campos aplicables a la operación; documentos = unión de `docs` de sus campos; DAM = sus casillas para el tipo de operación; marca = marcas de los campos.
+- **Pantalla e impresión:** pestañas por documento (flechas, Inicio y Fin), hoja A4 a escala del ancho disponible (o «tamaño real» con desplazamiento dentro del visor), «Imprimir este documento» e «Imprimir todos» (Ctrl+P imprime todos). Al imprimir: `@page` A4 con márgenes, el aviso didáctico arriba de cada página, la referencia y la fecha de generación abajo y «Página X de Y» (en «Imprimir todos», X de Y cuenta todas las hojas del archivo); encabezados de tabla repetidos y filas sin cortar; cada documento empieza en una página nueva. La hoja de prueba de F1 se retiró.
 
 **Correcciones de la auditoría de F5 (Codex), aplicadas en F5.1**
 

@@ -62,18 +62,6 @@ section {
 .fases { margin: 8px 0 0; padding-left: 1.4em; color: var(--suave); }
 .fases .hecha { color: var(--texto); font-weight: 600; }
 
-/* Hoja A4 de prueba (F1): solo se imprime, hasta que existan los documentos reales (F6). */
-.hoja { min-height: 60vh; position: relative; }
-@media screen { .hoja-prueba { display: none; } }
-.hoja-encabezado {
-  margin: 0 0 12px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--borde);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-.hoja-pie { font-size: 0.8rem; color: var(--suave); margin-top: 24px; }
 
 /* F2: operación cargada y vista de datos. */
 .ayuda-seccion { color: var(--suave); margin-top: 0; }
@@ -138,14 +126,19 @@ table.datos tr.detalle p { margin: 2px 0; }
 /* Marca de agua: oculta en pantalla, fija en cada hoja impresa. */
 .marca-agua { display: none; }
 
-@page { size: A4; margin: 15mm; }
+/* Página impresa A4 (F6): aviso arriba; referencia y fecha (estilo que añade pantalla.js) y «Página X de Y» abajo. */
+@page {
+  size: A4;
+  margin: 16mm 14mm 16mm 14mm;
+  @top-center { content: "DOCUMENTO DIDÁCTICO – NO VÁLIDO PARA TRÁMITES REALES"; font-family: system-ui, Arial, sans-serif; font-size: 7.5pt; font-weight: 700; color: #b42318; }
+  @bottom-right { content: "Página " counter(page) " de " counter(pages); font-family: system-ui, Arial, sans-serif; font-size: 7pt; color: #555; }
+}
 
 @media print {
   body { background: #fff; padding: 0; }
   body > * { max-width: none; }
-  /* Solo se imprimen las hojas de documentos. */
-  .cabecera, .aviso, .marcas, .estado, .operacion, .revision, .documentos, .barra-pasos { display: none; }
-  section.hoja { border: none; padding: 0; margin: 0; min-height: auto; break-after: page; }
+  /* Solo se imprimen los documentos: nunca el formulario, los paneles ni los botones. */
+  .cabecera, .aviso, .marcas, .estado, .operacion, .revision, .barra-pasos { display: none; }
   .marca-agua {
     display: block;
     position: fixed;
@@ -363,4 +356,106 @@ textarea.cf-control { resize: vertical; font-family: inherit; }
   .grupos-acciones { justify-content: flex-start; }
 }
 /* Impresión: la barra de pasos y los paneles de trabajo no se imprimen (va después de sus reglas de pantalla). */
-@media print { .barra-pasos, .documentos, .formulario { display: none !important; } }
+@media print { .barra-pasos, .formulario { display: none !important; } }
+
+/* ------------------------------------------------------------------ F6: documentos (vista A4 e impresión) */
+.doc-controles { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 8px 0; }
+.doc-pestanas { display: flex; flex-wrap: wrap; gap: 4px; }
+.doc-pestana { font-size: 0.9rem; padding: 4px 10px; border-radius: 6px 6px 0 0; border-bottom-width: 3px; }
+.doc-pestana[aria-selected="true"] { background: #fff; border-color: #1d4ed8; font-weight: 700; }
+.doc-codigo { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; background: #e0ecff; border-radius: 4px; padding: 0 4px; }
+.doc-acciones { margin: 0; }
+.btn-imprimir { background: #e0ecff; border-color: #93c5fd; font-weight: 600; }
+.doc-bloqueo { background: #fdecea; border: 1px solid #f5b5ae; border-radius: 6px; padding: 8px 12px; }
+.doc-bloqueo p { margin: 0 0 6px; }
+a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; border-radius: 6px; color: var(--texto); text-decoration: none; }
+.doc-ayuda-vista { margin: 4px 0; }
+.doc-visor { background: #d9dde3; border-radius: 6px; padding: 8px; overflow: hidden; }
+.doc-visor.real { overflow-x: auto; }
+@media screen { .doc-panel:not(.activa) { display: none; } }
+
+/* Hoja A4: medidas reales en pantalla (se escala con zoom en pantallas estrechas). */
+.hoja-doc {
+  position: relative; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm 14mm;
+  background: #fff; color: #111; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25); overflow: hidden;
+  font-size: 8.5pt; line-height: 1.35; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+.doc-marca-agua {
+  position: absolute; top: 118mm; left: 50%; transform: translateX(-50%) rotate(-32deg);
+  font-size: 34pt; font-weight: 800; white-space: nowrap; color: rgba(200, 0, 0, 0.09); pointer-events: none; z-index: 2;
+}
+.doc-aviso { margin: 0 0 3mm; padding: 1mm 2mm; border: 1.2pt solid #b42318; color: #b42318; text-align: center; font-weight: 800; font-size: 8pt; letter-spacing: 0.04em; }
+.doc-cab { border-bottom: 1.5pt solid #111; margin-bottom: 3mm; padding-bottom: 1.5mm; }
+.doc-titulo { font-size: 14pt; margin: 0; letter-spacing: 0.02em; }
+.doc-titulo .en { font-size: 10pt; color: #555; }
+.doc-sub { margin: 1mm 0 0; font-size: 9pt; font-weight: 600; }
+.hoja-doc .en { color: #555; font-weight: normal; }
+.hoja-doc .marca { min-width: 0; font-size: 6.5pt; padding: 0 2pt; margin: 0 1pt; vertical-align: 1px; }
+.doc-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin: 2.5mm 0; }
+.doc-caja, .doc-seccion { border: 0.6pt solid #8c959f; padding: 1.8mm 2.5mm; margin: 2.5mm 0; break-inside: avoid; }
+.doc-columnas > .doc-caja { margin: 0; }
+.doc-seccion { break-inside: auto; border: none; padding: 0; }
+.doc-caja h4, .doc-seccion h4 { margin: 0 0 1.2mm; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.03em; break-after: avoid; }
+.doc-seccion h4 { border-bottom: 0.8pt solid #111; padding-bottom: 0.6mm; }
+.doc-caja h4 .en, .doc-seccion h4 .en { text-transform: none; }
+.doc-datos { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 0.5mm 2.5mm; margin: 0; }
+.doc-datos dt { font-weight: 600; color: #333; overflow-wrap: anywhere; }
+.doc-datos dt .en { display: block; font-size: 7pt; }
+.doc-datos dd { margin: 0; overflow-wrap: anywhere; }
+.doc-tabla { width: 100%; border-collapse: collapse; font-size: 7.8pt; margin: 2mm 0; }
+.doc-tabla caption { text-align: left; font-weight: 700; font-size: 8.5pt; padding: 0 0 1mm; text-transform: uppercase; }
+.doc-tabla th, .doc-tabla td { border: 0.5pt solid #9aa0a6; padding: 0.8mm 1.2mm; text-align: left; vertical-align: top; overflow-wrap: break-word; hyphens: manual; }
+.doc-tabla td.doc-nw { white-space: nowrap; }
+.doc-tabla th { background: #eef0f3; font-weight: 700; line-height: 1.2; }
+.doc-tabla th .en { display: block; font-size: 6.5pt; }
+.doc-tabla .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.doc-tabla tr { break-inside: avoid; }
+.doc-tabla tfoot td { font-weight: 700; background: #f6f7f9; }
+.doc-tabla tfoot td:first-child { text-align: right; }
+.doc-tabla tfoot tr.doc-desglose td { font-weight: 400; background: #fff; }
+.doc-desc { min-width: 30mm; }
+.doc-linea { display: block; color: #444; font-size: 7pt; }
+.doc-packing { font-size: 6.9pt; }
+.doc-packing th, .doc-packing td { padding: 0.7mm 0.8mm; }
+.doc-packing th .en { font-size: 6pt; }
+.doc-tabla-traza { font-size: 6.6pt; }
+.doc-tabla-traza td { padding: 0.4mm 0.8mm; }
+.doc-tabla-traza td:first-child { white-space: nowrap; }
+.doc-tabla-traza td:nth-child(n+3):nth-child(-n+9) { text-align: center; }
+.doc-tabla-matriz { font-size: 6.8pt; }
+.doc-elegido td { background: #fff3b0; font-weight: 700; }
+.doc-ok { color: #1a7f37; font-weight: 700; }
+.doc-mal { color: #b42318; font-weight: 700; }
+.doc-letras { margin: 2mm 0; padding: 1.5mm 2.5mm; border: 0.8pt dashed #555; }
+.doc-nota { font-size: 7pt; color: #444; margin: 1mm 0; }
+.doc-nota-hr { font-size: 7.6pt; padding: 1.2mm 2mm; background: #eff6ff; border-left: 2pt solid #1d4ed8; }
+.doc-marcas { white-space: pre-wrap; font-family: ui-monospace, Consolas, monospace; font-size: 8pt; }
+.doc-cifra { font-weight: 700; }
+.doc-lista { margin: 1mm 0; padding-left: 5mm; }
+.doc-lista li { margin: 0.5mm 0; break-inside: avoid; }
+.doc-firma { margin-top: 5mm; break-inside: avoid; }
+.doc-firma p { margin: 1mm 0; }
+.doc-linea-firma { margin-top: 7mm; }
+.doc-pie { margin-top: 6mm; padding-top: 1mm; border-top: 0.5pt solid #9aa0a6; font-size: 7pt; color: #555; }
+.doc-seccion p { margin: 1mm 0; }
+
+@media print {
+  .documentos { border: none; padding: 0; margin: 0; background: none; }
+  .documentos > :not(#vista-documentos) { display: none !important; }
+  .doc-controles, .doc-ayuda-vista, .doc-marca-agua, .doc-pie { display: none !important; }
+  .doc-panel { display: none; }
+  .doc-panel.a-imprimir { display: block; }
+  .doc-panel.a-imprimir:not(.primera) { break-before: page; }
+  .doc-visor { padding: 0; background: none; overflow: visible; }
+  .hoja-doc { zoom: 1 !important; width: auto; min-height: 0; padding: 0; margin: 0; box-shadow: none; overflow: visible; }
+  .doc-tabla thead { display: table-header-group; }
+  .doc-tabla tfoot { display: table-row-group; }
+  .doc-elegido td, .doc-tabla th, .doc-tabla tfoot td, .doc-nota-hr {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .doc-bloqueo { border: 1px solid #b42318; }
+}
+@media (max-width: 600px) {
+  .doc-controles { gap: 6px; }
+  .doc-pestana { font-size: 0.85rem; padding: 3px 8px; }
+}

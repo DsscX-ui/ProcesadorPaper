@@ -443,6 +443,33 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .doc-pie { margin-top: 6mm; padding-top: 1mm; border-top: 0.5pt solid #9aa0a6; font-size: 7pt; color: #555; }
 .doc-seccion p { margin: 1mm 0; }
 
+
+/* F8a: DAM — Formato A (+A1), representación didáctica. Rejilla de 6 columnas; cada casilla con número, rótulo, valor y fuente. */
+.hoja-dam { font-size: 7.6pt; }
+.dam-rubro { margin: 1.6mm 0; break-inside: auto; }
+.dam-rubro-tit { margin: 0 0 0.6mm; font-size: 7.8pt; text-transform: uppercase; letter-spacing: 0.03em; background: #1f2937; color: #fff; padding: 0.4mm 1.5mm; break-after: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.dam-rubro-tit .dam-num { color: #fff; background: none; border: none; padding: 0; }
+.dam-rejilla { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 0.6pt solid #6b7280; border-left: 0.6pt solid #6b7280; }
+.dam-cas { border-right: 0.6pt solid #6b7280; border-bottom: 0.6pt solid #6b7280; padding: 0.5mm 1mm 0.4mm; min-width: 0; break-inside: avoid; display: flex; flex-direction: column; }
+.dam-w2 { grid-column: span 2; } .dam-w3 { grid-column: span 3; } .dam-w4 { grid-column: span 4; } .dam-w6 { grid-column: span 6; }
+.dam-cas-cab { font-size: 6.4pt; color: #374151; line-height: 1.2; }
+.dam-num { display: inline-block; font-weight: 800; color: #111; background: #e5e7eb; border: 0.4pt solid #9ca3af; border-radius: 1.5pt; padding: 0 1pt; margin-right: 1.2pt; font-variant-numeric: tabular-nums; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.dam-valor { font-size: 7.8pt; font-weight: 600; overflow-wrap: anywhere; margin: 0.4mm 0 0.2mm; flex: 1; }
+.dam-valor .doc-linea { font-weight: 400; }
+.dam-fuente { font-size: 5.6pt; color: #6b7280; line-height: 1.15; }
+.dam-nota { font-size: 6.2pt; color: #374151; }
+.dam-rs129 { font-size: 6.2pt; margin: 0.4mm 0; padding: 0.4mm 1mm; background: #eff6ff; border-left: 1.5pt solid #1d4ed8; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.dam-gris { background: #f3f4f6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.dam-gris .dam-valor { font-weight: 400; font-style: italic; color: #6b7280; font-size: 6.6pt; }
+.dam-gris-muestra { background: #f3f4f6; border: 0.4pt solid #9ca3af; padding: 0 2pt; font-style: italic; color: #6b7280; }
+.dam-pv-motivo { font-weight: 400; font-size: 6.2pt; color: #5b4400; }
+.dam-no-numerada { font-size: 11pt; letter-spacing: 0.08em; color: #b42318; }
+.dam-desc p { margin: 0 0 0.6mm; font-weight: 400; }
+.dam-equipos { margin: 0 0 0.6mm; padding-left: 4mm; font-weight: 400; }
+.dam-leyenda { display: block; margin-top: 0.6mm; }
+.dam-serie { break-before: auto; }
+.dam-serie .dam-rubro-tit { background: #1d4ed8; }
+
 @media print {
   .documentos { border: none; padding: 0; margin: 0; background: none; }
   .documentos > :not(#vista-documentos) { display: none !important; }

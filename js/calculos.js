@@ -459,6 +459,18 @@ var Calculos = (function () {
     return sumar(lista.map(function (x) { return x[campo]; }).concat([fx(0, d)]));
   }
 
+  // F8a: cantidades de la serie para el Formato A. 7.10 = Σ cantidades comerciales, «aunque la unidad no sea la
+  // misma en todos los ítems» [H: IT A 7.10]. 7.16 (cantidad física) solo se da si todos los ítems usan como
+  // unidad física su misma unidad comercial; si no, queda null y la DAM la muestra POR VERIFICAR (PV-09).
+  function cantidadesSerie(s, its, op) {
+    var datos = s.items.map(function (i) { return op.especificos.items[i]; });
+    s.cantidad = sumaDe(its, "cantidad", 3);
+    var unidad = datos[0] ? datos[0].unidadFisica : "";
+    var mismas = datos.every(function (d) { return d.unidadFisica === unidad && d.unidadFisica === d.unidadComercial; });
+    s.cantidadFisica = mismas ? s.cantidad : null;
+    s.unidadFisica = mismas ? unidad : "";
+  }
+
   function calcularImportacion(op, r, fobDesdeFormula, flete, casilla, avisar) {
     var items = r.items;
     var g = op.generales;
@@ -509,6 +521,7 @@ var Calculos = (function () {
       s.pesoBruto = sumaDe(its, "pesoBruto", 2);
       s.fob = sumaDe(its, "fob", 3);
       s.ajuste = sumaDe(its, "ajuste", 3);
+      cantidadesSerie(s, its, op);
     });
 
     // --- Flete por peso bruto y seguro por FOB entre series [S; PV-04]
@@ -646,6 +659,7 @@ var Calculos = (function () {
       s.pesoNeto = sumaDe(its, "pesoNeto", 2);
       s.pesoBruto = sumaDe(its, "pesoBruto", 2);
       s.fob = sumaDe(its, "fob", 3);
+      cantidadesSerie(s, its, op);
     });
 
     participaciones(series, r.totales.pesoBruto, s65);

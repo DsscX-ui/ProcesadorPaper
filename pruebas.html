@@ -34,6 +34,7 @@
   <script src="js/documentos/factura.js"></script>
   <script src="js/documentos/packing.js"></script>
   <script src="js/documentos/bl.js"></script>
+  <script src="js/documentos/dam_a.js"></script>
   <script src="js/documentos/resumen.js"></script>
   <script>
   /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
@@ -1112,7 +1113,7 @@
       prueba("Datos del usuario como texto (nombre con <img>): 0 imágenes en los documentos", "0 · true",
         dx.gen.docs.reduce(function (n, d) { return n + d.hoja.querySelectorAll("img,b").length; }, 0) + " · " +
         String(dx.porId.factura.hoja.textContent.indexOf("<img src=x onerror=alert(1)>") !== -1));
-      prueba("Cada hoja es un <article class=hoja-doc> con data-doc", x.gen.docs.map(function (d) { return d.def.id; }).join(","), x.gen.docs.map(function (d) { return d.hoja.tagName === "ARTICLE" && d.hoja.className === "hoja-doc" ? d.hoja.getAttribute("data-doc") : "?"; }).join(","));
+      prueba("Cada hoja es un <article class=hoja-doc> con data-doc", x.gen.docs.map(function (d) { return d.def.id; }).join(","), x.gen.docs.map(function (d) { return d.hoja.tagName === "ARTICLE" && d.hoja.classList.contains("hoja-doc") ? d.hoja.getAttribute("data-doc") : "?"; }).join(","));
       prueba("Precio unitario: 2 decimales mínimo; más si el dato los trae, sin redondear", "4.10 · 0.000001 · 1.1234",
         [Documentos.precio(fx("4.100000")), Documentos.precio(fx("0.000001")), Documentos.precio(fx("1.123400"))].join(" · "));
     })();
@@ -1177,7 +1178,7 @@
     [["caso1", "4,489.00"], ["caso2", "3,788.00"]].forEach(function (c) {
       var x = documentosDe(ejemplo(c[0]));
       var pl = x.porId.packing.cifras;
-      prueba(c[0] + ": orden de los documentos", "factura,packing,instrucciones,bl,vgm,resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
+      prueba(c[0] + ": orden de los documentos", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1,resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
       ["instrucciones", "bl"].forEach(function (id) {
         var k = x.porId[id].cifras;
         prueba(c[0] + " · " + id + ": bultos, peso bruto, volumen, contenedor y precinto = PL",

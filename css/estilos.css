@@ -459,9 +459,11 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .dam-fuente { font-size: 5.6pt; color: #6b7280; line-height: 1.15; }
 .dam-nota { font-size: 6.2pt; color: #374151; }
 .dam-rs129 { font-size: 6.2pt; margin: 0.4mm 0; padding: 0.4mm 1mm; background: #eff6ff; border-left: 1.5pt solid #1d4ed8; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.dam-gris { background: #f3f4f6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.dam-gris .dam-valor { font-weight: 400; font-style: italic; color: #6b7280; font-size: 6.6pt; }
-.dam-gris-muestra { background: #f3f4f6; border: 0.4pt solid #9ca3af; padding: 0 2pt; font-style: italic; color: #6b7280; }
+/* D17: las casillas que no se llenan quedan en blanco (sin relleno ni motivo). D18 c: código oficial en blanco + PV pequeña. */
+.dam-mini { font-size: 5.6pt; line-height: 1; vertical-align: 0.5em; margin-left: 1.5pt; }
+.dam-mini .marca { font-size: 5.6pt; line-height: 1.25; padding: 0 1.5pt; min-width: 0; margin-right: 0; font-weight: 700; border-radius: 1.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.dam-codigo { font-weight: 400; }
+.dam-blanco { display: inline-block; width: 12mm; }
 .dam-pv-motivo { font-weight: 400; font-size: 6.2pt; color: #5b4400; }
 .dam-no-numerada { font-size: 11pt; letter-spacing: 0.08em; color: #b42318; }
 .dam-desc p { margin: 0 0 0.6mm; font-weight: 400; }

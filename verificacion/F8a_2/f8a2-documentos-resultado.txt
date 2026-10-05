@@ -1,0 +1,36 @@
+caso 1 @1280 pestaña «FC Factura comercial»: desborde=false
+caso 1 @1280 pestaña «PL Lista de empaque»: desborde=false
+caso 1 @1280 pestaña «IE Instrucciones de embarque»: desborde=false
+caso 1 @1280 pestaña «B/L Borrador de B/L»: desborde=false
+caso 1 @1280 pestaña «VGM Declaración VGM»: desborde=false
+caso 1 @1280 pestaña «DAM A DAM — Formato A»: desborde=false
+caso 1 @1280 pestaña «DAM A1 DAM — Formato A1»: desborde=false
+caso 1 @1280 pestaña «HR Hoja resumen»: desborde=false
+caso 1 @1280: pestañas=8; errores consola=ninguno
+caso 1 @390 pestaña «FC Factura comercial»: desborde=false
+caso 1 @390 pestaña «PL Lista de empaque»: desborde=false
+caso 1 @390 pestaña «IE Instrucciones de embarque»: desborde=false
+caso 1 @390 pestaña «B/L Borrador de B/L»: desborde=false
+caso 1 @390 pestaña «VGM Declaración VGM»: desborde=false
+caso 1 @390 pestaña «DAM A DAM — Formato A»: desborde=false
+caso 1 @390 pestaña «DAM A1 DAM — Formato A1»: desborde=false
+caso 1 @390 pestaña «HR Hoja resumen»: desborde=false
+caso 1 @390: pestañas=8; errores consola=ninguno
+caso 2 @1280 pestaña «FC Factura comercial»: desborde=false
+caso 2 @1280 pestaña «PL Lista de empaque»: desborde=false
+caso 2 @1280 pestaña «IE Instrucciones de embarque»: desborde=false
+caso 2 @1280 pestaña «B/L Borrador de B/L»: desborde=false
+caso 2 @1280 pestaña «VGM Declaración VGM»: desborde=false
+caso 2 @1280 pestaña «DAM A DAM — Formato A»: desborde=false
+caso 2 @1280 pestaña «DAM A1 DAM — Formato A1»: desborde=false
+caso 2 @1280 pestaña «HR Hoja resumen»: desborde=false
+caso 2 @1280: pestañas=8; errores consola=ninguno
+caso 2 @390 pestaña «FC Factura comercial»: desborde=false
+caso 2 @390 pestaña «PL Lista de empaque»: desborde=false
+caso 2 @390 pestaña «IE Instrucciones de embarque»: desborde=false
+caso 2 @390 pestaña «B/L Borrador de B/L»: desborde=false
+caso 2 @390 pestaña «VGM Declaración VGM»: desborde=false
+caso 2 @390 pestaña «DAM A DAM — Formato A»: desborde=false
+caso 2 @390 pestaña «DAM A1 DAM — Formato A1»: desborde=false
+caso 2 @390 pestaña «HR Hoja resumen»: desborde=false
+caso 2 @390: pestañas=8; errores consola=ninguno

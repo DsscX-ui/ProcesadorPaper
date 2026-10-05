@@ -8,7 +8,7 @@ Todo lo que genera es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 1. Abre la carpeta del proyecto.
 2. Haz doble clic en `index.html`. Se abre en el navegador (Chrome o Edge) sin instalar nada.
 
-## Qué puedes hacer ahora (F8a hecha; pausa de revisión antes de F8b)
+## Qué puedes hacer ahora (F8a hecha y revisada; F8b pendiente)
 
 La página tiene cuatro pasos, siempre a mano en la **barra fija de arriba**: **1 Datos** (el formulario),
 **2 Revisión** (con el contador de errores y advertencias), **3 Resultados** del cálculo y **4 Documentos** (factura comercial, lista de empaque, instrucciones de embarque, borrador de B/L, declaración VGM, DAM Formato A y A1, y hoja resumen).
@@ -97,7 +97,8 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    que bultos, peso bruto, volumen, contenedor y precinto del B/L y de las instrucciones son los de la lista de empaque,
    el VGM (carga + estiba + tara) y el contenido del borrador de B/L. El grupo F7.1 son las regresiones de la auditoría de F6/F7.
    El grupo F8a comprueba que las casillas del Formato A (series, 6.1–6.5, 7.30–7.34, S 7.26…) son las de `PLAN.md` §9.1 y §9.2
-   y que la hoja A1 solo aparece con más de una serie. El grupo F8a.1 son las regresiones de la auditoría de F8a.
+   y que la hoja A1 solo aparece con más de una serie. El grupo F8a.1 son las regresiones de la auditoría de F8a y el F8a.2,
+   las de la revisión de Aarón (D17/D18: pesos con 2 decimales, casillas en blanco, nota RS 129 solo en celulares, 7.39 y S 13).
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -135,13 +136,16 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
   con la misma subpartida (y, en importación, mismo origen, B/L, seguro, moneda…; §6.5).
 - Cada casilla muestra su **número** («7.35»), su rótulo, el valor y, abajo en gris pequeño, la **fuente** («IT A 7.35»);
   al pasar el cursor también se ve.
-- **Recuadro gris** = el instructivo manda «No llenar», la casilla es de la Aduana o no aplica al régimen (por ejemplo,
-  S 7.31 a 7.34 en la exportación). **POR VERIFICAR** (amarillo) = no se puede afirmar con las fuentes de la carpeta: nunca se
-  inventa (dígito verificador de la subpartida PV-27; A 3.4 en despacho anticipado PV-26; códigos de tablas PV-09;
-  RUC o código de los agentes PV-28; reparto del flete y del seguro entre series PV-04). **H*** = conocimiento general.
+- **Casilla en blanco** (solo número y rótulo) = el instructivo manda «No llenar», la llena otro (Aduana, funcionario,
+  zona primaria…) o no aplica al régimen (por ejemplo, S 7.31 a 7.34 en la exportación). El motivo aparece al pasar el cursor.
+- **POR VERIFICAR** (amarillo) = no se puede afirmar con las fuentes de la carpeta: nunca se inventa (dígito verificador de
+  la subpartida PV-27; reparto del flete y del seguro entre series PV-04). Una **PV pequeña** junto a un código en blanco
+  = código oficial por verificar: se ve el nombre (banco, «Caja de cartón», razón social del agente) y el código queda en
+  blanco (PV-09, PV-28). La «U» de la unidad física lleva una **S** pequeña (supuesto). **H*** = conocimiento general.
 - El registro de aduana dice **«NO NUMERADA»**: el número, la fecha de numeración y el canal los pone SUNAT.
-- Cifras con **3 decimales** en USD y fechas **DD MM AAAA** (IT IV.3, IV.4, IV.6). La casilla **7.35** de importación lleva la
-  nota del párrafo añadido por la **RS 129-2026** (series e IMEI de celulares, vigente desde el 05-10-2026).
+- Cifras con **3 decimales** en USD y fechas **DD MM AAAA** (IT IV.3, IV.4, IV.6); los **pesos en kg con 2 decimales**
+  (decisión D17). La casilla **7.35** de importación lleva la nota del párrafo añadido por la **RS 129-2026** (series e IMEI
+  de celulares, vigente desde el 05-10-2026) solo en las series de celulares (8517.13.00.00 u 8517.14.00.00).
 - Para estudiar: compara 6.1 a 6.5 con la suma de las series (7.30 a 7.34) y con la hoja resumen; en el caso 1, la serie 2
   pesa poco y vale mucho, por eso recibe poco flete (reparto por peso) y su valor en aduana (11,346.370) es menor que su
   valor en la factura.
@@ -150,7 +154,7 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1) y F8a.1 (correcciones de la auditoría de F8a).
-Ahora: **pausa de revisión de Aarón antes de F8b** (DAM Formato B).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a) y F8a.2 (revisión de Aarón, D17/D18).
+Siguiente: **F8b** (DAM Formato B).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

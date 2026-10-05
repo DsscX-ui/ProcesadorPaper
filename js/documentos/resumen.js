@@ -57,6 +57,11 @@
       ["precinto", "Precinto", "Seal No.", c.precinto || "—"],
       ["vgm", "VGM (kg)", "Verified gross mass", Fm.kg(r.vgm.total)]
     ];
+    // F9: con seguro, la suma asegurada (certificado) y la prima (certificado y desglose CIF/CIP de la factura).
+    if (r.seguro.hay) {
+      lista.push(["sumaAsegurada", "Suma asegurada (USD)", "Sum insured", Fm.comercial(r.seguro.sumaAsegurada)]);
+      lista.push(["prima", "Prima del seguro (USD)", "Insurance premium", Fm.comercial(r.seguro.prima)]);
+    }
     return lista;
   }
 
@@ -79,6 +84,16 @@
   }
 
   // ---------------------------------------------------------------- Plantilla
+
+  // Por qué se generan (o no) el certificado de seguro y el de origen (PLAN §3 docs 5 y 6).
+  function condicionales(ctx) {
+    var e = ctx.op.especificos, regla = ctx.r.reglaIncoterm;
+    var hay = function (id) { return ctx.generados.some(function (x) { return x.def.id === id; }); };
+    var seg = hay("seguro") ? "SEG sí: hay seguro" + (regla && regla.seguroObligatorio ? " (obligatorio en " + regla.codigo + ")" : " (no obligatorio en " + (regla ? regla.codigo : "este Incoterm") + ": A12)") :
+      "SEG no: sin seguro" + (ctx.r.tipo === "importacion" ? " (la DAM usa la tabla de SUNAT, A15)" : "");
+    var co = hay("origen") ? "CO sí: se solicita trato preferencial (" + (e.origen.acuerdo || "acuerdo sin indicar") + ")" : "CO no: sin trato preferencial";
+    return seg + " · " + co;
+  }
 
   function seccion(cuerpo, es, en, clase) {
     var s = el("section", "doc-seccion" + (clase ? " " + clase : ""));
@@ -104,7 +119,8 @@
       ["Descripción", "Description", op.meta.descripcion],
       ["Tipo y destinación", "Type and customs regime", D.opcion("tipoOperacion", g.operacion.tipo, true) + " · destinación " + (imp ? "10" : "40") + " · " + D.opcion("modalidadCarga", g.operacion.modalidadCarga, true)],
       ["Incoterm® 2020", "Incoterms® rule", (g.comercial.incoterm || "—") + " " + (g.comercial.lugarConvenido || "")],
-      ["Factura", "Invoice", (g.comercial.facturaNumero || "—") + " · " + D.fecha(g.comercial.facturaFecha)]
+      ["Factura", "Invoice", (g.comercial.facturaNumero || "—") + " · " + D.fecha(g.comercial.facturaFecha)],
+      ["Documentos condicionales (F9)", "Conditional documents", condicionales(ctx)]
     ]));
     id.appendChild(D.datos(["Partes y transporte", "Parties and transport"], [
       ["Vendedor", "Seller", g.partes.vendedor.razonSocial],

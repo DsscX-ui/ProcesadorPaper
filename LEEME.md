@@ -8,10 +8,10 @@ Todo lo que genera es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 1. Abre la carpeta del proyecto.
 2. Haz doble clic en `index.html`. Se abre en el navegador (Chrome o Edge) sin instalar nada.
 
-## Qué puedes hacer ahora (F8c hecha; F9 pendiente)
+## Qué puedes hacer ahora (F9 hecha; F10 pendiente)
 
 La página tiene cuatro pasos, siempre a mano en la **barra fija de arriba**: **1 Datos** (el formulario),
-**2 Revisión** (con el contador de errores y advertencias), **3 Resultados** del cálculo y **4 Documentos** (factura comercial, lista de empaque, instrucciones de embarque, borrador de B/L, declaración VGM, DAM Formato A y A1, en la importación DAM Formato B y B1 y DAM Formato C, y hoja resumen).
+**2 Revisión** (con el contador de errores y advertencias), **3 Resultados** del cálculo y **4 Documentos** (factura comercial, lista de empaque, instrucciones de embarque, borrador de B/L, declaración VGM, DAM Formato A y A1, en la importación DAM Formato B y B1 y DAM Formato C, certificado de seguro si hay seguro, certificado de origen si se pide trato preferencial, y hoja resumen).
 La barra también dice si hay **cambios sin guardar**.
 
 - **Caso 1 / Caso 2:** cargan los ejemplos de `PLAN.md` §9 (datos 100 % ficticios). Puedes editarlos.
@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"701 de 701 pruebas correctas"** en verde.
+2. Arriba debe decir **"744 de 744 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -105,7 +105,12 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    menos; que la exportación no genera Formato B; y alteraciones a propósito (ajustes, pago a crédito, intermediario). El grupo F8b.1 comprueba
    que la casilla del declarante del Formato B queda en blanco. El grupo F8c comprueba el Formato C: tributos por serie y totales de
    `PLAN.md` §9.1 (IGV 3,289.859 · IPM 411.232 · total 4,222.709), 3.1–3.5 = A 6.1–6.5, 4.13 = Total, 4.8 POR VERIFICAR, la percepción (849.195)
-   fuera del formato, el pago en soles con tipo de cambio 3.500 y que la exportación no genera Formato C.
+   fuera del formato, el pago en soles con tipo de cambio 3.500 y que la exportación no genera Formato C. El grupo F9 comprueba los
+   certificados: el caso 1 (CIF con póliza) genera SEG y no CO; el caso 2 (FOB sin seguro, TLC Perú–Chile) genera CO y no SEG;
+   suma asegurada 22,044.00 y prima 66.13 (= desglose de la factura); bultos, peso bruto y contenedor = lista de empaque; criterio
+   de origen POR VERIFICAR; y variantes: FOB sin seguro ni preferencia (sin SEG ni CO), CIF (SEG con 43,505.00 y 130.52), FOB con
+   seguro voluntario (A12), fechas posteriores al embarque (A11, A13), importación con preferencia (CO), datos que faltan (E04, E01:
+   no se genera nada) y texto con etiquetas HTML (se muestra como texto).
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -121,7 +126,9 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
    **FC** factura comercial, **PL** lista de empaque, **IE** instrucciones de embarque, **B/L** borrador del conocimiento de
    embarque (con la leyenda «BORRADOR – DRAFT»), **VGM** declaración de masa bruta verificada, **DAM A** y **DAM A1** (Formato A de la
    declaración aduanera; el A1 solo si hay más de una serie), **DAM B** y **DAM B1** (Formato B, declaración del valor: solo en la
-   importación; el B1 solo si hay más de 2 ítems), **DAM C** (Formato C, liquidación de tributos: solo en la importación) y **HR** hoja resumen. Con algún error no se genera ninguno: la sección
+   importación; el B1 solo si hay más de 2 ítems), **DAM C** (Formato C, liquidación de tributos: solo en la importación), **SEG**
+   certificado de seguro (solo si «¿Hay seguro?» = Sí; obligatorio en CIF y CIP), **CO** certificado de origen (solo si se pide
+   trato preferencial) y **HR** hoja resumen (dice por qué hay o no SEG y CO). Con algún error no se genera ninguno: la sección
    explica por qué y te lleva a «Revisión». Las advertencias no bloquean; la hoja resumen las lista.
 2. Cada documento se ve en una hoja A4. En el celular la hoja se reduce al ancho de la pantalla; **Ver en tamaño real**
    la muestra a su tamaño (desliza dentro del recuadro gris).
@@ -192,11 +199,26 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 - La **percepción del IGV** no es una casilla del Formato C: va en el recuadro naranja «FUERA DEL FORMATO C», con su base (valor en
   aduana + tributos, **incluido** el antidumping: H* Ley 29173, PV-17), su tasa (PV-01, un valor por operación) y el total en soles.
 
+### Certificado de seguro (SEG) y certificado de origen (CO)
+
+- Son **formatos referenciales didácticos**: cada aseguradora tiene su modelo de certificado y cada acuerdo comercial fija el
+  formulario del certificado de origen, quién lo emite y los criterios de origen (**PV-12**, recuadro «FORMATO REFERENCIAL»).
+- **SEG** solo aparece si hay seguro. En CIF y CIP lo contrata el vendedor a favor del comprador; con seguro voluntario en otro
+  Incoterm, el documento muestra la advertencia **A12** y como asegurado a quien corre el riesgo. **Suma asegurada** = base × % de
+  cobertura (caso 1: 20,040.00 × 110 % = 22,044.00). La **prima** (66.13) no va en el cuerpo del certificado (PLAN §6.4): el cuadro
+  didáctico del final muestra cómo se calcula y en qué documentos aparece (factura, DAM, hoja resumen).
+- **CO** solo aparece si se pide trato preferencial. El caso 2 deja el **criterio de origen** vacío a propósito y marcado
+  POR VERIFICAR: el certificado lo muestra así, sin inventarlo. El país de destino sale del UN/LOCODE del puerto de descarga.
+- Lo que no está en el formulario queda **en blanco** con el motivo en el botón «?» (D17). Si la fecha del certificado es posterior
+  al embarque, el documento muestra la advertencia de la revisión (**A11** seguro, **A13** origen).
+- Bultos, peso bruto, valor, contenedor y precinto son los de la lista de empaque y la factura; la hoja resumen los compara
+  (filas «Suma asegurada» y «Prima» con seguro; columnas SEG y CO).
+
 ## Estado
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) F8a.3 (correcciones de la auditoría de F8a.2) F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b), F8c (DAM Formato C, liquidación) y F8c.1 (correcciones de la auditoría de F8c).
-Siguiente: **F9** (certificado de seguro y certificado de origen).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) F8a.3 (correcciones de la auditoría de F8a.2) F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b), F8c (DAM Formato C, liquidación), F8c.1 (correcciones de la auditoría de F8c) y F9 (certificado de seguro y certificado de origen).
+Siguiente: **F10** (ajustes de impresión, guía y revisión final).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

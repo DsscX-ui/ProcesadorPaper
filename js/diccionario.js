@@ -173,15 +173,15 @@ var DICCIONARIO = (function () {
   d("B1", I + "ubigeoOrigen", "UBIGEO de fabricación", "Place of manufacture (UBIGEO)", "codigo", "H", "IT B 7.26", { lista: "ubigeo", obl: "exportación", solo: "exportacion", docs: "DAM", cas: ["", "S 7.26"], ayuda: "En exportación, la casilla de origen lleva el UBIGEO del lugar de fabricación (IT B 7.26)." });
   d("B1", I + "estado", "Estado", "Condition", "codigo", "H", "IT C 5.16 (exportación: PV-09)", { lista: "estado", docs: "DAM", cas: ["B 5.16", "S 7.20"], ayuda: "Nuevo, usado, etc." });
   d("B1", I + "cantidad", "Cantidad", "Quantity", "numero", "H", "IT A 7.10, IT C 5.11", { docs: "FC PL DAM CO", cas: ["A 7.10, B 5.11", ""], ayuda: "Cantidad en unidades comerciales." });
-  d("B1", I + "unidadComercial", "Unidad comercial", "Commercial unit", "codigo", "H", "IT C 5.11 (códigos: PV-09)", { lista: "unidadMedida", docs: "FC PL DAM", cas: ["A 7.10, B 5.11", ""], ayuda: "Unidad en que se vende." });
+  d("B1", I + "unidadComercial", "Unidad comercial", "Commercial unit", "codigo", "H", "IT C 5.11 (códigos: PV-09)", { lista: "unidadMedida", docs: "FC PL DAM CO", cas: ["A 7.10, B 5.11", ""], ayuda: "Unidad en que se vende." });
   d("B1", I + "unidadFisica", "Unidad física", "Physical unit", "codigo", "PV", "PV-09; RS129 anexo VI 6.4", { lista: "unidadMedida", docs: "DAM", cas: ["A 7.16", "S 7.16"], ayuda: "Unidad que pide la subpartida en el arancel." });
-  d("B1", I + "precioUnitario", "Precio unitario (USD)", "Unit price (USD)", "numero", "H", "IT C 8.1.1", { docs: "FC DAM HR", cas: ["B 8.1.1 (total)", "S 6.1 (total)"], ayuda: "Precio en el Incoterm pactado." });
+  d("B1", I + "precioUnitario", "Precio unitario (USD)", "Unit price (USD)", "numero", "H", "IT C 8.1.1", { docs: "FC DAM SEG CO HR", cas: ["B 8.1.1 (total)", "S 6.1 (total)"], ayuda: "Precio en el Incoterm pactado." });
   d("B1", I + "objetoAjuste", "Ítem objeto de ajuste", "Item subject to adjustment", "sino", "H", "IT C 5.10", { obl: "si hay ajustes", solo: "importacion", docs: "DAM", cas: ["B 5.10", ""], ayuda: "Si es Sí, el ítem recibe parte de los ajustes (B 8.1.2–8.1.4 y 8.2), en proporción a su valor entre los ítems ajustados." });
   d("B1", I + "equipos", "Equipos: serie e IMEI", "Devices: serial and IMEI", "equipos", "H", "RS129 art. 1", { obl: "celulares (E17)", solo: "importacion", docs: "FC DAM", cas: ["A 7.35 (RS129)", ""], ayuda: "Un registro por equipo, con su número de serie y uno o más IMEI. Obligatorio en 8517.13.00.00 y 8517.14.00.00 desde el 05-10-2026." });
   d("B1", I + "claseBulto", "Clase de bulto", "Package type", "codigo", "H", "IT A 7.13 (códigos: PV-09)", { lista: "claseBulto", docs: "FC PL BL DAM SEG CO HR", cas: ["A 7.13", "S 7.13"], ayuda: "Tipo de embalaje (caja, pallet, saco…)." });
   d("B1", I + "unidadesPorBulto", "Unidades por bulto", "Units per package", "numero", "S", "—", { docs: "PL", ayuda: "Cuántas unidades van en cada bulto (en v1 la división debe ser exacta)." });
   d("B1", I + "pesoNetoBulto", "Peso neto por bulto (kg)", "Net weight per package (kg)", "numero", "H", "IT A 7.14", { docs: "FC PL DAM HR", cas: ["A 7.14 (total de la serie)", "S 7.14 (total de la serie)"], ayuda: "Peso de la mercancía sin embalaje." });
-  d("B1", I + "pesoBrutoBulto", "Peso bruto por bulto (kg)", "Gross weight per package (kg)", "numero", "H", "IT A 7.15", { docs: "FC PL BL DAM CO HR", cas: ["A 7.15 (total de la serie)", "S 7.15 (total de la serie)"], ayuda: "Peso con embalaje." });
+  d("B1", I + "pesoBrutoBulto", "Peso bruto por bulto (kg)", "Gross weight per package (kg)", "numero", "H", "IT A 7.15", { docs: "FC PL BL DAM SEG CO HR", cas: ["A 7.15 (total de la serie)", "S 7.15 (total de la serie)"], ayuda: "Peso con embalaje." });
   d("B1", I + "largoCm", "Largo del bulto (cm)", "Package length (cm)", "numero", "S", "—", { docs: "PL BL HR", cas: SC, ayuda: "Sirve para el volumen." });
   d("B1", I + "anchoCm", "Ancho del bulto (cm)", "Package width (cm)", "numero", "S", "—", { docs: "PL BL HR", cas: SC, ayuda: "Sirve para el volumen." });
   d("B1", I + "altoCm", "Alto del bulto (cm)", "Package height (cm)", "numero", "S", "—", { docs: "PL BL HR", cas: SC, ayuda: "Sirve para el volumen." });
@@ -482,8 +482,8 @@ var DICCIONARIO = (function () {
     ["A3", "Puerto de embarque", "Puerto de embarque (nombre y UN/LOCODE)", [R + "ruta.puertoEmbarque.*"], "dato", ""],
     ["A3", "Puerto de descarga", "Puerto de descarga (nombre y UN/LOCODE)", [R + "ruta.puertoDescarga.*"], "dato", ""],
     ["A3", "País de adquisición / embarque / destino", "País de adquisición", [R + "ruta.paisAdquisicion"], "dato", ""],
-    ["A3", "País de adquisición / embarque / destino", "País de embarque (B 5.8)", [], "derivado", "calculos.js: formatoB.paisEmbarque (del UN/LOCODE de embarque); se muestra en el Formato B (F8b)"],
-    ["A3", "País de adquisición / embarque / destino", "País de destino (S 7.27)", [], "derivado", "calculos.js: series[].paisDestino"],
+    ["A3", "País de adquisición / embarque / destino", "País de embarque (B 5.8)", [], "derivado", "calculos.js: ruta.paisEmbarque (del UN/LOCODE de embarque) → formatoB.paisEmbarque; se muestra en el Formato B (F8b)"],
+    ["A3", "País de adquisición / embarque / destino", "País de destino (S 7.27; CO)", [], "derivado", "calculos.js: ruta.paisDestino (del UN/LOCODE de descarga) → series[].paisDestino y certificado de origen (F9)"],
     ["A3", "—", "Lugar de recepción y de entrega", [R + "ruta.lugarRecepcion", R + "ruta.lugarEntrega"], "dato", ""],
     ["A4", "Incoterm + lugar + versión", "Incoterm y lugar convenido", [R + "comercial.incoterm", R + "comercial.lugarConvenido"], "dato", ""],
     ["A4", "Incoterm + lugar + versión", "Versión del Incoterm (4 = 2020)", [], "derivado", "calculos.js: formatoB.versionIncoterm (fija en v1, IT C 5.4); se muestra en B 5.4 (F8b)"],

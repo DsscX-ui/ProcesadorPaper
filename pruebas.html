@@ -37,6 +37,8 @@
   <script src="js/documentos/dam_a.js"></script>
   <script src="js/documentos/dam_b.js"></script>
   <script src="js/documentos/dam_c.js"></script>
+  <script src="js/documentos/seguro.js"></script>
+  <script src="js/documentos/origen.js"></script>
   <script src="js/documentos/resumen.js"></script>
   <script>
   /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
@@ -1180,7 +1182,7 @@
     [["caso1", "4,489.00"], ["caso2", "3,788.00"]].forEach(function (c) {
       var x = documentosDe(ejemplo(c[0]));
       var pl = x.porId.packing.cifras;
-      prueba(c[0] + ": orden de los documentos (F8b/F8c: B, B1 y C solo en la importación)", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1," + (c[0] === "caso1" ? "dam_b,dam_b1,dam_c," : "") + "resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
+      prueba(c[0] + ": orden de los documentos (F8b/F8c: B, B1 y C solo en la importación; F9: SEG en el caso 1, CO en el caso 2)", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1," + (c[0] === "caso1" ? "dam_b,dam_b1,dam_c,seguro," : "origen,") + "resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
       ["instrucciones", "bl"].forEach(function (id) {
         var k = x.porId[id].cifras;
         prueba(c[0] + " · " + id + ": bultos, peso bruto, volumen, contenedor y precinto = PL",
@@ -1674,7 +1676,7 @@
       prueba("Con intermediario (6.1 = Sí) y vinculación (7.1 = Sí): 6.2 y 6.7 llenas; 7.2 y 7.3 respondidas", "Agente Ejemplo — FICTICIO · agente@ejemplo.test · 2 — No · 2 — No",
         [valB(bi, null, "6.2"), valB(bi, null, "6.7"), valB(bi, null, "7.2"), valB(bi, null, "7.3")].join(" · "));
       var cq = Documentos.cuadre(x.gen.ctx);
-      prueba("Hoja resumen: el cuadro de cuadre solo tiene columnas de documentos con cifras (sin DAM A1, B ni B1: así cabe en A4) y todo cuadra", "FC,PL,IE,B/L,VGM,DAM A · true",
+      prueba("Hoja resumen: el cuadro de cuadre solo tiene columnas de documentos con cifras (sin DAM A1, B ni B1: así cabe en A4; F9: con SEG) y todo cuadra", "FC,PL,IE,B/L,VGM,DAM A,SEG · true",
         cq.docs.map(function (d) { return d.def.codigo; }).join(",") + " · " + String(cq.todoCuadra));
       var xss = ejemplo("caso1"); xss.generales.partes.vendedor.razonSocial = "<img src=x onerror=alert(1)>";
       var bx = documentosDe(xss).porId.dam_b.hoja;
@@ -1795,7 +1797,158 @@
       var cx = documentosDe(xss).porId.dam_c.hoja;
       prueba("XSS: la razón social del importador se muestra como texto (sin crear <img>)", "true · 0", String(valC(cx, "1.1") === "<img src=x onerror=alert(1)>") + " · " + cx.querySelectorAll("img").length);
       var cq = Documentos.cuadre(x.gen.ctx);
-      prueba("Hoja resumen: el cuadro de cuadre sigue sin columna para la DAM C y todo cuadra", "FC,PL,IE,B/L,VGM,DAM A · true", cq.docs.map(function (d) { return d.def.codigo; }).join(",") + " · " + String(cq.todoCuadra));
+      prueba("Hoja resumen: el cuadro de cuadre sigue sin columna para la DAM C (F9: sí para SEG) y todo cuadra", "FC,PL,IE,B/L,VGM,DAM A,SEG · true", cq.docs.map(function (d) { return d.def.codigo; }).join(",") + " · " + String(cq.todoCuadra));
+    })();
+
+    // ============================================================ F9: certificado de seguro y certificado de origen
+    (function () {
+      grupo("F9. Certificado de seguro (SEG) y certificado de origen (CO), condicionales",
+        "PLAN §3 docs 5 y 6, §10 F9: con FOB sin seguro no hay SEG; con CIF sí (suma asegurada y prima cuadran); sin preferencia no hay CO. Caso 1 (CIF con póliza) genera SEG y no CO; caso 2 (FOB sin seguro, TLC Perú–Chile) genera CO y no SEG.");
+      // Valor que muestra un dato «rótulo: valor» de un certificado (dd que sigue al dt con ese rótulo en español).
+      function dd(hoja, rot) {
+        var dts = hoja.querySelectorAll(".doc-datos dt");
+        for (var i = 0; i < dts.length; i++) { if (dts[i].querySelector(".doc-rot").firstChild.textContent === rot) { return dts[i].nextElementSibling; } }
+        return null;
+      }
+      // Texto del valor (sin el botón «?» ni su panel de ayuda).
+      function val(d) { return Array.prototype.filter.call(d.childNodes, function (n) { return !(n.classList && (n.classList.contains("dam-ayuda") || n.classList.contains("dam-ayuda-btn"))); }).map(function (n) { return n.textContent; }).join("").replace(/\s+/g, " ").trim(); }
+      function ids(x) { return x.gen.docs.map(function (d) { return d.def.id; }); }
+      function avisos(hoja) { return Array.prototype.map.call(hoja.querySelectorAll("[data-aviso]"), function (n) { return n.getAttribute("data-aviso"); }).join(",") || "ninguno"; }
+      // Seguro completo (datos del formulario) para las variantes.
+      function conSeguro(o) {
+        o.generales.partes.aseguradora = { razonSocial: "Aseguradora Prueba — FICTICIA", direccion: "" };
+        o.especificos.seguro = { hay: true, tipoPoliza: "individual", poliza: "POL-9", certificado: "CERT-9", fechaEmision: "2026-10-23",
+          clausulas: "A", guerra: false, huelgas: false, coberturaPct: 110, tasaPrimaPct: 0.3, lugarPagoSiniestros: "Santiago, Chile, en USD", agenteReclamos: "", pctTablaSunat: null };
+        return o;
+      }
+
+      // --- Caso 1 y caso 2 tal como vienen (PLAN §9.1 y §9.2)
+      var x1 = documentosDe(ejemplo("caso1")), x2 = documentosDe(ejemplo("caso2"));
+      prueba("Caso 1 (CIF, ¿hay seguro? = Sí, sin trato preferencial): genera SEG y no CO", "true · false", String(!!x1.porId.seguro) + " · " + String(!!x1.porId.origen));
+      prueba("Caso 2 (FOB, sin seguro, con TLC Perú–Chile): genera CO y no SEG", "true · false", String(!!x2.porId.origen) + " · " + String(!!x2.porId.seguro));
+      prueba("Pestañas SEG y CO: códigos y orden (antes de la hoja resumen, incluidas en «Imprimir todos»)", "SEG,HR · CO,HR",
+        x1.gen.docs.slice(-2).map(function (d) { return d.def.codigo; }).join(",") + " · " + x2.gen.docs.slice(-2).map(function (d) { return d.def.codigo; }).join(","));
+      var k1 = x1.porId.seguro.cifras, h1 = x1.porId.seguro.hoja;
+      prueba("Caso 1 · SEG: suma asegurada 22,044.00 (110 % de 20,040.00) y prima 66.13 (0.30 %) = §9.1", "22,044.00 · 66.13 · 20,040.00", k1.sumaAsegurada + " · " + k1.prima + " · " + k1.valorFactura);
+      prueba("Caso 1 · SEG: bultos, peso bruto, contenedor y precinto = lista de empaque", [x1.porId.packing.cifras.bultos, x1.porId.packing.cifras.pesoBruto, "EJMU2610147", "SD-000123"].join(" · "),
+        [k1.bultos, k1.pesoBruto, k1.contenedor, k1.precinto].join(" · "));
+      prueba("Caso 1 · SEG: la prima va solo en el cuadro didáctico, no en el cuerpo del certificado (§6.4)", "1 · true",
+        h1.querySelectorAll("[data-cuadre=prima]").length + " · " + String(!!h1.querySelector(".doc-cuadro-seguro [data-cuadre=prima]")));
+      prueba("Caso 1 · SEG: la prima de la factura (desglose CIF) = la del certificado", "66.13 · 66.13", x1.porId.factura.cifras.prima + " · " + k1.prima);
+      prueba("Caso 1 · SEG: póliza, certificado, fecha, cláusulas y cobertura del formulario", "POL-0001 · CERT-0457 · 13-10-2026 · true · 110 %",
+        [val(dd(h1, "N° de póliza")), val(dd(h1, "N° de certificado")), val(dd(h1, "Fecha de emisión")),
+          String(/^ICC \(C\)/.test(dd(h1, "Cláusulas").textContent)), dd(h1, "Cobertura").firstChild.textContent].join(" · ").replace(/\s+H\*$/, ""));
+      prueba("Caso 1 · SEG: en CIF el asegurado es el vendedor y el beneficiario el comprador", "Ningbo Ejemplo Electric Co., Ltd. — FICTICIA · Importadora Didáctica Andina S.A.C. — FICTICIA",
+        dd(h1, "Nombre y dirección").querySelector("strong").textContent + " · " + h1.querySelectorAll(".doc-datos dd strong")[0 + Array.prototype.findIndex.call(h1.querySelectorAll(".doc-datos dd strong"), function (s) { return /Importadora/.test(s.textContent); })].textContent);
+      prueba("Caso 1 · SEG: importe en letras de la suma asegurada", "SON: VEINTIDÓS MIL CUARENTA Y CUATRO Y 00/100 DÓLARES AMERICANOS", h1.querySelector(".doc-letras").textContent);
+      prueba("Caso 1 · SEG: marco común (aviso didáctico, marca de agua, pie con la referencia)", "true · true · true",
+        [!!h1.querySelector(".doc-aviso"), !!h1.querySelector(".doc-marca-agua"), /OP-2026-001/.test(h1.querySelector(".doc-pie").textContent)].map(String).join(" · "));
+      var btns = h1.querySelectorAll(".dam-ayuda-btn");
+      prueba("Caso 1 · SEG: ayudas «?» accesibles (button, aria-label, aria-expanded=false, panel oculto en la misma hoja)", "true",
+        String(btns.length > 0 && Array.prototype.every.call(btns, function (b) {
+          var p = h1.querySelector("#" + b.getAttribute("aria-controls"));
+          return b.type === "button" && /^Ayuda: /.test(b.getAttribute("aria-label")) && b.getAttribute("aria-expanded") === "false" && p && p.hidden;
+        })));
+      prueba("Caso 1 · SEG: sin advertencias A11/A12 (certificado del 13-10, embarque del 14-10; CIF lo exige)", "ninguno", avisos(h1));
+
+      var k2 = x2.porId.origen.cifras, h2 = x2.porId.origen.hoja;
+      prueba("Caso 2 · CO: bultos, peso bruto y valor = lista de empaque y factura", "140 · 1,588.00 · 39,550.00", k2.bultos + " · " + k2.pesoBruto + " · " + k2.valorFactura);
+      prueba("Caso 2 · CO: dice FORMATO REFERENCIAL con POR VERIFICAR PV-12 (formato por acuerdo)", "true · true",
+        String(/FORMATO REFERENCIAL/.test(h2.querySelector(".doc-referencial").textContent)) + " · " + String(/PV-12/.test(h2.querySelector(".doc-referencial .marca, .doc-referencial [title]").title)));
+      var crit = Array.prototype.map.call(h2.querySelectorAll(".doc-origen tbody tr"), function (tr) { return tr.lastElementChild.textContent; });
+      prueba("Caso 2 · CO: criterio de origen vacío a propósito y marcado PV → «POR VERIFICAR» en cada mercancía (no se inventa; A19)", "POR VERIFICAR,POR VERIFICAR", crit.join(","));
+      prueba("Caso 2 · el criterio vacío y marcado PV no es error E01 (PLAN §7); la nota de la tabla lo explica", "false · PV · true",
+        String(x2.rv.errores.some(function (h) { return h.id === "E01"; })) + " · " + x2.gen.ctx.op.marcas["especificos.origen.criterio"].marca + " · " + String(/vacío a propósito y marcado POR VERIFICAR/.test(h2.textContent)));
+      prueba("Caso 2 · CO: país de destino derivado del UN/LOCODE de descarga (CL) con H*", "CL — Chile H*", val(dd(h2, "País de destino")));
+      prueba("Caso 2 · CO: N°, fecha y entidad emisora del formulario", "CO-2026-0001 · 22-10-2026 · Entidad certificadora autorizada — FICTICIA",
+        [val(dd(h2, "N° de certificado")), val(dd(h2, "Fecha de emisión")), val(dd(h2, "Entidad emisora"))].join(" · "));
+      prueba("Caso 2 · CO: sin A13 (certificado del 22-10, embarque del 24-10) ni A14", "ninguno", avisos(h2));
+      prueba("Caso 2 · CO: «Observaciones» EN BLANCO (D17), con el motivo en la ayuda «?»", "«» · en-blanco · true",
+        "«" + val(dd(h2, "Observaciones")) + "» · " + dd(h2, "Observaciones").getAttribute("data-estado") + " · " + String(/D17/.test(dd(h2, "Observaciones").querySelector(".dam-ayuda").textContent)));
+
+      // --- Países de embarque y destino (calculos.js, un solo cálculo)
+      prueba("calculos.js: países de embarque y destino (caso 1 CN→PE; caso 2 PE→CL) = B 5.8 y S 7.27", "CN · PE · CN · PE · CL · CL",
+        [x1.r.ruta.paisEmbarque, x1.r.ruta.paisDestino, x1.r.formatoB.paisEmbarque, x2.r.ruta.paisEmbarque, x2.r.ruta.paisDestino, x2.r.series[0].paisDestino].join(" · "));
+
+      // --- Hoja resumen
+      var cond = function (x) { var d = dd(x.porId.resumen.hoja, "Documentos condicionales (F9)"); return d ? d.textContent : "—"; };
+      prueba("Hoja resumen · caso 1: dice por qué hay SEG y no CO", "SEG sí: hay seguro (obligatorio en CIF) · CO no: sin trato preferencial", cond(x1));
+      prueba("Hoja resumen · caso 2: dice por qué hay CO y no SEG", "SEG no: sin seguro · CO sí: se solicita trato preferencial (TLC Perú–Chile)", cond(x2));
+      var q1 = Documentos.cuadre(x1.gen.ctx), q2 = Documentos.cuadre(x2.gen.ctx);
+      var fila = function (q, clave) { return q.filas.filter(function (f) { return f.clave === clave; })[0]; };
+      prueba("Hoja resumen · caso 1: filas de suma asegurada y prima en el cuadre (FC y SEG) y todo cuadra", "22,044.00 (1 doc) · 66.13 (2 docs) · true",
+        fila(q1, "sumaAsegurada").esperado + " (" + fila(q1, "sumaAsegurada").enDocs + " doc) · " + fila(q1, "prima").esperado + " (" + fila(q1, "prima").enDocs + " docs) · " + String(q1.todoCuadra));
+      prueba("Hoja resumen · caso 2: columna CO en el cuadre, sin filas de seguro, y todo cuadra", "FC,PL,IE,B/L,VGM,DAM A,CO · false · true",
+        q2.docs.map(function (d) { return d.def.codigo; }).join(",") + " · " + String(!!fila(q2, "prima")) + " · " + String(q2.todoCuadra));
+      var traza = function (x) { return Array.prototype.map.call(x.porId.resumen.hoja.querySelectorAll(".doc-tabla-traza thead th"), function (th) { return th.textContent; }).filter(function (t) { return /^(SEG|CO)/.test(t); }).join(","); };
+      prueba("Trazabilidad: SEG y CO marcados «no aplica» cuando no se generan", "SEG,CO / no aplica · SEG / no aplica,CO", traza(x1) + " · " + traza(x2));
+      var tz = Documentos.trazabilidad(ejemplo("caso2"));
+      var docsDe = function (re) { var f = tz.filter(function (r) { return re.test(r.requisito); })[0]; return ["SEG", "CO"].filter(function (d) { return f.docs[d]; }).join("+") || "—"; };
+      prueba("Trazabilidad (§5): precio → SEG y CO; peso bruto → SEG y CO; trato preferencial → CO; aseguradora → SEG", "SEG+CO · SEG+CO · CO · SEG",
+        [docsDe(/^Precio unitario$/), docsDe(/^Pesos neto y bruto/), docsDe(/^Trato preferencial/), docsDe(/^Aseguradora$/)].join(" · "));
+
+      // --- Variantes
+      var fobSin = ejemplo("caso2"); fobSin.especificos.origen.solicitaPreferencia = false;
+      var xf = documentosDe(fobSin);
+      prueba("FOB sin seguro y sin preferencia: no hay SEG ni CO (y no se piden sus datos: sin E01)", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1,resumen · false",
+        ids(xf).join(",") + " · " + String(xf.rv.errores.length > 0));
+
+      var cif = conSeguro(ejemplo("caso2"));
+      cif.generales.comercial.incoterm = "CIF"; cif.generales.comercial.lugarConvenido = "San Antonio";
+      cif.especificos.transporte.fleteBl = "prepaid"; cif.especificos.valoracion.flete = 1200;
+      var xc = documentosDe(cif);
+      prueba("CIF (caso 2 vendido CIF San Antonio): se genera SEG, sin errores", "true · 0", String(!!xc.porId.seguro) + " · " + xc.rv.errores.length);
+      var kc = xc.porId.seguro ? xc.porId.seguro.cifras : {};
+      prueba("CIF: suma asegurada = 39,550.00 × 110 % = 43,505.00; prima = 0.30 % = 130.515 → 130.52 (2 decimales, mitad hacia arriba)", "43,505.00 · 130.52 · 43505.00 · 130.52",
+        kc.sumaAsegurada + " · " + kc.prima + " · " + F.decimal(xc.r.seguro.sumaAsegurada, 2) + " · " + F.decimal(xc.r.seguro.prima, 2));
+      var qc = xc.gen.bloqueado ? { todoCuadra: false, filas: [] } : Documentos.cuadre(xc.gen.ctx);
+      prueba("CIF: la prima del certificado = la del desglose de la factura; todo cuadra en la hoja resumen", "130.52 · 130.52 · true",
+        (xc.porId.factura ? xc.porId.factura.cifras.prima : "—") + " · " + kc.prima + " · " + String(qc.todoCuadra));
+      var hc = xc.porId.seguro ? xc.porId.seguro.hoja : document.createElement("div");
+      prueba("CIF: «Agente de reclamos» vacío (opcional) queda EN BLANCO (D17), con el motivo en «?»", "en-blanco · true",
+        (dd(hc, "Agente de reclamos en destino") || {}).getAttribute("data-estado") + " · " + String(/no está en el formulario/.test(dd(hc, "Agente de reclamos en destino").textContent)));
+      prueba("CIF: «Dirección» de la aseguradora vacía → EN BLANCO, no «—»", "en-blanco", dd(hc, "Dirección").getAttribute("data-estado"));
+
+      var fobCon = conSeguro(ejemplo("caso2"));
+      var xv = documentosDe(fobCon), hv = xv.porId.seguro ? xv.porId.seguro.hoja : document.createElement("div");
+      prueba("FOB con seguro voluntario: se genera SEG con la advertencia A12 y el asegurado es el comprador", "true · A12 · Tiendas Ejemplo SpA — FICTICIA",
+        String(!!xv.porId.seguro) + " · " + avisos(hv) + " · " + (dd(hv, "Nombre y dirección") ? dd(hv, "Nombre y dirección").querySelector("strong").textContent : "—"));
+
+      var tarde = ejemplo("caso1"); tarde.especificos.seguro.fechaEmision = "2026-10-15";
+      prueba("Certificado de seguro del 15-10 (embarque 14-10): el SEG muestra la advertencia A11 de la revisión (no la repite)", "A11 · true",
+        avisos(documentosDe(tarde).porId.seguro.hoja) + " · " + String(documentosDe(tarde).rv.advertencias.some(function (h) { return h.id === "A11"; })));
+      var tardeCo = ejemplo("caso2"); tardeCo.especificos.origen.certificadoFecha = "2026-10-25";
+      prueba("Certificado de origen del 25-10 (embarque 24-10): el CO muestra la advertencia A13", "A13", avisos(documentosDe(tardeCo).porId.origen.hoja));
+
+      var pref = ejemplo("caso1");
+      pref.especificos.origen = { solicitaPreferencia: true, acuerdo: "Acuerdo de prueba", criterio: "A", certificadoNumero: "CO-PRUEBA-1", certificadoFecha: "2026-10-13" };
+      pref.generales.partes.entidadCO.nombre = "Entidad de prueba — FICTICIA";
+      pref.especificos.items.forEach(function (it) { it.tpi = "999"; });
+      var xp = documentosDe(pref);
+      prueba("Importación con trato preferencial: se genera CO (y SEG), sin errores", "true · true · 0", String(!!xp.porId.origen) + " · " + String(!!xp.porId.seguro) + " · " + xp.rv.errores.length);
+      prueba("…con criterio de origen del dato («A»), no POR VERIFICAR, y la nota de la casilla A 7.9", "A · true",
+        (xp.porId.origen ? xp.porId.origen.hoja.querySelector(".doc-origen tbody tr").lastElementChild.textContent.replace(/\s+.*$/, "") : "—") + " · " +
+        String(xp.porId.origen && /A 7\.9/.test(xp.porId.origen.hoja.textContent)));
+
+      var falta = ejemplo("caso1"); falta.especificos.seguro.poliza = "";
+      var xb = documentosDe(falta);
+      prueba("CIF sin N° de póliza: E04 bloquea la generación (no hay SEG ni otros documentos)", "true · true · 0",
+        String(xb.rv.errores.some(function (h) { return h.id === "E04"; })) + " · " + String(xb.gen.bloqueado) + " · " + xb.gen.docs.length);
+      var faltaCo = ejemplo("caso2"); faltaCo.especificos.origen.certificadoNumero = "";
+      var xbc = documentosDe(faltaCo);
+      prueba("Con preferencia y sin N° de CO: E01 bloquea la generación", "true · true",
+        String(xbc.rv.errores.some(function (h) { return h.id === "E01"; })) + " · " + String(xbc.gen.bloqueado));
+
+      var xs = ejemplo("caso1"); xs.generales.partes.aseguradora.razonSocial = "<img src=x onerror=alert(1)>"; xs.especificos.seguro.poliza = "<b>P</b>";
+      var hs = documentosDe(xs).porId.seguro.hoja;
+      prueba("XSS · SEG: aseguradora y póliza se muestran como texto (sin crear <img> ni <b>)", "true · true · 0 · 0",
+        [dd(hs, "Nombre o razón social").textContent === "<img src=x onerror=alert(1)>", dd(hs, "N° de póliza").textContent === "<b>P</b>",
+          hs.querySelectorAll("img").length, hs.querySelectorAll(".doc-datos dd b").length].map(String).join(" · "));
+      var xo = ejemplo("caso2"); xo.especificos.origen.acuerdo = "<img src=x onerror=alert(2)>"; xo.especificos.origen.criterio = "<script>alert(3)<\/script>";
+      var ho = documentosDe(xo).porId.origen.hoja;
+      prueba("XSS · CO: acuerdo y criterio se muestran como texto (sin crear <img> ni <script>)", "true · true · 0 · 0",
+        [/<img src=x onerror=alert\(2\)>/.test(ho.querySelector(".doc-referencial").textContent), /<script>alert\(3\)<\/script>/.test(ho.querySelector(".doc-origen tbody tr").lastElementChild.textContent),
+          ho.querySelectorAll("img").length, ho.querySelectorAll("script").length].map(String).join(" · "));
     })();
 
     // ============================================================ Pintar

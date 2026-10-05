@@ -80,7 +80,6 @@
   // de valor; teclado y toque, el mismo patrón del formulario) que despliega el motivo y las notas de las marcas
   // pequeñas (PV, S). También queda en la ayuda emergente (title) y en data-estado. La ayuda no se imprime.
   var MOTIVOS = { "no-llenar": "No llenar (instructivo)", "reservada": "Reservada a la Administración Aduanera", "no-aplica": "No aplica a este régimen" };
-  var nAyuda = 0;
   function casilla(num, rotulo, valor, o) {
     o = o || {};
     var c = el("div", "dam-cas" + (o.ancho ? " dam-w" + o.ancho : ""));
@@ -116,25 +115,9 @@
     return c;
   }
 
-  // Botón «?» + panel desplegable con la explicación de la casilla (aria-expanded / aria-controls, como en el formulario).
+  // Botón «?» + panel desplegable con la explicación de la casilla (Documentos.ayuda, el mismo de los certificados).
   function ayuda(c, cab, num, rotulo, textos) {
-    var id = "dam-ayuda-" + (++nAyuda);
-    var btn = el("button", "dam-ayuda-btn", "?");
-    btn.type = "button";
-    btn.setAttribute("aria-expanded", "false");
-    btn.setAttribute("aria-controls", id);
-    btn.setAttribute("aria-label", "Ayuda de la casilla " + (num ? num + " " : "") + rotulo);
-    cab.appendChild(btn);
-    var panel = el("div", "dam-ayuda");
-    panel.id = id;
-    panel.hidden = true;
-    textos.filter(Boolean).forEach(function (t) { panel.appendChild(el("p", null, t)); });
-    c.appendChild(panel);
-    btn.addEventListener("click", function () {
-      var abierto = btn.getAttribute("aria-expanded") === "true";
-      btn.setAttribute("aria-expanded", abierto ? "false" : "true");
-      panel.hidden = abierto;
-    });
+    D.ayuda(cab, c, "Ayuda de la casilla " + (num ? num + " " : "") + rotulo, textos);
   }
 
   // RS 129-2026 (CC RS129 art. 1): único cambio de la copia local, párrafo final de IT A 7.35. La nota solo va en las

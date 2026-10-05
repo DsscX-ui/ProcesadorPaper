@@ -412,6 +412,13 @@ var Calculos = (function () {
       vgm: vgm,
       fleteBl: fleteBl,
       seguro: seguro,
+      // Países de embarque y de destino (PLAN §4 C): prefijo del UN/LOCODE de cada puerto [H*]; vacío si el puerto no
+      // tiene UN/LOCODE. Un solo cálculo: lo usan el Formato B (5.8), las series de exportación (S 7.27) y el
+      // certificado de origen (F9, «país de destino»).
+      ruta: {
+        paisEmbarque: (op.generales.ruta.puertoEmbarque.locode || "").slice(0, 2),
+        paisDestino: (op.generales.ruta.puertoDescarga.locode || "").slice(0, 2)
+      },
       factura: { desglose: desgloseFactura() },
       avisos: avisos,
       repartosIguales: {}    // concepto → true si se repartió en partes iguales por base cero (C01)
@@ -633,7 +640,7 @@ var Calculos = (function () {
     var pd = g.comercial.pagoDiferido;
     r.formatoB = {
       seccion8: seccion8,
-      paisEmbarque: (g.ruta.puertoEmbarque.locode || "").slice(0, 2),
+      paisEmbarque: r.ruta.paisEmbarque,
       versionIncoterm: "4",
       pagoDiferidoParcial: g.comercial.modalidadPago !== "2" || pd.porcentaje == null ? "" : (pd.porcentaje < 100 ? "1" : "2")
     };
@@ -668,7 +675,7 @@ var Calculos = (function () {
     });
 
     // Series (IT B 7.1, 7.27): subpartida y país de destino.
-    var destino = (op.generales.ruta.puertoDescarga.locode || "").slice(0, 2);
+    var destino = r.ruta.paisDestino;
     var series = agrupar(items, function (i) { return op.especificos.items[i].subpartida + "|" + destino; });
     series.forEach(function (s) {
       var its = s.items.map(function (i) { return items[i]; });

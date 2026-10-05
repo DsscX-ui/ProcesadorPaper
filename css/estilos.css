@@ -425,6 +425,11 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .doc-tabla-traza td:nth-child(n+3):nth-child(-n+9) { text-align: center; }
 .doc-tabla-traza .doc-fuente { font-size: 6pt; color: #333; min-width: 22mm; }
 .doc-tabla-matriz { font-size: 6.8pt; }
+/* Cuadro de cuadre (F9: con SEG o CO tiene una columna más): encabezados que pueden partirse y letra algo menor, para que
+   quepa en el ancho útil de A4 y Chrome no reduzca todo el PDF de «Imprimir todos». */
+.doc-tabla-cuadre { font-size: 7pt; }
+.doc-tabla-cuadre th.num { white-space: normal; }
+.doc-tabla-cuadre th, .doc-tabla-cuadre td { padding: 0.6mm 0.8mm; }
 .doc-elegido td { background: #fff3b0; font-weight: 700; }
 .doc-ok { color: #1a7f37; font-weight: 700; }
 .doc-mal { color: #b42318; font-weight: 700; }
@@ -490,6 +495,20 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .dam-tabla-c th, .dam-tabla-c td { padding: 0.5mm 0.7mm; }
 .dam-c-cuenta { font-variant-numeric: tabular-nums; }
 .dam-fuera { border: 1.2pt dashed #b45309; background: #fffbeb; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+/* F9: certificados de seguro (SEG) y de origen (CO). Datos en blanco (D17) con ayuda «?» junto al rótulo. */
+.doc-datos dt:has(> .dam-ayuda-btn) { display: flex; align-items: flex-start; gap: 0 1mm; }
+.doc-datos dt > .doc-rot { flex: 1 1 auto; min-width: 0; }
+.doc-datos dt .dam-ayuda-btn { margin-top: 0.3mm; }
+.doc-datos dd .dam-ayuda { font-weight: 400; }
+.doc-datos dd[data-estado="en-blanco"] { min-height: 3.5mm; border-bottom: 0.4pt dotted #9aa0a6; }
+.doc-pv-motivo { font-size: 7pt; color: #5b4400; }
+.doc-adv { margin: 1.5mm 0; padding: 1.2mm 2mm; font-size: 7.6pt; background: #fffbeb; border-left: 2pt solid #b45309; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.doc-referencial { font-size: 8.5pt; text-align: left; letter-spacing: 0.02em; }
+.doc-referencial .doc-linea { font-weight: 400; letter-spacing: 0; color: #5b4400; }
+.doc-firma-caja p { margin: 1mm 0; }
+.doc-firma-caja .doc-linea-firma { margin-top: 6mm; }
+.doc-sin-borde { border: none; padding: 0; margin: 0; }
+.doc-origen td:nth-child(2) { min-width: 18mm; }
 
 @media print {
   .documentos { border: none; padding: 0; margin: 0; background: none; }

@@ -1,0 +1,63 @@
+F9 — verificación (Chrome headless, 05-10-2026 14:11)
+
+pruebas.html:
+744 de 744 pruebas correctas
+ERRORES: ninguno
+
+index.html, ambos casos, todas las pestañas a 1280 y 390 px:
+caso 1 @1280 «FC»: desborde=false
+caso 1 @1280 «PL»: desborde=false
+caso 1 @1280 «IE»: desborde=false
+caso 1 @1280 «B/L»: desborde=false
+caso 1 @1280 «VGM»: desborde=false
+caso 1 @1280 «DAM A»: desborde=false
+caso 1 @1280 «DAM A1»: desborde=false
+caso 1 @1280 «DAM B»: desborde=false
+caso 1 @1280 «DAM B1»: desborde=false
+caso 1 @1280 «DAM C»: desborde=false
+caso 1 @1280 «SEG»: desborde=false
+caso 1 SEG: foco en «?»=true; Enter abre la ayuda=true
+caso 1 @1280 «HR»: desborde=false
+caso 1 @1280: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, DAM B, DAM B1, DAM C, SEG, HR; errores de consola=ninguno
+caso 1 @390 «FC»: desborde=false
+caso 1 @390 «PL»: desborde=false
+caso 1 @390 «IE»: desborde=false
+caso 1 @390 «B/L»: desborde=false
+caso 1 @390 «VGM»: desborde=false
+caso 1 @390 «DAM A»: desborde=false
+caso 1 @390 «DAM A1»: desborde=false
+caso 1 @390 «DAM B»: desborde=false
+caso 1 @390 «DAM B1»: desborde=false
+caso 1 @390 «DAM C»: desborde=false
+caso 1 @390 «SEG»: desborde=false
+caso 1 @390 «HR»: desborde=false
+caso 1 @390: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, DAM B, DAM B1, DAM C, SEG, HR; errores de consola=ninguno
+caso 2 @1280 «FC»: desborde=false
+caso 2 @1280 «PL»: desborde=false
+caso 2 @1280 «IE»: desborde=false
+caso 2 @1280 «B/L»: desborde=false
+caso 2 @1280 «VGM»: desborde=false
+caso 2 @1280 «DAM A»: desborde=false
+caso 2 @1280 «DAM A1»: desborde=false
+caso 2 @1280 «CO»: desborde=false
+caso 2 CO: foco en «?»=true; Enter abre la ayuda=true
+caso 2 @1280 «HR»: desborde=false
+caso 2 @1280: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, CO, HR; errores de consola=ninguno
+caso 2 @390 «FC»: desborde=false
+caso 2 @390 «PL»: desborde=false
+caso 2 @390 «IE»: desborde=false
+caso 2 @390 «B/L»: desborde=false
+caso 2 @390 «VGM»: desborde=false
+caso 2 @390 «DAM A»: desborde=false
+caso 2 @390 «DAM A1»: desborde=false
+caso 2 @390 «CO»: desborde=false
+caso 2 @390 «HR»: desborde=false
+caso 2 @390: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, CO, HR; errores de consola=ninguno
+
+PDF (A4, «Página X de Y» en cada página):
+  f9-caso1-seguro.pdf: Pages: 2
+  f9-caso1-todos.pdf: Pages: 20
+  f9-caso2-origen.pdf: Pages: 2
+  f9-caso2-todos.pdf: Pages: 13
+
+Nota: en «Imprimir todos» Chrome reduce todo el PDF a ~89 % por la tabla de la lista de empaque (ya pasaba en F8c; queda para F10). El cuadro de cuadre de la hoja resumen ya no desborda (F9). Los PDF de un solo documento (seguro, origen) salen a tamaño real.

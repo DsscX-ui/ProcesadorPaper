@@ -139,22 +139,95 @@ var Documentos = (function () {
     return s;
   }
 
-  // Lista de datos «rótulo: valor» en una caja. filas: [[es, en, valor (texto o nodo)], …]
+  // Botón «?» + panel desplegable con una explicación (aria-expanded / aria-controls; teclado y toque, el mismo patrón
+  // del formulario). Lo usan las casillas de la DAM (F8a.3) y los datos de los certificados (F9). No se imprime.
+  // cab: dónde va el botón; contenedor: dónde va el panel; etiqueta: nombre accesible del botón.
+  var nAyuda = 0;
+  function ayuda(cab, contenedor, etiqueta, textos) {
+    var id = "dam-ayuda-" + (++nAyuda);
+    var btn = el("button", "dam-ayuda-btn", "?");
+    btn.type = "button";
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-controls", id);
+    btn.setAttribute("aria-label", etiqueta);
+    cab.appendChild(btn);
+    var panel = el("div", "dam-ayuda");
+    panel.id = id;
+    panel.hidden = true;
+    textos.filter(Boolean).forEach(function (t) { panel.appendChild(el("p", null, t)); });
+    contenedor.appendChild(panel);
+    btn.addEventListener("click", function () {
+      var abierto = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", abierto ? "false" : "true");
+      panel.hidden = abierto;
+    });
+    return btn;
+  }
+
+  // Lista de datos «rótulo: valor» en una caja. filas: [[es, en, valor (texto o nodo), opciones], …]
+  // opciones (F9): { blanco: true → un valor vacío queda EN BLANCO (D17) en lugar de «—»; ayuda: [textos] → botón «?»
+  // junto al rótulo con la explicación (el motivo de la casilla en blanco, de dónde sale el dato…) }.
   function datos(titulo, filas, clase) {
     var caja = el("section", "doc-caja" + (clase ? " " + clase : ""));
     if (titulo) { caja.appendChild(el("h4", null)).appendChild(rotulo(titulo[0], titulo[1])); }
     var dl = el("dl", "doc-datos");
     filas.forEach(function (f) {
       if (!f) { return; }
+      var o = f[3] || {};
       var dt = el("dt");
       dt.appendChild(rotulo(f[0], f[1]));
       var dd = el("dd");
-      if (f[2] && f[2].nodeType) { dd.appendChild(f[2]); } else { dd.textContent = f[2] == null || f[2] === "" ? "—" : String(f[2]); }
+      if (f[2] && f[2].nodeType) { dd.appendChild(f[2]); }
+      else if (f[2] == null || f[2] === "") { if (o.blanco) { dd.setAttribute("data-estado", "en-blanco"); } else { dd.textContent = "—"; } }
+      else { dd.textContent = String(f[2]); }
+      if (o.ayuda && o.ayuda.filter(Boolean).length) { ayuda(dt, dd, "Ayuda: " + f[0], o.ayuda); }
       dl.appendChild(dt);
       dl.appendChild(dd);
     });
     caja.appendChild(dl);
     return caja;
+  }
+
+  // Fila de datos de un certificado (F9) para el campo «ruta» del formulario: nada se inventa.
+  //  - con valor: el texto (o nodo) con la marca del dato si es H* o PV (o.efectiva: también la de su campo o lista);
+  //  - vacío y marcado PV en la operación: «POR VERIFICAR» visible (también impreso) con la nota de la marca;
+  //  - vacío sin marca: EN BLANCO (D17) y el motivo en la ayuda «?».
+  // o: { efectiva, motivo (por qué puede estar vacío), ayuda: [textos para un dato con valor] }.
+  function filaDato(ctx, es, en, ruta, valor, o) {
+    o = o || {};
+    var vacio = valor == null || valor === "";
+    if (vacio) {
+      var m = ctx.op.marcas[ruta];
+      if (m && m.marca === "PV") {
+        var pv = el("span", "doc-pv");
+        pv.appendChild(etiquetaMarca("PV", m.nota));
+        if (m.nota) { pv.appendChild(el("span", "doc-pv-motivo", " " + m.nota)); }
+        return [es, en, pv, { ayuda: ["Dato vacío a propósito y marcado POR VERIFICAR en la operación: no es un error (PLAN §7, E01) y no se inventa."].concat(o.ayuda || []) }];
+      }
+      return [es, en, "", { blanco: true, ayuda: ["En blanco: el dato no está en el formulario (D17: no se inventa)." + (o.motivo ? " " + o.motivo : "")] }];
+    }
+    var nodo = o.efectiva ? conMarca(ctx, valor, ruta) : el("span");
+    if (!o.efectiva) {
+      if (valor.nodeType) { nodo.appendChild(valor); } else { nodo.textContent = String(valor); }
+      var mm = marcaDato(ctx, ruta);
+      if (mm) { nodo.appendChild(document.createTextNode(" ")); nodo.appendChild(mm); }
+    }
+    return [es, en, nodo, { ayuda: o.ayuda }];
+  }
+
+  // Advertencias de la revisión con ese ID (A11, A13…): las plantillas las MUESTRAN; no repiten la regla (validaciones.js).
+  function advertencias(ctx, id) {
+    return ((ctx.rv && ctx.rv.advertencias) || []).filter(function (h) { return h.id === id; });
+  }
+
+  // Recuadro con una advertencia de la revisión dentro del documento (no bloquea): «⚠ A11 · título: qué pasa» + marca.
+  function avisoRevision(h) {
+    var p = el("p", "doc-adv");
+    p.setAttribute("data-aviso", h.id);
+    p.appendChild(el("strong", null, "⚠ " + h.id + " · " + h.titulo + ": "));
+    p.appendChild(document.createTextNode(h.que + " "));
+    p.appendChild(etiquetaMarca(h.marca, h.fuente ? "Fuente: " + h.fuente : ""));
+    return p;
   }
 
   // Tabla del documento. columnas: [{ es, en, num (alinear a la derecha), clase }]; filas: listas de textos o nodos.
@@ -424,7 +497,7 @@ var Documentos = (function () {
     // utilidades para las plantillas
     el: el, rotulo: rotulo, etiquetaMarca: etiquetaMarca, marcaDato: marcaDato, marcaEfectiva: marcaEfectiva, etiquetaEfectiva: etiquetaEfectiva,
     conMarca: conMarca, puertoMarcado: puertoMarcado, sa6Marcado: sa6Marcado, subpartidaMarcada: subpartidaMarcada, estadoSubpartida: estadoSubpartida, hayPvSubpartida: hayPvSubpartida, cifra: cifra,
-    datos: datos, tabla: tabla, hoja: hoja, parte: parte, idFiscal: idFiscal,
+    datos: datos, filaDato: filaDato, ayuda: ayuda, advertencias: advertencias, avisoRevision: avisoRevision, tabla: tabla, hoja: hoja, parte: parte, idFiscal: idFiscal,
     consignatario: consignatario, notify: notify, embarcador: embarcador, clasesBulto: clasesBulto, contenedor: contenedor,
     fecha: fecha, fechaHora: fechaHora, enteroEnLetras: enteroEnLetras, opcion: opcion, sa6: sa6, precio: precio, puerto: puerto, enLetras: enLetras
   };

@@ -61,10 +61,14 @@
   }
 
   // Compara lo que muestra cada documento con el cálculo. Devuelve { filas, docs, todoCuadra }.
+  // Solo hay columna para los documentos que muestran alguna de esas cifras (F8b: las hojas DAM B y B1 no muestran
+  // bultos, pesos ni contenedor; sin este filtro la tabla no cabe en A4 y Chrome reduce todo el PDF).
   function cuadre(ctx) {
-    var docs = ctx.generados.map(function (g) { return { def: g.def, cifras: D.cifras(g.hoja) }; });
+    var lista = esperadas(ctx);
+    var docs = ctx.generados.map(function (g) { return { def: g.def, cifras: D.cifras(g.hoja) }; })
+      .filter(function (d) { return lista.some(function (e) { return e[0] in d.cifras; }); });
     var todo = true;
-    var filas = esperadas(ctx).map(function (e) {
+    var filas = lista.map(function (e) {
       var celdas = docs.map(function (d) { return e[0] in d.cifras ? d.cifras[e[0]] : null; });
       var mostradas = celdas.filter(function (x) { return x !== null; });
       var ok = mostradas.every(function (x) { return x === e[3]; });
@@ -123,7 +127,7 @@
       return celdas;
     }), { clase: "doc-tabla-cuadre" }));
     s2.appendChild(el("p", "doc-nota", (cq.todoCuadra ? "✔ Todo cuadra: " : "✘ Hay diferencias: ") +
-      "cada columna es la cifra que MUESTRA ese documento (leída de la hoja generada); «·» = ese documento no la muestra. " +
+      "cada columna es la cifra que MUESTRA ese documento (leída de la hoja generada); «·» = ese documento no la muestra; los que no muestran ninguna de estas cifras no tienen columna. " +
       "Documentos: " + cq.docs.map(function (d) { return d.def.codigo + " = " + d.def.es; }).join(" · ") + ". " +
       "Todas salen de un único cálculo (calculos.js), por eso coinciden."));
     if (imp && r.factura.desglose.lineas.length) {

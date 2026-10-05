@@ -35,6 +35,7 @@
   <script src="js/documentos/packing.js"></script>
   <script src="js/documentos/bl.js"></script>
   <script src="js/documentos/dam_a.js"></script>
+  <script src="js/documentos/dam_b.js"></script>
   <script src="js/documentos/resumen.js"></script>
   <script>
   /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
@@ -1178,7 +1179,7 @@
     [["caso1", "4,489.00"], ["caso2", "3,788.00"]].forEach(function (c) {
       var x = documentosDe(ejemplo(c[0]));
       var pl = x.porId.packing.cifras;
-      prueba(c[0] + ": orden de los documentos", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1,resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
+      prueba(c[0] + ": orden de los documentos (F8b: B y B1 solo en la importación)", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1," + (c[0] === "caso1" ? "dam_b,dam_b1," : "") + "resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
       ["instrucciones", "bl"].forEach(function (id) {
         var k = x.porId[id].cifras;
         prueba(c[0] + " · " + id + ": bultos, peso bruto, volumen, contenedor y precinto = PL",
@@ -1530,6 +1531,153 @@
       prueba("M2 · el botón recibe el foco y abre/cierra la ayuda", "true | true · true | false · false", String(foco) + " | " + abierto + " | " + cerrado);
       prueba("M2 · las casillas siguen EN BLANCO (D17): el motivo no está en el área de valor", "false",
         String(hojas.some(function (h) { return Array.prototype.some.call(h.querySelectorAll(".dam-valor"), function (v) { return /No llenar|No aplica|Reservada|\[verificar\]/.test(v.textContent); }); })));
+    })();
+
+    grupo("F8b. DAM Formato B (+B1) = PLAN §9.1", "Declaración del valor, solo importación. Se leen las casillas que MUESTRA la hoja (data-casilla; ítems en data-item). Cifras con 6 decimales (IT IV.3): 18,123.870 de §9.1 se escribe 18,123.870000. B1 solo con más de 2 ítems (IT IV.1).");
+    (function () {
+      // Casilla de una hoja B. item: número de ítem o null (rubros 1–4, 6–8).
+      function casB(hoja, item, num) {
+        var raiz = item ? hoja.querySelector('[data-item="' + item + '"]') : hoja;
+        if (!raiz) { return null; }
+        return Array.prototype.filter.call(raiz.querySelectorAll('[data-casilla="' + num + '"]'), function (n) {
+          return !!item || !n.closest("[data-item]");
+        })[0] || null;
+      }
+      // Valor visible sin las marcas pequeñas (S, PV), con las líneas separadas por « | ».
+      function valB(hoja, item, num) {
+        var n = casB(hoja, item, num);
+        if (!n) { return "(no está)"; }
+        var v = n.querySelector(".dam-valor").cloneNode(true);
+        Array.prototype.forEach.call(v.querySelectorAll(".dam-mini"), function (m) { m.remove(); });
+        return v.textContent.replace(/\s+/g, " ").trim();
+      }
+      function miniS(hoja, item, num) { var n = casB(hoja, item, num); return !!n && !!n.querySelector(".dam-valor .dam-mini .marca-s"); }
+      var o1 = ejemplo("caso1"), antes = JSON.stringify(o1);
+      var x = documentosDe(o1), b = x.porId.dam_b && x.porId.dam_b.hoja, b1 = x.porId.dam_b1 && x.porId.dam_b1.hoja;
+      prueba("Caso 1 (3 ítems): se generan el Formato B y el B1 (IT IV.1: más de 2 ítems)", "true · true", String(!!b) + " · " + String(!!b1));
+      prueba("La plantilla no modifica la operación", "true", String(JSON.stringify(o1) === antes));
+      prueba("El Formato B lleva los ítems 1 y 2; el B1, el ítem 3", "1,2 | 3",
+        Array.prototype.map.call(b.querySelectorAll("[data-item]"), function (n) { return n.getAttribute("data-item"); }).join(",") + " | " +
+        Array.prototype.map.call(b1.querySelectorAll("[data-item]"), function (n) { return n.getAttribute("data-item"); }).join(","));
+
+      // FOB unitario (5.9) y FOB del ítem: §9.1.
+      prueba("5.9 FOB unitario por ítem = §9.1 (17.635500 · 21.705231 · 3.707978)", "17.635500 · 21.705231 · 3.707978",
+        [valB(b, 1, "5.9"), valB(b, 2, "5.9"), valB(b1, 3, "5.9")].join(" · "));
+      prueba("FOB del ítem = §9.1 (3,527.100 · 3,472.837 · 11,123.933 residuo), con 6 decimales", "3,527.100000 · 3,472.837000 · 11,123.933000",
+        [x.porId.dam_b.cifras.bFobItem1, x.porId.dam_b.cifras.bFobItem2, x.porId.dam_b1.cifras.bFobItem3].join(" · "));
+      prueba("5.9 = lo que calcula calculos.js (sin recalcular en la plantilla)", "true", String([0, 1, 2].every(function (i) {
+        return x.porId[i < 2 ? "dam_b" : "dam_b1"].cifras["bFobUnitario" + (i + 1)] === F.damB(x.r.items[i].fobUnitario);
+      })));
+      prueba("5.10 ajuste unitario = 0.000000 (caso 1 sin ajustes)", "0.000000 · 0.000000 · 0.000000", [valB(b, 1, "5.10"), valB(b, 2, "5.10"), valB(b1, 3, "5.10")].join(" · "));
+
+      // Sección 8 (§9.1): 8.1.1 = Vc; 8.3.1 = flete; 8.4 = prima; FOB total = A 6.1.
+      prueba("8.1.1 · 8.3.1 · 8.4 = 20,040.000000 · 1,850.000000 · 66.130000 (§9.1: Vc, flete 1,850.000, prima 66.130)", "20,040.000000 · 1,850.000000 · 66.130000",
+        [valB(b, null, "8.1.1"), valB(b, null, "8.3.1"), valB(b, null, "8.4")].join(" · "));
+      prueba("FOB total (IT C 5.9, CIF) = 18,123.870000 (§9.1: 18,123.870) = A 6.1", "18,123.870000 · true",
+        x.porId.dam_b.cifras.bFobTotal + " · " + String(x.porId.dam_b.cifras.bFobTotal.replace(/0+$/, "") === x.porId.dam_a.cifras.dam61.replace(/0+$/, "")));
+      prueba("Cuadro didáctico: FOB total = 8.1.1 − 8.3.1 − 8.4 (los términos en 0 no se escriben)", "true",
+        String(/= 20,040\.000000 − 1,850\.000000 − 66\.130000 = 18,123\.870000/.test(b.querySelector(".dam-didactico").textContent)));
+      var otros8 = ["8.1.2", "8.1.3", "8.1.4", "8.1.5", "8.1.6", "8.2.1", "8.2.2", "8.2.3.1", "8.2.3.2", "8.2.3.3", "8.2.3.4", "8.2.4", "8.2.5", "8.3.2", "8.5.1", "8.5.2", "8.5.3", "8.5.4", "8.5.5"];
+      prueba("El resto de la sección 8 (montos 0) queda EN BLANCO, con el motivo en la ayuda «?»", "19 · true",
+        otros8.filter(function (n) { return valB(b, null, n) === ""; }).length + " · " + String(otros8.every(function (n) { var c = casB(b, null, n); return !!c.querySelector(".dam-ayuda-btn") && /Sin monto/.test(c.querySelector(".dam-ayuda").textContent); })));
+      prueba("8.1.2, 8.1.3 y 8.1.5: rótulo POR VERIFICAR (no figura en la copia del instructivo); 8.1.4 y 8.1.6 con el rótulo de IT C", "true · true · true · Otros descuentos no aceptables · Otros",
+        ["8.1.2", "8.1.3", "8.1.5"].map(function (n) { return String(!!casB(b, null, n).querySelector(".dam-rot .marca-pv")); }).join(" · ") + " · " +
+        casB(b, null, "8.1.4").querySelector(".dam-rot").textContent + " · " + casB(b, null, "8.1.6").querySelector(".dam-rot").textContent);
+      prueba("Totales de la sección 8 (base de cálculo, adiciones, transporte, deducciones): en blanco, reservados", "4 · true",
+        b.querySelectorAll('.dam-seccion8 [data-estado="reservada"]').length + " · " + String(Array.prototype.every.call(b.querySelectorAll('.dam-seccion8 [data-estado="reservada"]'), function (n) { return n.querySelector(".dam-valor").textContent === "" && /uso posterior/.test(n.title); })));
+
+      // Rubros 1 a 4 y datos del ítem.
+      prueba("1.1 · 1.2 · 1.3 (nivel comercial, supuesto del caso)", "Importadora Didáctica Andina S.A.C. — FICTICIA · 4 — RUC 20000000001 · 2 — Mayorista · S",
+        [valB(b, null, "1.1"), valB(b, null, "1.2"), valB(b, null, "1.3")].join(" · ") + (miniS(b, null, "1.3") ? " · S" : ""));
+      prueba("Rubro 2: «NO NUMERADA»", "NO NUMERADA", valB(b, null, "2"));
+      prueba("3.1 · 3.2 · 3.3 · 3.4 · 3.5 del proveedor", "Ningbo Ejemplo Electric Co., Ltd. — FICTICIA · 1 — Fabricante · No. 1 Example Road, Beilun · Ningbo, Zhejiang · CN — China H*",
+        ["3.1", "3.2", "3.3", "3.4", "3.5"].map(function (n) { return valB(b, null, n); }).join(" · "));
+      prueba("3.6 teléfono y 3.9 correo vacíos (opcionales) → en blanco", "«» · «»", "«" + valB(b, null, "3.6") + "» · «" + valB(b, null, "3.9") + "»");
+      prueba("4.1 naturaleza 11 · 4.2 forma de envío 1/1 · a) medio de pago 09 · b) banco con código en blanco y PV pequeña", "true · 1/1 · 09 — Transferencias de fondos · true",
+        String(/^11 — Compra\/venta a precio firme/.test(valB(b, null, "4.1"))) + " · " + valB(b, null, "4.2") + " · " + valB(b, null, "a)") + " · " +
+        String(/Banco Didáctico — FICTICIO\s*Código:$/.test(valB(b, null, "b)")) && !!casB(b, null, "b)").querySelector(".dam-mini .marca-pv")));
+      prueba("Pago diferido (g–k) en blanco: el caso 1 es pago anticipado (modalidad 6)", "true",
+        String(["g)", "h)", "i)", "j)", "k)"].every(function (n) { return valB(b, null, n) === "" && /modalidad de pago 2/.test(casB(b, null, n).title); })));
+      prueba("Ítem 1: 5.1 · 5.2 · 5.3 · 5.4 · 5.5", "1/3 · VEN-2026-0457 · 05 10 2026 · CIF – Callao – 4 H* · USD",
+        ["5.1", "5.2", "5.3", "5.4", "5.5"].map(function (n) { return valB(b, 1, n); }).join(" · "));
+      prueba("Ítem 1: 5.6 · 5.7 · 5.8 · 5.11 · 5.16", "1 — Valor definitivo · CN — China H* · CN — China H* · 200 U · 10 — Nuevo / Bueno",
+        ["5.6", "5.7", "5.8", "5.11", "5.16"].map(function (n) { return valB(b, 1, n); }).join(" · "));
+      prueba("Ítem 3 (B1): 5.12 · 5.13 · 5.14 · 5.11", "Cargador USB-C · EJEMPLO · CG-20 · 3,000 U", ["5.12", "5.13", "5.14", "5.11"].map(function (n) { return valB(b1, 3, n); }).join(" · "));
+      prueba("5.19 = descripción del ítem; 5.15, 5.17, 5.18 y 5.20 en blanco", "true · true",
+        String(valB(b, 1, "5.19") === o1.especificos.items[0].descripcion) + " · " + String(["5.15", "5.17", "5.18", "5.20"].every(function (n) { return valB(b, 1, n) === ""; })));
+
+      // Rubros 6 y 7 (D1, D7).
+      prueba("6.1 = 2 — No; 6.2 a 6.7 en blanco (solo si 6.1 = Sí)", "2 — No · true",
+        valB(b, null, "6.1") + " · " + String(["6.2", "6.3", "6.4", "6.5", "6.6", "6.7"].every(function (n) { return valB(b, null, n) === "" && /6\.1 = Sí/.test(casB(b, null, n).title); })));
+      prueba("7.4 = 1 — Sí con «S» pequeña (D1, D7)", "1 — Sí · true", valB(b, null, "7.4") + " · " + String(miniS(b, null, "7.4")));
+      prueba("7.2, 7.3 y 7.6 en blanco (solo si 7.1 o 7.5 = Sí)", "«» «» «» · true",
+        ["7.2", "7.3", "7.6"].map(function (n) { return "«" + valB(b, null, n) + "»"; }).join(" ") + " · " + String(/Solo si 7\.1 = Sí/.test(casB(b, null, "7.2").title) && /Solo si 7\.5 = Sí/.test(casB(b, null, "7.6").title)));
+      prueba("Las demás preguntas (7.1, 7.5, 7.7–7.14) = 2 — No, como supuesto del ejemplo (S)", "10 · true",
+        ["7.1", "7.5", "7.7", "7.8", "7.9", "7.10", "7.11", "7.12", "7.13", "7.14"].filter(function (n) { return valB(b, null, n) === "2 — No"; }).length + " · " +
+        String(["7.1", "7.5", "7.7", "7.14"].every(function (n) { return miniS(b, null, n); })));
+      prueba("7.15 no se llena; 7.16–7.20 reservadas (en blanco)", "no-llenar · reservada · «»",
+        casB(b, null, "7.15").getAttribute("data-estado") + " · " + casB(b, null, "7.16–7.20").getAttribute("data-estado") + " · «" + valB(b, null, "7.15") + valB(b, null, "7.16–7.20") + "»");
+
+      // Reglas D17/D18 y forma de la hoja.
+      prueba("D17 · ninguna casilla del B o B1 muestra el motivo dentro; sin relleno gris", "false · false",
+        String([b, b1].some(function (h) { return Array.prototype.some.call(h.querySelectorAll(".dam-valor"), function (v) { return /No llenar|No aplica|Reservada|uso posterior|Sin monto/.test(v.textContent); }); })) + " · " +
+        String(!!(b.querySelector(".dam-gris") || b1.querySelector(".dam-gris"))));
+      prueba("Cada casilla numerada muestra su número y una fuente de IT C", "true", String([b, b1].every(function (h) {
+        return Array.prototype.every.call(h.querySelectorAll("[data-casilla]"), function (n) {
+          var num = n.getAttribute("data-casilla");
+          return /Fuente: /.test(n.querySelector(".dam-fuente").textContent) && (num === "" || n.querySelector(".dam-num").textContent === num);
+        });
+      })));
+      prueba("Toda casilla en blanco por estado tiene ayuda «?» accesible", "true", String([b, b1].every(function (h) {
+        return Array.prototype.every.call(h.querySelectorAll("[data-estado]"), function (n) { return !!n.querySelector(".dam-cas-cab .dam-ayuda-btn[aria-controls]"); });
+      })));
+      prueba("La DAM B dice «DIDÁCTICO» y tiene marca de agua", "true", String(/DOCUMENTO DIDÁCTICO – NO VÁLIDO/.test(b.textContent) && !!b.querySelector(".doc-marca-agua")));
+
+      // B1 según la cantidad de ítems.
+      function sinItem(o, k) {
+        o.especificos.items.splice(k, 1);
+        Object.keys(o.marcas).forEach(function (r) { if (r.indexOf("especificos.items." + k + ".") === 0) { delete o.marcas[r]; } });
+        return o;
+      }
+      var dos = documentosDe(sinItem(ejemplo("caso1"), 2));
+      prueba("Con 2 ítems (se quita el 3): B sí, B1 no; 5.1 = 1/2 y 2/2; sin errores", "0 · true · false · 1/2 · 2/2",
+        dos.rv.errores.length + " · " + String(!!dos.porId.dam_b) + " · " + String(!!dos.porId.dam_b1) + " · " + valB(dos.porId.dam_b.hoja, 1, "5.1") + " · " + valB(dos.porId.dam_b.hoja, 2, "5.1"));
+      var uno = documentosDe(sinItem(sinItem(ejemplo("caso1"), 2), 1));
+      prueba("Con 1 ítem: B con su ítem 1/1, sin B1", "true · false · 1/1", String(!!uno.porId.dam_b) + " · " + String(!!uno.porId.dam_b1) + " · " + valB(uno.porId.dam_b.hoja, 1, "5.1"));
+      var cuatro = ejemplo("caso1"); cuatro.especificos.items.push(Modelo.clonar(cuatro.especificos.items[2]));
+      var d4 = documentosDe(cuatro);
+      prueba("Con 4 ítems: el B1 lleva los ítems 3 y 4 (4/4)", "0 · 3,4 · 4/4", d4.rv.errores.length + " · " +
+        Array.prototype.map.call(d4.porId.dam_b1.hoja.querySelectorAll("[data-item]"), function (n) { return n.getAttribute("data-item"); }).join(",") + " · " + valB(d4.porId.dam_b1.hoja, 4, "5.1"));
+
+      // Exportación y errores.
+      var y = documentosDe(ejemplo("caso2"));
+      prueba("Caso 2 (exportación): no se genera el Formato B ni el B1", "false · false", String(!!y.porId.dam_b) + " · " + String(!!y.porId.dam_b1));
+      var w = ejemplo("caso1"); w.especificos.items[0].pesoBrutoBulto = 1;
+      prueba("Con errores (E05) no se genera el Formato B", "true · false", String(documentosDe(w).gen.bloqueado) + " · " + String(!!documentosDe(w).porId.dam_b));
+
+      // Mutaciones: ajustes, pago a crédito, intermediario y vinculación.
+      var aj = ejemplo("caso1"); aj.especificos.valoracion.comisiones821 = 100;
+      var da = documentosDe(aj), ba = da.porId.dam_b.hoja;
+      prueba("Con comisiones 8.2.1 = 100: 8.2.1 = 100.000000; 5.10 = ajuste unitario de calculos.js; A 6.4 = 100.000", "100.000000 · true · 100.000",
+        valB(ba, null, "8.2.1") + " · " + String([1, 2].every(function (k) { return valB(ba, k, "5.10") === F.damB(da.r.items[k - 1].ajusteUnitario); }) && valB(ba, 1, "5.10") !== "0.000000") + " · " + da.porId.dam_a.cifras.dam64);
+      var cr = ejemplo("caso1"); cr.generales.comercial.modalidadPago = "2";
+      cr.generales.comercial.pagoDiferido = { porcentaje: 100, plazoDias: 30, evento: "01", fecha: "" };
+      var bc = documentosDe(cr).porId.dam_b.hoja;
+      prueba("Pago a crédito (modalidad 2, 100 % a 30 días del embarque): g) · h) · i) · j)", "2 — No · 100 % · 30 días · 01 — Fecha del embarque",
+        ["g)", "h)", "i)", "j)"].map(function (n) { return valB(bc, null, n); }).join(" · "));
+      cr.generales.comercial.pagoDiferido.porcentaje = 70;
+      prueba("Pago diferido parcial (70 %): g) = 1 — Sí", "1 — Sí", valB(documentosDe(cr).porId.dam_b.hoja, null, "g)"));
+      var im = ejemplo("caso1"); im.generales.valor.intermediario = { hubo: "1", nombre: "Agente Ejemplo — FICTICIO", direccion: "Calle 1", ciudad: "Shanghái", pais: "CN", tipo: "1", contacto: "agente@ejemplo.test" };
+      im.generales.valor.rubro7.p7_1 = "1"; im.generales.valor.rubro7.p7_2 = "2"; im.generales.valor.rubro7.p7_3 = "2";
+      var bi = documentosDe(im).porId.dam_b.hoja;
+      prueba("Con intermediario (6.1 = Sí) y vinculación (7.1 = Sí): 6.2 y 6.7 llenas; 7.2 y 7.3 respondidas", "Agente Ejemplo — FICTICIO · agente@ejemplo.test · 2 — No · 2 — No",
+        [valB(bi, null, "6.2"), valB(bi, null, "6.7"), valB(bi, null, "7.2"), valB(bi, null, "7.3")].join(" · "));
+      var cq = Documentos.cuadre(x.gen.ctx);
+      prueba("Hoja resumen: el cuadro de cuadre solo tiene columnas de documentos con cifras (sin DAM A1, B ni B1: así cabe en A4) y todo cuadra", "FC,PL,IE,B/L,VGM,DAM A · true",
+        cq.docs.map(function (d) { return d.def.codigo; }).join(",") + " · " + String(cq.todoCuadra));
+      var xss = ejemplo("caso1"); xss.generales.partes.vendedor.razonSocial = "<img src=x onerror=alert(1)>";
+      var bx = documentosDe(xss).porId.dam_b.hoja;
+      prueba("XSS: la razón social del proveedor se muestra como texto (sin crear <img>)", "true · 0", String(valB(bx, null, "3.1") === "<img src=x onerror=alert(1)>") + " · " + bx.querySelectorAll("img").length);
     })();
 
     // ============================================================ Pintar

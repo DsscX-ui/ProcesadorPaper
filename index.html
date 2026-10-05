@@ -103,14 +103,14 @@
       Elige un documento para verlo en una hoja A4; <strong>Imprimir este documento</strong> o <strong>Imprimir todos</strong> abre el diálogo del navegador
       (elige <em>Guardar como PDF</em> y tamaño A4). Al imprimir solo salen los documentos, nunca el formulario ni los paneles.
       Si la revisión tiene errores, los documentos no se generan; las advertencias sí dejan generarlos y la hoja resumen las lista.
-      La DAM ya trae el Formato A (y el A1 si hay más de una serie); luego llegan los Formatos B y C (F8b, F8c) y el seguro y el certificado de origen (F9).</p>
+      La DAM ya trae el Formato A (y el A1 si hay más de una serie) y, en la importación, el Formato B de la declaración del valor (y el B1 si hay más de 2 ítems); luego llegan el Formato C (F8c) y el seguro y el certificado de origen (F9).</p>
     <p id="estado-documentos" role="status" aria-live="polite"></p>
     <div id="vista-documentos"></div>
   </section>
 
   <section class="estado" aria-labelledby="estado-titulo">
     <h2 id="estado-titulo">Estado de la construcción</h2>
-    <p>Fase <strong>F8a</strong> hecha: DAM Formato A de ingreso y de salida, con hoja A1 cuando hay más de una serie (representación didáctica, casillas numeradas como en el instructivo). Revisada por Aarón en <strong>F8a.2</strong> (casillas que no se llenan en blanco, pesos con 2 decimales; en <strong>F8a.3</strong>, el motivo de cada casilla en blanco con el botón «?»). Siguiente: <strong>F8b</strong> (ver <code>PLAN.md</code>, §10).</p>
+    <p>Fase <strong>F8a</strong> hecha: DAM Formato A de ingreso y de salida, con hoja A1 cuando hay más de una serie (representación didáctica, casillas numeradas como en el instructivo). Revisada por Aarón en <strong>F8a.2</strong> (casillas que no se llenan en blanco, pesos con 2 decimales; en <strong>F8a.3</strong>, el motivo de cada casilla en blanco con el botón «?»). Fase <strong>F8b</strong> hecha: DAM Formato B (declaración del valor, solo importación), con hoja B1 cuando hay más de 2 ítems, y un cuadro que muestra cómo se llega al FOB unitario. Siguiente: <strong>F8c</strong> (Formato C; ver <code>PLAN.md</code>, §10).</p>
     <ol class="fases">
       <li class="hecha">F1 · Estructura y aviso didáctico</li>
       <li class="hecha">F2 · Datos, ejemplos y Guardar/Abrir (F2.1: correcciones de la auditoría)</li>
@@ -120,7 +120,8 @@
       <li class="hecha">F6 · Factura, lista de empaque y hoja resumen</li>
       <li class="hecha">F7 · Instrucciones de embarque, B/L y VGM (F7.1: correcciones de la auditoría)</li>
       <li class="hecha">F8a · DAM Formato A (ingreso y salida, con A1) — revisada (F8a.2, F8a.3)</li>
-      <li>F8b · DAM Formato B · F8c · DAM Formato C</li>
+      <li class="hecha">F8b · DAM Formato B (declaración del valor, con B1)</li>
+      <li>F8c · DAM Formato C</li>
       <li>F9 · Seguro y certificado de origen</li>
       <li>F10 · Impresión final y guía</li>
     </ol>
@@ -139,6 +140,7 @@
   <script src="js/documentos/packing.js"></script>
   <script src="js/documentos/bl.js"></script>
   <script src="js/documentos/dam_a.js"></script>
+  <script src="js/documentos/dam_b.js"></script>
   <script src="js/documentos/resumen.js"></script>
   <script src="js/pantalla.js"></script>
 </body>

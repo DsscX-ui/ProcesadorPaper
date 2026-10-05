@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18) y **F8a.3** (correcciones de la auditoría de F8a.2; `pruebas.html`: 620 de 620 pruebas correctas). **Fase actual: F8a revisada; F8b pendiente de lanzar.** Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18) **F8a.3** (correcciones de la auditoría de F8a.2) y **F8b** (DAM Formato B de la declaración del valor, con B1; `pruebas.html`: 663 de 663 pruebas correctas). **Fase actual: F8c (Formato C) pendiente de lanzar.** Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -884,7 +884,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | F6 ✔ | Factura comercial + lista de empaque + hoja resumen con tabla de trazabilidad | Imprimes a PDF; los totales cuadran con la hoja resumen |
 | F7 ✔ | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
 | **F8a** ✔ | **DAM Formato A** (ingreso y salida, con A1) | Series, casillas y valores = §9.1 y §9.2. **Pausa: revisión de Aarón antes de seguir.** Revisada en F8a.2 (D17, D18). |
-| F8b | DAM Formato B (+B1), solo con tu aprobación de F8a | FOB unitarios y sección 8 = §9.1 |
+| **F8b** ✔ | DAM Formato B (+B1), solo con tu aprobación de F8a | FOB unitarios y sección 8 = §9.1 |
 | F8c | DAM Formato C (liquidación) | Tributos = §9.1 |
 | F9 | Certificado de seguro + certificado de origen (condicionales) | Con FOB no hay seguro; con CIF sí; sin preferencia no hay CO |
 | F10 | Ajustes de impresión, `LEEME.md` (fuentes, fechas, límites) y revisión final | Generas los PDF de ambos casos de principio a fin |
@@ -992,6 +992,19 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
 - Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
 
+**DAM Formato B y B1 (F8b)** [S salvo donde se cita]
+
+- `js/documentos/dam_b.js` genera el **Formato B** (declaración del valor) y el **B1**, **solo en la importación** (en la exportación no hay Formato B [H: IT IV.1]). El B lleva los rubros 1–4, los **ítems 1 y 2**, los rubros 6, 7 y 8 y el «Declarante del Formato B»; el **B1**, los ítems 3 a N, y solo aparece con **más de 2 ítems** [H: IT IV.1, comprobado en la copia local]. Cuántos ítems caben en cada hoja B1 depende del diseño del anexo (PV-23): los ítems siguen uno tras otro, con un recordatorio didáctico (importador, N° de orden, «NO NUMERADA») que no es casilla del B1.
+- Casillas de **IT C** con su número, rótulo, valor y fuente, en la misma rejilla del Formato A (`Documentos.dam`, que exporta `dam_a.js`) y con las mismas reglas D17/D18: casillas vacías o que no aplican **en blanco** con el motivo en la ayuda «?»; códigos oficiales abiertos en blanco con PV pequeña (entidad financiera PV-09; moneda PV-09; código del proveedor, que lo comunica la Aduana); supuestos del ejemplo con una «S» pequeña (nivel comercial, condición, naturaleza, respuestas del rubro 7: D1, D7; flete; unidad «U»).
+- Rubro 4: 4.1, 4.2 y los «otros datos» a)–k) de IT C rubro 4 (sin número de casilla en el IT: se rotulan con su letra). g)–k) solo con modalidad de pago 2; g) = 1 si solo una parte se paga a crédito, 2 si todo (lo deriva `calculos.js`). c) a f) quedan en blanco (la herramienta no pide esos datos en v1).
+- Rubro 5 por ítem: 5.1–5.20. 5.4 = «Incoterm – ciudad – versión» (4 = 2020). 5.8 = país del UN/LOCODE de embarque [H\*]. 5.9 y 5.10 con 6 decimales (IT IV.3); cantidad de 5.11 entera sin decimales. El **FOB total del ítem** y el **ajuste total del ítem** se muestran en casillas **sin número** («cálculo, sin casilla»): son datos intermedios de IT C 5.9 y 5.10, no casillas del formato. 5.15, 5.17, 5.18 y 5.20 en blanco.
+- Rubro 7: el texto de cada pregunta (de `normativa.js`); 7.2, 7.3 y 7.6 en blanco si 7.1 o 7.5 no son «Sí»; 7.15 «No llenar»; 7.16–7.20 reservadas.
+- Sección 8: todas sus casillas con su rótulo de IT C; un monto 0 queda en blanco («Sin monto en esta operación», en la ayuda). Los rótulos de **8.1.2, 8.1.3 y 8.1.5** no figuran en la copia del instructivo: se describe su contenido con **POR VERIFICAR** (§4 B7). 8.4 = prima si hay seguro; sin seguro, en blanco (IT C 8.4). «Total base de cálculo», «Total adiciones», «Total gastos de transporte» y «Total deducciones» son casillas reservadas para uso posterior: en blanco.
+- **Cuadro didáctico** al final del B (no forma parte del formato): la fórmula del FOB total del Incoterm con sus cifras («20,040.000000 − 1,850.000000 − 66.130000 = 18,123.870000», = A 6.1), una tabla ítem por ítem (valor en factura → FOB del ítem → cantidad → FOB unitario 5.9) y el ajuste total de IT C 5.10.
+- La plantilla **solo lee**: `calculos.js` entrega `items[].fob`, `fobUnitario`, `ajuste`, `ajusteUnitario`, `fob.terminos` y el nuevo `formatoB` (`seccion8` con el monto de cada casilla, `paisEmbarque`, `versionIncoterm`, `pagoDiferidoParcial`). Formato nuevo `Calculos.formato.damBCantidad`. El anexo A pasa «país de embarque» y «versión del Incoterm» de *reservado* a **derivado**.
+- Hoja resumen: el cuadro de cuadre solo tiene columna para los documentos que muestran alguna de sus cifras (las hojas DAM A1, B y B1 no muestran ninguna). Con una columna por documento la tabla no cabía en A4 y Chrome reducía todo el PDF de «Imprimir todos» (ya ocurría en F8a.2, ~87 %); ahora se imprime a escala real.
+- Regresiones en `pruebas.html` (grupo F8b, 43 pruebas: cifras de §9.1, B1 con 3 y 4 ítems y sin B1 con 1 o 2, exportación sin B, mutaciones de ajustes, pago a crédito, intermediario y vinculación, XSS, cuadro de cuadre de la hoja resumen).
+
 **Correcciones de la auditoría de F8a.2 (Codex), aplicadas en F8a.3**
 
 - F8a.2-M1: S 7.20 muestra el texto del estado («Nuevo / Bueno») y deja el código **en blanco** con PV pequeña (D18 c): la lista de IT C 5.16 es la del Formato B y no confirma el código de la exportación (PV-09).
@@ -1080,11 +1093,11 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 | A3 | Puerto de embarque | Puerto de embarque (nombre y UN/LOCODE) | `generales.ruta.puertoEmbarque.*` | dato |
 | A3 | Puerto de descarga | Puerto de descarga (nombre y UN/LOCODE) | `generales.ruta.puertoDescarga.*` | dato |
 | A3 | País de adquisición / embarque / destino | País de adquisición | `generales.ruta.paisAdquisicion` | dato |
-| A3 | País de adquisición / embarque / destino | País de embarque (B 5.8) | — | *reservado*: Se deriva del UN/LOCODE de embarque en el Formato B (F8b) |
+| A3 | País de adquisición / embarque / destino | País de embarque (B 5.8) | — | **derivado**: calculos.js: formatoB.paisEmbarque (del UN/LOCODE de embarque); se muestra en el Formato B (F8b) |
 | A3 | País de adquisición / embarque / destino | País de destino (S 7.27) | — | **derivado**: calculos.js: series[].paisDestino |
 | A3 | — | Lugar de recepción y de entrega | `generales.ruta.lugarRecepcion`, `generales.ruta.lugarEntrega` | dato |
 | A4 | Incoterm + lugar + versión | Incoterm y lugar convenido | `generales.comercial.incoterm`, `generales.comercial.lugarConvenido` | dato |
-| A4 | Incoterm + lugar + versión | Versión del Incoterm (4 = 2020) | — | *reservado*: Fija en v1 (IT C 5.4); se mostrará en el Formato B (F8b) |
+| A4 | Incoterm + lugar + versión | Versión del Incoterm (4 = 2020) | — | **derivado**: calculos.js: formatoB.versionIncoterm (fija en v1, IT C 5.4); se muestra en B 5.4 (F8b) |
 | A4 | Moneda | Moneda | `generales.comercial.moneda` | dato |
 | A4 | N° y fecha de factura | N° y fecha de factura | `generales.comercial.facturaNumero`, `generales.comercial.facturaFecha` | dato |
 | A4 | Entidad financiera, modalidad y medio de pago | Modalidad y condiciones de pago | `generales.comercial.modalidadPago`, `generales.comercial.condicionesPago` | dato |

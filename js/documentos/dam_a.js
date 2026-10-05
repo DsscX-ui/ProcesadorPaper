@@ -11,7 +11,8 @@
    Códigos oficiales sin fuente en la carpeta (PV-09, PV-28): el nombre didáctico y el código EN BLANCO con una marca
    PV pequeña (D18 c), nunca inventado. Otras dudas (DV PV-27, reparto PV-04…) se muestran «POR VERIFICAR».
    Solo LEE la operación y el resultado de Calculos.calcular (series, prorrateos, 6.1–6.5); no calcula ni redondea.
-   Script clásico: se registra en Documentos (antes de la hoja resumen). */
+   Script clásico: se registra en Documentos (antes de la hoja resumen) y deja en Documentos.dam las piezas de la
+   rejilla (casilla, rubro, marcas pequeñas) que reutiliza el Formato B (dam_b.js). */
 
 (function () {
   var D = Documentos, Fm = Calculos.formato, el = D.el;
@@ -87,7 +88,8 @@
     if (o.estado) { c.setAttribute("data-estado", o.estado); }
     var cab = el("div", "dam-cas-cab");
     if (num) { cab.appendChild(el("span", "dam-num", num)); }
-    cab.appendChild(el("span", "dam-rot", rotulo));
+    var rot = cab.appendChild(el("span", "dam-rot"));
+    if (rotulo && rotulo.nodeType) { rot.appendChild(rotulo); } else { rot.textContent = rotulo; }
     c.appendChild(cab);
     var v = el("div", "dam-valor");
     if (o.estado) {
@@ -110,7 +112,7 @@
     // Notas de las marcas pequeñas del valor (código en blanco PV, «U» supuesto…): también a la ayuda accesible.
     var notas = Array.prototype.map.call(v.querySelectorAll(".dam-mini .marca"), function (m) { return m.title; })
       .filter(function (t, i, l) { return t && l.indexOf(t) === i; });
-    if (motivo || notas.length) { ayuda(c, cab, num, rotulo, [motivo].concat(notas)); }
+    if (motivo || notas.length) { ayuda(c, cab, num, rot.textContent, [motivo].concat(notas)); }
     return c;
   }
 
@@ -459,16 +461,23 @@
       "Casillas y contenido según el instructivo DESPA-IT.00.04, " + (imp ? "IT A (ingreso)" : "IT B (salida)") +
       "; el diseño gráfico del anexo no está en la copia local, por eso la disposición es didáctica (PV-23). Cifras con 3 decimales en USD (IT IV.3, IV.4); pesos en kg con 2 decimales [S]; fechas DD MM AAAA (IT IV.6). " +
       "La DAM real se transmite electrónicamente y prevalece sobre el papel (IT IV.8). "));
-    var leyenda = el("span", "dam-leyenda");
-    leyenda.appendChild(document.createTextNode("Casilla en blanco = no se llena, la llena otro o no aplica (el motivo, en el botón «?» de la casilla, que no se imprime) · "));
-    leyenda.appendChild(D.etiquetaMarca("PV"));
-    leyenda.appendChild(document.createTextNode(" = no se puede afirmar con las fuentes de la carpeta; "));
-    leyenda.appendChild(marcaMini("PV"));
-    leyenda.appendChild(document.createTextNode(" junto a un código en blanco = código oficial por verificar · "));
-    leyenda.appendChild(D.etiquetaMarca("H*"));
-    leyenda.appendChild(document.createTextNode(" = conocimiento general, sin fuente en la carpeta."));
-    p.appendChild(leyenda);
+    p.appendChild(leyenda());
     cuerpo.appendChild(p);
+  }
+
+  // Leyenda de las marcas de la rejilla (Formatos A y B).
+  function leyenda() {
+    var l = el("span", "dam-leyenda");
+    l.appendChild(document.createTextNode("Casilla en blanco = no se llena, la llena otro o no aplica (el motivo, en el botón «?» de la casilla, que no se imprime) · "));
+    l.appendChild(D.etiquetaMarca("PV"));
+    l.appendChild(document.createTextNode(" = no se puede afirmar con las fuentes de la carpeta; "));
+    l.appendChild(marcaMini("PV"));
+    l.appendChild(document.createTextNode(" junto a un código en blanco = código oficial por verificar; "));
+    l.appendChild(marcaMini("S"));
+    l.appendChild(document.createTextNode(" = supuesto · "));
+    l.appendChild(D.etiquetaMarca("H*"));
+    l.appendChild(document.createTextNode(" = conocimiento general, sin fuente en la carpeta."));
+    return l;
   }
 
   function formatoA(ctx) {
@@ -508,4 +517,7 @@
 
   // Para pruebas.html.
   D.fechaDam = fechaDam;
+  // Piezas de la rejilla de la DAM que reutiliza el Formato B (dam_b.js, F8b): mismas casillas, marcas y ayuda «?».
+  D.dam = { casilla: casilla, rubro: rubro, lineas: lineas, marcaMini: marcaMini, codigoEnBlanco: codigoEnBlanco,
+    porVerificar: porVerificar, marcado: marcado, pvPropia: pvPropia, esPv: esPv, fechaDam: fechaDam, leyenda: leyenda };
 })();

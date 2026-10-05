@@ -165,6 +165,8 @@ var Calculos = (function () {
     cantidad: cantidad,
     // Cantidades en la DAM, Formatos A y C (F8a.1): enteras sin decimales ("360"); no enteras con 3 decimales ("360.500") [H: IT IV.3].
     damCantidad: function (x) { var r = escalar(x, 3); return numero(r, r.v % 1000 === 0 ? 0 : 3); },
+    // Cantidad del Formato B: entera sin decimales; no entera con 6 decimales [H: IT IV.3].
+    damBCantidad: function (x) { var r = escalar(x, 6); return numero(r, r.v % 1000000 === 0 ? 0 : 6); },
     pct: function (x) { var t = numero(x, Math.min(x.d, 4)); return (t.indexOf(".") === -1 ? t : t.replace(/\.?0+$/, "")) + " %"; }
   };
 
@@ -620,6 +622,21 @@ var Calculos = (function () {
       c.ok = igual(c.a, c.b);
       if (!c.ok) { avisar("E19", "Descuadre interno: " + c.texto); }
     });
+
+    // --- Formato B (F8b): lo que muestra la plantilla dam_b.js, que solo lee.
+    // Sección 8: cada casilla con su monto (USD, 2 decimales); 8.1.1 = Vc; 8.4 = prima si hay seguro (IT C 8.4:
+    // sin seguro no se consigna monto). País de embarque (B 5.8) = país del UN/LOCODE de embarque [H*];
+    // versión del Incoterm 4 = 2020 (IT C 5.4, fija en v1). Indicador de pago diferido parcial (IT C rubro 4,
+    // otros datos g): 1 = Sí si solo una parte se paga a crédito; 2 = No si se paga todo a crédito.
+    var seccion8 = { "8.1.1": r.totales.valorFactura, "8.4": r.seguro.hay ? prima : fx(0, 2) };
+    Object.keys(INCOTERMS.campoCasilla).forEach(function (c) { seccion8[c] = casilla(c); });
+    var pd = g.comercial.pagoDiferido;
+    r.formatoB = {
+      seccion8: seccion8,
+      paisEmbarque: (g.ruta.puertoEmbarque.locode || "").slice(0, 2),
+      versionIncoterm: "4",
+      pagoDiferidoParcial: g.comercial.modalidadPago !== "2" || pd.porcentaje == null ? "" : (pd.porcentaje < 100 ? "1" : "2")
+    };
 
     r.fob = { terminos: fob.terminos, total: fob.total, formulaIncoterm: INCOTERMS.formulasFob[r.incoterm] ? r.incoterm : "FOB" };
     r.ajustes = { componentes: componentes, total: ajusteTotal, itemsAjustados: ajustados.map(function (x) { return x.numero; }) };

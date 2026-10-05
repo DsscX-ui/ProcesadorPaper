@@ -8,10 +8,10 @@ Todo lo que genera es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 1. Abre la carpeta del proyecto.
 2. Haz doble clic en `index.html`. Se abre en el navegador (Chrome o Edge) sin instalar nada.
 
-## Qué puedes hacer ahora (F8a hecha y revisada; F8b pendiente)
+## Qué puedes hacer ahora (F8b hecha; F8c pendiente)
 
 La página tiene cuatro pasos, siempre a mano en la **barra fija de arriba**: **1 Datos** (el formulario),
-**2 Revisión** (con el contador de errores y advertencias), **3 Resultados** del cálculo y **4 Documentos** (factura comercial, lista de empaque, instrucciones de embarque, borrador de B/L, declaración VGM, DAM Formato A y A1, y hoja resumen).
+**2 Revisión** (con el contador de errores y advertencias), **3 Resultados** del cálculo y **4 Documentos** (factura comercial, lista de empaque, instrucciones de embarque, borrador de B/L, declaración VGM, DAM Formato A y A1, en la importación DAM Formato B y B1, y hoja resumen).
 La barra también dice si hay **cambios sin guardar**.
 
 - **Caso 1 / Caso 2:** cargan los ejemplos de `PLAN.md` §9 (datos 100 % ficticios). Puedes editarlos.
@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"620 de 620 pruebas correctas"** en verde.
+2. Arriba debe decir **"663 de 663 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -99,7 +99,10 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    El grupo F8a comprueba que las casillas del Formato A (series, 6.1–6.5, 7.30–7.34, S 7.26…) son las de `PLAN.md` §9.1 y §9.2
    y que la hoja A1 solo aparece con más de una serie. El grupo F8a.1 son las regresiones de la auditoría de F8a y el F8a.2,
    las de la revisión de Aarón (D17/D18: pesos con 2 decimales, casillas en blanco, nota RS 129 solo en celulares, 7.39 y S 13); el F8a.3, las de la
-   auditoría de F8a.2 (estado de S 7.20 sin código y ayuda «?» accesible de cada casilla en blanco).
+   auditoría de F8a.2 (estado de S 7.20 sin código y ayuda «?» accesible de cada casilla en blanco). El grupo F8b comprueba el
+   Formato B: FOB unitario 5.9 de cada ítem (17.635500 · 21.705231 · 3.707978), sección 8 (8.1.1, 8.3.1 = 1,850.000000,
+   8.4 = 66.130000) y FOB total 18,123.870000 = A 6.1 (`PLAN.md` §9.1); que el B1 aparece con 3 ítems y desaparece con 2 o
+   menos; que la exportación no genera Formato B; y alteraciones a propósito (ajustes, pago a crédito, intermediario).
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -114,7 +117,8 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 1. Carga un ejemplo o llena tu operación. Si la **Revisión** no tiene errores, en **4 Documentos** aparecen las pestañas:
    **FC** factura comercial, **PL** lista de empaque, **IE** instrucciones de embarque, **B/L** borrador del conocimiento de
    embarque (con la leyenda «BORRADOR – DRAFT»), **VGM** declaración de masa bruta verificada, **DAM A** y **DAM A1** (Formato A de la
-   declaración aduanera; el A1 solo si hay más de una serie) y **HR** hoja resumen. Con algún error no se genera ninguno: la sección
+   declaración aduanera; el A1 solo si hay más de una serie), **DAM B** y **DAM B1** (Formato B, declaración del valor: solo en la
+   importación; el B1 solo si hay más de 2 ítems) y **HR** hoja resumen. Con algún error no se genera ninguno: la sección
    explica por qué y te lleva a «Revisión». Las advertencias no bloquean; la hoja resumen las lista.
 2. Cada documento se ve en una hoja A4. En el celular la hoja se reduce al ancho de la pantalla; **Ver en tamaño real**
    la muestra a su tamaño (desliza dentro del recuadro gris).
@@ -127,7 +131,7 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
    coinciden), la **matriz Incoterms® 2020** con tu regla resaltada, los resultados clave, las advertencias, el recuento
    de datos H* y POR VERIFICAR (A19) y la **tabla de trazabilidad**, generada desde `js/diccionario.js`.
 
-## Cómo leer la DAM didáctica (Formato A y A1)
+## Cómo leer la DAM didáctica (Formatos A, A1, B y B1)
 
 - Es una **representación didáctica**: las casillas y su contenido siguen el instructivo DESPA-IT.00.04 (IT A para la
   importación, IT B para la exportación), pero el diseño gráfico oficial no está en la copia local (PV-23). La DAM real se
@@ -153,11 +157,29 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
   pesa poco y vale mucho, por eso recibe poco flete (reparto por peso) y su valor en aduana (11,346.370) es menor que su
   valor en la factura.
 
+### Formato B y B1 (declaración del valor, solo importación)
+
+- Lo formula el **importador** (o su representante; nunca el agente de aduana, que lo transmite) y declara **cómo se llega al
+  valor**: quién vende (rubro 3: proveedor y su condición), cómo se pagó (rubro 4: naturaleza, forma de envío, medio de pago y,
+  si es a crédito, los datos del pago diferido), cada **ítem** (rubro 5), si hubo intermediario (6), las condiciones de la venta
+  (7: vinculación, cánones, etc.) y la **determinación del valor** (sección 8). En la exportación no hay Formato B (IT IV.1).
+- **Formato B** = rubros 1 a 4, los **ítems 1 y 2** y los rubros 6 a 8. **Formato B1** = los ítems 3 en adelante: solo aparece
+  con **más de 2 ítems** (IT IV.1). Un ítem = un tipo de mercancía (igual especie, calidad, valor, origen); no es lo mismo que
+  una serie del Formato A (7.2 dice qué ítems forman cada serie).
+- Cifras con **6 decimales** (IT IV.3): el FOB unitario del ventilador de 16" es **17.635500**.
+- La casilla **5.9** (FOB unitario) sale de la **sección 8**: FOB total según el Incoterm (en CIF: 8.1.1 − 8.3.1 − 8.4) repartido
+  según el valor de cada ítem y dividido entre su cantidad. El **cuadro didáctico** del final del Formato B lo muestra paso a paso
+  (no es parte del formato). El «FOB total del ítem» y el «ajuste total del ítem» van en casillas **sin número**: son pasos
+  del cálculo, no casillas del instructivo.
+- Los rótulos de **8.1.2, 8.1.3 y 8.1.5** no están en la copia del instructivo: se describe su contenido con **POR VERIFICAR**.
+  Un monto 0 de la sección 8 deja la casilla en blanco. Las respuestas del rubro 7 del caso 1 son supuestos del ejemplo (**S**
+  pequeña; decisiones D1 y D7): 7.4 = Sí; 7.2, 7.3 y 7.6 quedan en blanco porque solo se responden si hay vinculación o condiciones.
+
 ## Estado
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) y F8a.3 (correcciones de la auditoría de F8a.2).
-Siguiente: **F8b** (DAM Formato B).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) F8a.3 (correcciones de la auditoría de F8a.2) y F8b (DAM Formato B de la declaración del valor, con B1).
+Siguiente: **F8c** (DAM Formato C, liquidación).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

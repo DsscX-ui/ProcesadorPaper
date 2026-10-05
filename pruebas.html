@@ -1707,10 +1707,10 @@
       prueba("Caso 1: se genera el Formato C (pestaña «DAM C») y no modifica la operación", "true · DAM C · true", String(!!c) + " · " + (x.gen.docs.filter(function (d) { return d.def.id === "dam_c"; }).map(function (d) { return d.def.codigo; })[0] || "") + " · " + String(JSON.stringify(o1) === antes));
 
       // Rubro 3 = A 6.1–6.5.
-      prueba("3.1 · 3.2 · 3.3 · 3.4 · 3.5 = §9.1 (FOB, flete, seguro, ajuste, valor aduana)", "18,123.870 · 1,850.000 · 66.130 · 0.000 · 20,040.000",
-        ["c31", "c32", "c33", "c34", "c35"].map(function (q) { return k[q]; }).join(" · "));
+      prueba("3.1 · 3.2 · 3.3 · 3.5 = §9.1 (FOB, flete, seguro, valor aduana)", "18,123.870 · 1,850.000 · 66.130 · 20,040.000",
+        ["c31", "c32", "c33", "c35"].map(function (q) { return k[q]; }).join(" · "));
       var a = x.porId.dam_a.cifras;
-      prueba("3.1–3.5 = A 6.1–6.5 (mismos textos)", "true", String([1, 2, 3, 4, 5].every(function (i) { return k["c3" + i] === a["dam6" + i]; })));
+      prueba("3.1–3.3 y 3.5 = A 6.1–6.3 y 6.5 (mismos textos)", "true", String([1, 2, 3, 5].every(function (i) { return k["c3" + i] === a["dam6" + i]; })));
 
       // Por serie (§9.1).
       prueba("Serie 1: VA · AV · base IGV · IGV · IPM = §9.1", "8,693.630 · 521.618 · 9,215.248 · 1,474.440 · 184.305",
@@ -1725,6 +1725,14 @@
       prueba("Totales: 4.1 AV · 4.6 IGV · 4.5 IPM · Total = §9.1", "521.618 · 3,289.859 · 411.232 · 4,222.709", [k.c41, k.c46, k.c45, k.cTotal].join(" · "));
       prueba("Las cifras son las de calculos.js (sin recalcular en la plantilla)", "true",
         String(k.cTotal === F.damAC(x.r.liquidacion.total) && k.c46 === F.damAC(x.r.liquidacion.igv) && k.c46s2 === F.damAC(x.r.series[1].liquidacion.igv)));
+      prueba("4.13 = «Total» = 4,222.709 (IT D 4.13), con la nota de 4.8; sin otra casilla «Total» sin número", "Total · 4,222.709 · true · 0",
+        casC(c, "4.13").querySelector(".dam-rot").textContent + " · " + valC(c, "4.13") + " · " + String(/No incluye el servicio de despacho \(4\.8, PV-02\)/.test(casC(c, "4.13").querySelector(".dam-nota").textContent)) + " · " +
+        Array.prototype.filter.call(c.querySelectorAll('.dam-rejilla > [data-casilla=""]'), function (n) { return n.querySelector(".dam-rot").textContent === "Total"; }).length);
+      prueba("4.10 · 4.11 · 4.12: sin rótulo en el IT, en blanco", "«»«»«» · true",
+        ["4.10", "4.11", "4.12"].map(function (n) { return "«" + valC(c, n) + "»"; }).join("") + " · " +
+        String(["4.10", "4.11", "4.12"].every(function (n) { return /sin rótulo/.test(casC(c, n).title); })));
+      prueba("F8c-X3 · 3.4 ajuste en 0: EN BLANCO con «Sin monto» en la ayuda «?» (como 4.2–4.7); el cuadro por serie conserva los ceros", "«» · true · true",
+        "«" + valC(c, "3.4") + "» · " + String(/Sin monto/.test(casC(c, "3.4").querySelector(".dam-ayuda").textContent)) + " · " + String(k.c41s2 === "0.000"));
       prueba("4.2 · 4.3 · 4.4 · 4.7 (montos 0) EN BLANCO con «Sin monto» en la ayuda «?»", "«»«»«»«» · true",
         ["4.2", "4.3", "4.4", "4.7"].map(function (n) { return "«" + valC(c, n) + "»"; }).join("") + " · " +
         String(["4.2", "4.3", "4.4", "4.7"].every(function (n) { return /Sin monto/.test(casC(c, n).querySelector(".dam-ayuda").textContent); })));
@@ -1757,7 +1765,10 @@
       prueba("Ninguna casilla numerada del rubro 4 se llama «Percepción»", "false", String(Array.prototype.some.call(c.querySelectorAll("[data-casilla]"), function (n) { return /ercepci/.test(n.querySelector(".dam-rot").textContent); })));
 
       // Cabecera, rubros 1, 2, 6–8 y reglas D17.
-      prueba("1.1 · 1.2 · rubro 2", "Importadora Didáctica Andina S.A.C. — FICTICIA · 4 — RUC 20000000001 · NO NUMERADA", [valC(c, "1.1"), valC(c, "1.2"), valC(c, "2")].join(" · "));
+      prueba("1.1 · 1.2", "Importadora Didáctica Andina S.A.C. — FICTICIA · 4 — RUC 20000000001", [valC(c, "1.1"), valC(c, "1.2")].join(" · "));
+      prueba("F8c-X2 · rubro 2 reservado a la Autoridad Aduanera: EN BLANCO, sin nota interior, motivo en la ayuda «?»", "«» · reservada · false · true",
+        "«" + valC(c, "2") + "» · " + casC(c, "2").getAttribute("data-estado") + " · " + String(!!casC(c, "2").querySelector(".dam-nota")) + " · " +
+        String(/uso exclusivo de la Autoridad Aduanera/.test(casC(c, "2").querySelector(".dam-ayuda").textContent)));
       prueba("1.3 almacén = depósito temporal con RUC en blanco y PV pequeña (PV-28)", "true · true", String(/Depósito Temporal Didáctico/.test(valC(c, "1.3"))) + " · " + String(!!casC(c, "1.3").querySelector(".dam-mini .marca-pv")));
       prueba("7 y 8 reservadas, en blanco", "reservada · reservada · «»", casC(c, "7").getAttribute("data-estado") + " · " + casC(c, "8").getAttribute("data-estado") + " · «" + valC(c, "7") + valC(c, "8") + "»");
       prueba("D17 · ninguna casilla muestra el motivo dentro; sin relleno gris ni líneas «____»", "false · false · false",

@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"697 de 697 pruebas correctas"** en verde.
+2. Arriba debe decir **"701 de 701 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -104,7 +104,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    8.4 = 66.130000) y FOB total 18,123.870000 = A 6.1 (`PLAN.md` §9.1); que el B1 aparece con 3 ítems y desaparece con 2 o
    menos; que la exportación no genera Formato B; y alteraciones a propósito (ajustes, pago a crédito, intermediario). El grupo F8b.1 comprueba
    que la casilla del declarante del Formato B queda en blanco. El grupo F8c comprueba el Formato C: tributos por serie y totales de
-   `PLAN.md` §9.1 (IGV 3,289.859 · IPM 411.232 · total 4,222.709), 3.1–3.5 = A 6.1–6.5, 4.8 POR VERIFICAR, la percepción (849.195)
+   `PLAN.md` §9.1 (IGV 3,289.859 · IPM 411.232 · total 4,222.709), 3.1–3.5 = A 6.1–6.5, 4.13 = Total, 4.8 POR VERIFICAR, la percepción (849.195)
    fuera del formato, el pago en soles con tipo de cambio 3.500 y que la exportación no genera Formato C.
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
@@ -184,9 +184,9 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
   los tributos (rubro 4) y el pago en soles (rubro 5). En la exportación no hay Formato C (IT IV.1).
 - El **cuadro por serie** del rubro 4 muestra cómo se calcula: por cada serie, ad valorem = valor en aduana × tasa; **base del IGV** =
   valor en aduana + ad valorem + sobretasa + específico + ISC (el antidumping queda fuera); IGV 16 % y IPM 2 % sobre esa base. Luego se
-  suma: las casillas 4.1 a 4.7 y el **Total** son los totales de la declaración (caso 1: 4,222.709).
+  suma: las casillas 4.1 a 4.7 y la **4.13 Total** son los totales de la declaración (caso 1: 4,222.709).
 - **4.8 servicio de despacho** dice POR VERIFICAR (PV-02): la herramienta no inventa su monto. **4.9** queda en blanco (no aplica en v1).
-  Un tributo en 0 deja su casilla en blanco.
+  Un monto en 0 deja su casilla en blanco (también 3.4 si no hay ajustes); el rubro 2 (registro de aduana) queda en blanco: lo llena la Aduana.
 - **Rubro 5:** total en soles = total en USD × tipo de cambio venta, con 2 decimales (supuesto); la fecha y la fuente del tipo de cambio
   (PV-07) también se muestran. La forma de pago se llena a mano al pagar.
 - La **percepción del IGV** no es una casilla del Formato C: va en el recuadro naranja «FUERA DEL FORMATO C», con su base (valor en
@@ -196,7 +196,7 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) F8a.3 (correcciones de la auditoría de F8a.2) F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b) y F8c (DAM Formato C, liquidación).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) F8a.3 (correcciones de la auditoría de F8a.2) F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b), F8c (DAM Formato C, liquidación) y F8c.1 (correcciones de la auditoría de F8c).
 Siguiente: **F9** (certificado de seguro y certificado de origen).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

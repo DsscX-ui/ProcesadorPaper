@@ -4,7 +4,7 @@
    - Rubro 3 (valor en aduana): 3.1–3.5 = A 6.1–6.5. Rubro 4 (liquidación): 4.1–4.9 con el TOTAL de la declaración;
      antes, un cuadro con el detalle por serie (la liquidación se calcula por serie y luego se suma, §6.6; el IT D
      solo trae las casillas del total). 4.8 servicio de despacho: POR VERIFICAR (PV-02), sin monto inventado;
-     4.9 interés compensatorio: no aplica en v1 [S]. Rubro 5: pago en soles al tipo de cambio venta [H: IT D 5].
+     4.9 interés compensatorio: no aplica en v1 [S]; 4.10–4.12 sin rótulo en el IT; 4.13 = Total. Rubro 5: pago en soles al tipo de cambio venta [H: IT D 5].
    - La percepción del IGV NO es una casilla del Formato C (PV-01): va en un recuadro didáctico «fuera del Formato C».
    - Cifras no enteras con 3 decimales (IT IV.3), en USD (IT IV.4); soles con 2 decimales [S; PV-08]; fechas DD MM AAAA.
    - Misma rejilla y reglas D17/D18 que los Formatos A y B (Documentos.dam): casillas vacías, en 0 o que no aplican
@@ -66,8 +66,9 @@
       casilla("1.3", "Almacén / depósito – RUC", X.agente(ctx, "depositoTemporal"), { fuente: F + " 1.3 (razón social y RUC del almacén aduanero); RUC o código: PV-28", ancho: 2 })
     ]));
     cuerpo.appendChild(rubro("2.", "Registro de aduana", [
-      casilla("2", "Nº declaración · fecha de numeración · canal", el("strong", "dam-no-numerada", "NO NUMERADA"),
-        { fuente: F + " 2: casilla de uso exclusivo de la Autoridad Aduanera", ancho: 6, nota: "Documento didáctico: nunca lleva número de declaración ni canal." })
+      // Reservado a la Autoridad Aduanera: EN BLANCO (D17; auditoría F8c-X2). El motivo va en la ayuda «?».
+      casilla("2", "Nº declaración · fecha de numeración · canal", "", { fuente: F + " 2", ancho: 6, estado: "reservada",
+        motivo: "Casilla reservada para uso exclusivo de la Autoridad Aduanera: número de declaración, fecha de numeración y canal (IT D 2). Este documento es didáctico: nunca lleva número." })
     ]));
   }
 
@@ -75,12 +76,17 @@
 
   function rubro3(ctx, cuerpo) {
     var va = ctx.r.valorAduana;
+    // Monto en 0 → casilla EN BLANCO con «Sin monto» en la ayuda, como en el rubro 4 (auditoría F8c-X3).
+    var c3 = function (num, rot, x, fuente, cuadre, ancho, fuerte) {
+      var v = monto(x);
+      return casilla(num, rot, v && fuerte ? el("strong", null, v) : v, { fuente: F + " " + num + " " + fuente, ancho: ancho, cuadre: v ? cuadre : null, motivo: v ? "" : SIN_MONTO });
+    };
     cuerpo.appendChild(rubro("3.", "Valor aduana (US$) — base imponible", [
-      casilla("3.1", "FOB", Fm.damAC(va.fob), { fuente: F + " 3.1 (= A 6.1)", cuadre: "c31" }),
-      casilla("3.2", "Flete", Fm.damAC(va.flete), { fuente: F + " 3.2 (= A 6.2)", cuadre: "c32" }),
-      casilla("3.3", "Seguro", Fm.damAC(va.seguro), { fuente: F + " 3.3 (= A 6.3)", cuadre: "c33" }),
-      casilla("3.4", "Ajuste valor", Fm.damAC(va.ajuste), { fuente: F + " 3.4 (= A 6.4)", cuadre: "c34" }),
-      casilla("3.5", "Valor aduana", el("strong", null, Fm.damAC(va.total)), { fuente: F + " 3.5 (= 3.1 + 3.2 + 3.3 + 3.4 = A 6.5)", cuadre: "c35", ancho: 2 })
+      c3("3.1", "FOB", va.fob, "(= A 6.1)", "c31"),
+      c3("3.2", "Flete", va.flete, "(= A 6.2)", "c32"),
+      c3("3.3", "Seguro", va.seguro, "(= A 6.3)", "c33"),
+      c3("3.4", "Ajuste valor", va.ajuste, "(= A 6.4)", "c34"),
+      c3("3.5", "Valor aduana", va.total, "(= 3.1 + 3.2 + 3.3 + 3.4 = A 6.5)", "c35", 2, true)
     ]));
   }
 
@@ -144,8 +150,8 @@
       casilla("4.10", "—", "", { fuente: F + " 4.10", motivo: "Casilla sin rótulo en el instructivo." }),
       casilla("4.11", "—", "", { fuente: F + " 4.11", motivo: "Casilla sin rótulo en el instructivo." }),
       casilla("4.12", "—", "", { fuente: F + " 4.12", motivo: "Casilla sin rótulo en el instructivo." }),
-      casilla("4.13", "—", "", { fuente: F + " 4.13", motivo: "Casilla sin rótulo en el instructivo." }),
-      casilla("", "Total", total, { fuente: F + " 4, Total (4.1 a 4.7; sin 4.8, POR VERIFICAR)", ancho: 2, cuadre: "cTotal",
+      // IT D: «4.13 Total» (auditoría F8c-X1): el total del rubro va en su casilla numerada.
+      casilla("4.13", "Total", total, { fuente: F + " 4.13 (4.1 a 4.7; sin 4.8, POR VERIFICAR)", ancho: 3, cuadre: "cTotal",
         nota: "No incluye el servicio de despacho (4.8, PV-02)." })
     ]);
     // El cuadro por serie va dentro del rubro, antes de la rejilla de totales.

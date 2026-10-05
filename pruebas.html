@@ -1951,6 +1951,55 @@
           ho.querySelectorAll("img").length, ho.querySelectorAll("script").length].map(String).join(" · "));
     })();
 
+    // ============================================================ F9.1: correcciones de la auditoría de F9
+    (function () {
+      grupo("F9.1. Correcciones de la auditoría de F9",
+        "F9-X1 (asegurado y beneficiario con marca visible e impresa), F9-X2 (riesgo de CIF y CIP según la matriz Incoterms®), F9-X3 (trazabilidad de SEG y CO: filas concretas de la hoja resumen), F9-X5 (cierre del CO junto).");
+      function hojaDe(o, id) { var x = documentosDe(o); return x.porId[id] ? x.porId[id].hoja : document.createElement("div"); }
+      // Celdas SEG y CO de una fila de la tabla de trazabilidad impresa en la hoja resumen (columnas: §4, campo, FC, PL, BL, DAM, SEG, CO…).
+      function segCo(hr, requisito) {
+        var f = Array.prototype.filter.call(hr.querySelectorAll(".doc-tabla-traza tbody tr"), function (tr) { return tr.children[1].textContent === requisito; })[0];
+        return f ? "SEG " + (f.children[6].textContent || "·") + " CO " + (f.children[7].textContent || "·") : "(no está)";
+      }
+      var h1 = hojaDe(ejemplo("caso1"), "seguro");
+      var ded = Array.prototype.filter.call(h1.querySelectorAll(".doc-deducido"), function (n) { return !n.closest(".dam-ayuda"); });
+      prueba("F9-X1 · asegurado y beneficiario llevan, fuera de la ayuda «?», H* + «Supuesto según el Incoterm; confirmar con la póliza»", "2 · true · true",
+        ded.length + " · " + String(ded.every(function (n) { return !!n.querySelector(".marca") && /H\*/.test(n.querySelector(".marca").textContent); })) + " · " +
+        String(ded.every(function (n) { return /Supuesto según el Incoterm; confirmar con la póliza\./.test(n.textContent); })));
+      prueba("F9-X1 · la explicación larga sigue en la ayuda «?» de ambas partes", "2",
+        String(Array.prototype.filter.call(h1.querySelectorAll(".dam-ayuda"), function (p) { return /contrata el seguro a favor del comprador/.test(p.textContent); }).length));
+      var nota = function (h) { var p = Array.prototype.filter.call(h.querySelectorAll(".dam-ayuda"), function (p) { return /corre el riesgo/.test(p.textContent); })[0]; return p ? p.textContent : ""; };
+      var cip = ejemplo("caso1"); cip.generales.comercial.incoterm = "CIP"; cip.especificos.seguro.clausulas = "A";
+      var hCip = hojaDe(cip, "seguro");
+      prueba("F9-X2 · CIF: el riesgo pasa «a bordo en el puerto de embarque» (matriz de incoterms.js), con H*", "true · true",
+        String(/desde la entrega \(a bordo en el puerto de embarque\)/.test(nota(h1))) + " · " + String(/\[H\*\]/.test(nota(h1))));
+      prueba("F9-X2 · CIP: el riesgo pasa «al entregar al primer transportista», no «desde el embarque»", "true · false",
+        String(/desde la entrega \(al entregar al primer transportista\)/.test(nota(hCip))) + " · " + String(/desde el embarque/.test(nota(hCip))));
+
+      var hr1 = hojaDe(ejemplo("caso1"), "resumen"), hr2 = hojaDe(ejemplo("caso2"), "resumen");
+      prueba("F9-X3 · trazabilidad (caso 1): vendedor y comprador → SEG ● y CO ●", "SEG ● CO ● · SEG ● CO ●",
+        segCo(hr1, "Vendedor: datos, condición, RUC y UBIGEO") + " · " + segCo(hr1, "Comprador: datos, RUC y UBIGEO"));
+      prueba("F9-X3 · trazabilidad: puertos de embarque y descarga (nombre y UN/LOCODE) → SEG ● y CO ●", "SEG ● CO ● · SEG ● CO ●",
+        segCo(hr2, "Puerto de embarque (nombre y UN/LOCODE)") + " · " + segCo(hr2, "Puerto de descarga (nombre y UN/LOCODE)"));
+      prueba("F9-X3 · trazabilidad: contenedor → SEG, no CO; trato preferencial → CO, no SEG; aseguradora → SEG", "SEG ● CO · · SEG · CO ● · SEG ● CO ·",
+        segCo(hr2, "Tipo, número y precinto del contenedor") + " · " + segCo(hr2, "Trato preferencial, acuerdo, criterio y certificado de origen") + " · " + segCo(hr2, "Aseguradora"));
+      prueba("F9-X3 · trazabilidad: nombre, descripción, marca y modelo → SEG ● y CO ●; Incoterm y lugar → SEG ● y CO ●", "SEG ● CO ● · SEG ● CO ●",
+        segCo(hr1, "Nombre, descripción, marca y modelo") + " · " + segCo(hr1, "Incoterm y lugar convenido"));
+      // Cada campo que SEG o CO muestran declara ese documento en «docs» (diccionario.js).
+      var usa = function (ruta, doc) { var c = DICCIONARIO.buscar(ruta); return !!c && (" " + c.docs + " ").indexOf(" " + doc + " ") !== -1; };
+      var enSeg = ["generales.partes.vendedor.direccion", "generales.partes.vendedor.ciudad", "generales.partes.vendedor.pais", "generales.partes.comprador.direccion",
+        "generales.partes.comprador.ciudad", "generales.partes.comprador.pais", "generales.ruta.puertoEmbarque.locode", "generales.ruta.puertoDescarga.locode",
+        "generales.comercial.lugarConvenido", "especificos.contenedor.tipo", "especificos.seguro.tasaPrimaPct", "especificos.valoracion.flete"];
+      var enCo = ["generales.partes.vendedor.idFiscal", "generales.partes.comprador.idFiscal", "generales.ruta.puertoEmbarque.locode", "generales.ruta.puertoDescarga.locode",
+        "generales.comercial.incoterm", "especificos.items[].marca", "especificos.items[].modelo", "especificos.items[].subpartidaVerificada"];
+      prueba("F9-X3 · diccionario: los campos que muestra SEG declaran SEG", "ninguno", enSeg.filter(function (r) { return !usa(r, "SEG"); }).join(", ") || "ninguno");
+      prueba("F9-X3 · diccionario: los campos que muestra CO declaran CO", "ninguno", enCo.filter(function (r) { return !usa(r, "CO"); }).join(", ") || "ninguno");
+
+      var co = hojaDe(ejemplo("caso2"), "origen"), cierre = co.querySelector(".doc-cierre");
+      prueba("F9-X5 · CO: observaciones, declaración, certificación y nota de la DAM van en un mismo bloque que no se corta", "true · true · true",
+        [!!cierre && /8\. Observaciones/.test(cierre.textContent), !!cierre && /10\. Certificación/.test(cierre.textContent), !!cierre && /S 7\.9/.test(cierre.textContent)].map(String).join(" · "));
+    })();
+
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");
     var indice = document.getElementById("indice");

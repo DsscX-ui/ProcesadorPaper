@@ -1,7 +1,7 @@
-F9 — verificación (Chrome headless, 05-10-2026 14:11)
+F9.1 — verificación (Chrome headless, 05-10-2026 14:23)
 
 pruebas.html:
-744 de 744 pruebas correctas
+755 de 755 pruebas correctas
 ERRORES: ninguno
 
 index.html, ambos casos, todas las pestañas a 1280 y 390 px:
@@ -54,10 +54,13 @@ caso 2 @390 «CO»: desborde=false
 caso 2 @390 «HR»: desborde=false
 caso 2 @390: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, CO, HR; errores de consola=ninguno
 
+IDs duplicados: ninguno; aria-controls rotos: 0 (ambos casos).
+
 PDF (A4, «Página X de Y» en cada página):
   f9-caso1-seguro.pdf: Pages: 2
   f9-caso1-todos.pdf: Pages: 20
   f9-caso2-origen.pdf: Pages: 2
   f9-caso2-todos.pdf: Pages: 13
 
-Nota: en «Imprimir todos» Chrome reduce todo el PDF a ~89 % por la tabla de la lista de empaque (ya pasaba en F8c; queda para F10). El cuadro de cuadre de la hoja resumen ya no desborda (F9). Los PDF de un solo documento (seguro, origen) salen a tamaño real.
+F9-X5: el cuadro didáctico del seguro va entero en una página; el cierre del CO (8–10 y nota de la DAM) va junto.
+Nota: en «Imprimir todos» Chrome reduce todo el PDF a ~89 % por la tabla de la lista de empaque (ya pasaba en F8c; queda para F10). Los PDF de un solo documento salen a tamaño real.

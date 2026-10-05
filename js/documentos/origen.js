@@ -122,7 +122,11 @@
     ]));
     col3.appendChild(D.datos(["7. Marcas de embarque", "Shipping marks"], [["Marcas", "Marks", el("span", "doc-marcas", e.marcasEmbarque || "—")]]));
     cuerpo.appendChild(col3);
-    cuerpo.appendChild(D.datos(["8. Observaciones", "Remarks"], [["Observaciones", "Remarks", "", { blanco: true,
+    // Cierre del certificado (observaciones, declaración, certificación y nota de la DAM): va junto en la misma página,
+    // para que la última hoja impresa no quede solo con la nota (F9.1, auditoría F9-X5).
+    var cierre = el("div", "doc-cierre");
+    cuerpo.appendChild(cierre);
+    cierre.appendChild(D.datos(["8. Observaciones", "Remarks"], [["Observaciones", "Remarks", "", { blanco: true,
       ayuda: ["En blanco: la herramienta no pide observaciones para el certificado (D17)."] }]]));
 
     // --- Declaración del exportador y certificación de la entidad emisora
@@ -147,7 +151,7 @@
     cert.appendChild(filasCert);
     cert.appendChild(el("p", "doc-linea-firma", "Sello y firma / Stamp and signature: ____________________"));
     col4.appendChild(cert);
-    cuerpo.appendChild(col4);
+    cierre.appendChild(col4);
 
     // --- Nota didáctica: el CO en la DAM
     var dam = el("p", "doc-nota doc-nota-hr");
@@ -155,7 +159,7 @@
       "En la DAM de importación, el N° y la fecha de este certificado van en la casilla A 7.9 y el código del tratamiento preferencial (TPI) en A 7.23 [H: IT A 7.9, 7.23]; " +
         "los ítems con distinto certificado van en series distintas (IT A 7.1)." :
       "En la DAM de exportación la casilla S 7.9 no se llena [H: IT B 7.9]: el certificado acompaña a la mercancía y lo usa el importador en su país para pedir la preferencia.";
-    cuerpo.appendChild(dam);
+    cierre.appendChild(dam);
     return marco.hoja;
   }
 

@@ -502,6 +502,7 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .doc-datos dd .dam-ayuda { font-weight: 400; }
 .doc-datos dd[data-estado="en-blanco"] { min-height: 3.5mm; border-bottom: 0.4pt dotted #9aa0a6; }
 .doc-pv-motivo { font-size: 7pt; color: #5b4400; }
+.doc-deducido { display: block; font-size: 7pt; color: #5b4400; }
 .doc-adv { margin: 1.5mm 0; padding: 1.2mm 2mm; font-size: 7.6pt; background: #fffbeb; border-left: 2pt solid #b45309; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .doc-referencial { font-size: 8.5pt; text-align: left; letter-spacing: 0.02em; }
 .doc-referencial .doc-linea { font-weight: 400; letter-spacing: 0; color: #5b4400; }
@@ -509,6 +510,10 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .doc-firma-caja .doc-linea-firma { margin-top: 6mm; }
 .doc-sin-borde { border: none; padding: 0; margin: 0; }
 .doc-origen td:nth-child(2) { min-width: 18mm; }
+/* F9.1 (auditoría F9-X5): el cuadro didáctico del seguro es corto; va entero en una página (sin título huérfano). */
+.doc-cuadro-seguro { break-inside: avoid; }
+.doc-cuadro-seguro h4 { break-after: avoid; }
+.doc-cierre { break-inside: avoid; }
 
 @media print {
   .documentos { border: none; padding: 0; margin: 0; background: none; }

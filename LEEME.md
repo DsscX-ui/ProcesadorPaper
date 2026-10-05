@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"744 de 744 pruebas correctas"** en verde.
+2. Arriba debe decir **"755 de 755 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -110,7 +110,8 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    suma asegurada 22,044.00 y prima 66.13 (= desglose de la factura); bultos, peso bruto y contenedor = lista de empaque; criterio
    de origen POR VERIFICAR; y variantes: FOB sin seguro ni preferencia (sin SEG ni CO), CIF (SEG con 43,505.00 y 130.52), FOB con
    seguro voluntario (A12), fechas posteriores al embarque (A11, A13), importación con preferencia (CO), datos que faltan (E04, E01:
-   no se genera nada) y texto con etiquetas HTML (se muestra como texto).
+   no se genera nada) y texto con etiquetas HTML (se muestra como texto). El grupo F9.1 son las regresiones de la auditoría de F9
+   (marca del asegurado y del beneficiario, riesgo en CIF y CIP, filas SEG y CO de la trazabilidad).
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -204,7 +205,8 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 - Son **formatos referenciales didácticos**: cada aseguradora tiene su modelo de certificado y cada acuerdo comercial fija el
   formulario del certificado de origen, quién lo emite y los criterios de origen (**PV-12**, recuadro «FORMATO REFERENCIAL»).
 - **SEG** solo aparece si hay seguro. En CIF y CIP lo contrata el vendedor a favor del comprador; con seguro voluntario en otro
-  Incoterm, el documento muestra la advertencia **A12** y como asegurado a quien corre el riesgo. **Suma asegurada** = base × % de
+  Incoterm, el documento muestra la advertencia **A12** y como asegurado a quien corre el riesgo. Asegurado y beneficiario
+  llevan la marca H\* «Supuesto según el Incoterm; confirmar con la póliza». **Suma asegurada** = base × % de
   cobertura (caso 1: 20,040.00 × 110 % = 22,044.00). La **prima** (66.13) no va en el cuerpo del certificado (PLAN §6.4): el cuadro
   didáctico del final muestra cómo se calcula y en qué documentos aparece (factura, DAM, hoja resumen).
 - **CO** solo aparece si se pide trato preferencial. El caso 2 deja el **criterio de origen** vacío a propósito y marcado
@@ -218,7 +220,7 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) F8a.3 (correcciones de la auditoría de F8a.2) F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b), F8c (DAM Formato C, liquidación), F8c.1 (correcciones de la auditoría de F8c) y F9 (certificado de seguro y certificado de origen).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) F8a.3 (correcciones de la auditoría de F8a.2) F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b), F8c (DAM Formato C, liquidación), F8c.1 (correcciones de la auditoría de F8c), F9 (certificado de seguro y certificado de origen) y F9.1 (correcciones de la auditoría de F9).
 Siguiente: **F10** (ajustes de impresión, guía y revisión final).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

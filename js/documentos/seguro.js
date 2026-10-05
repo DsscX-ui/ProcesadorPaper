@@ -19,11 +19,14 @@
   // Quién contrata el seguro (asegurado) y a favor de quién (beneficiario), según la regla Incoterms® [H*]:
   // CIF y CIP → el vendedor, a favor del comprador (Incoterms® 2020, A5; PLAN §5: «asegurado en CIF/CIP», «beneficiario»);
   // grupo D → el vendedor (corre el riesgo hasta el destino); E, F, CFR y CPT → el comprador (lo mismo que dice A12).
+  // El momento en que pasa el riesgo sale de la matriz de js/incoterms.js (regla.riesgo): en CIF «a bordo en el puerto
+  // de embarque», en CIP «al entregar al primer transportista» (F9.1, auditoría F9-X2).
   function partesSeguro(ctx) {
     var r = ctx.r.reglaIncoterm, p = ctx.op.generales.partes;
     if (r && r.seguroObligatorio) {
       return { asegurado: p.vendedor, beneficiario: p.comprador, quien: "vendedor",
-        nota: "En " + r.codigo + " el vendedor contrata el seguro a favor del comprador, que corre el riesgo desde el embarque (Incoterms® 2020, A5) [H*]." };
+        nota: "En " + r.codigo + " el vendedor contrata el seguro a favor del comprador, que corre el riesgo desde la entrega (" +
+          r.riesgo.charAt(0).toLowerCase() + r.riesgo.slice(1) + ") (Incoterms® 2020, A5) [H*]. La póliza real fija el asegurado y el beneficiario." };
     }
     if (r && r.grupo === "D") {
       return { asegurado: p.vendedor, beneficiario: p.vendedor, quien: "vendedor",
@@ -31,6 +34,18 @@
     }
     return { asegurado: p.comprador, beneficiario: p.comprador, quien: "comprador",
       nota: "En " + (r ? r.codigo : "este Incoterm") + " el seguro no es obligatorio; lo contrataría el comprador, que corre el riesgo desde la entrega en origen (A12) [H*]. La póliza real fija el asegurado." };
+  }
+
+  // Nombre y dirección de una parte del seguro con la marca VISIBLE E IMPRESA de que el rol se dedujo del Incoterm
+  // (F9.1, auditoría F9-X1): H* (regla Incoterms®, conocimiento general) + «supuesto según el Incoterm; confirmar con la
+  // póliza». La explicación larga sigue en la ayuda «?».
+  function parteDeducida(p, nota) {
+    var s = nombreYDireccion(p);
+    var m = el("span", "doc-deducido");
+    m.appendChild(D.etiquetaMarca("H*", nota));
+    m.appendChild(document.createTextNode(" Supuesto según el Incoterm; confirmar con la póliza."));
+    s.appendChild(m);
+    return s;
   }
 
   function nombreYDireccion(p) {
@@ -74,11 +89,11 @@
 
     var col2 = el("div", "doc-columnas");
     col2.appendChild(D.datos(["Asegurado (quien contrata el seguro)", "Assured"], [
-      ["Nombre y dirección", "Name and address", nombreYDireccion(ps.asegurado), { ayuda: [ps.nota] }],
+      ["Nombre y dirección", "Name and address", parteDeducida(ps.asegurado, ps.nota), { ayuda: [ps.nota] }],
       ["Rol en la venta", "Role", ps.quien === "vendedor" ? "Vendedor / exportador" : "Comprador / importador"]
     ], "doc-parte"));
     col2.appendChild(D.datos(["Beneficiario (pago de siniestros a)", "Claims payable to"], [
-      ["Nombre y dirección", "Name and address", nombreYDireccion(ps.beneficiario), { ayuda: [ps.nota] }],
+      ["Nombre y dirección", "Name and address", parteDeducida(ps.beneficiario, ps.nota), { ayuda: [ps.nota] }],
       D.filaDato(ctx, "Lugar y moneda de pago de siniestros", "Claims payable at", S + "lugarPagoSiniestros", s.lugarPagoSiniestros)
     ], "doc-parte"));
     cuerpo.appendChild(col2);

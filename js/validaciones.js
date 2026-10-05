@@ -315,7 +315,8 @@ var Validaciones = (function () {
       if (c.obl === "si hay seguro" && x.regla && x.regla.seguroObligatorio) { return; }
       var usados = documentosQueLoExigen(x, c, activos);
       if (!usados) { return; }
-      // Un dato vacío a propósito y marcado POR VERIFICAR no es un error: lo cuenta A19.
+      // Un dato vacío a propósito y marcado POR VERIFICAR no es un error. A19 solo lo cuenta si lo usa la DAM; si no (ej. el
+      // criterio de origen del caso 2, solo del CO), lo muestra POR VERIFICAR el documento que lo usa (F9.1, auditoría F9-X4).
       if (x.op.marcas[ruta] && x.op.marcas[ruta].marca === "PV") { return; }
       var casilla = DICCIONARIO.casilla(c, x.op.generales.operacion.tipo);
       agregar("E01", "Falta «" + etiqueta(ruta) + "».", [ruta], {

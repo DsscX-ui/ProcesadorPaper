@@ -69,20 +69,20 @@ var DICCIONARIO = (function () {
 
   // --- A2 Partes
   d("A2", P + "vendedor.razonSocial", "Vendedor / exportador", "Seller / exporter", "texto", "H", "IT C 3.1 / IT B 1.1", { docs: "FC PL BL DAM SEG CO HR", cas: ["B 3.1", "S 1.1"], ayuda: "Quien vende y emite la factura. En el B/L suele ser el embarcador (shipper)." });
-  d("A2", P + "vendedor.direccion", "Dirección del vendedor", "Seller address", "texto", "H", "IT C 3.3 / IT B 1.3", { docs: "FC PL BL DAM CO", cas: ["B 3.3", "S 1.3"], ayuda: "Dirección exacta: número, calle y distrito (IT C 3.3)." });
-  d("A2", P + "vendedor.ciudad", "Ciudad del vendedor", "Seller city", "texto", "H", "IT C 3.4", { docs: "FC PL BL DAM CO", cas: ["B 3.4", ""], ayuda: "Ciudad de la dirección del vendedor." });
-  d("A2", P + "vendedor.pais", "País del vendedor", "Seller country", "codigo", "H", "IT C 3.5", { lista: "pais", docs: "FC PL BL DAM CO", cas: ["B 3.5", ""], ayuda: "País de residencia del proveedor." });
-  d("A2", P + "vendedor.idFiscal", "Identificación fiscal del vendedor", "Seller tax ID", "texto", "H", "IT B 1.2", { docs: "FC DAM", cas: ["", "S 1.2 (RUC del exportador)"], ayuda: "En exportación, RUC de 11 dígitos del exportador. En importación solo va en la factura." });
+  d("A2", P + "vendedor.direccion", "Dirección del vendedor", "Seller address", "texto", "H", "IT C 3.3 / IT B 1.3", { docs: "FC PL BL DAM SEG CO", cas: ["B 3.3", "S 1.3"], ayuda: "Dirección exacta: número, calle y distrito (IT C 3.3)." });
+  d("A2", P + "vendedor.ciudad", "Ciudad del vendedor", "Seller city", "texto", "H", "IT C 3.4", { docs: "FC PL BL DAM SEG CO", cas: ["B 3.4", ""], ayuda: "Ciudad de la dirección del vendedor." });
+  d("A2", P + "vendedor.pais", "País del vendedor", "Seller country", "codigo", "H", "IT C 3.5", { lista: "pais", docs: "FC PL BL DAM SEG CO", cas: ["B 3.5", ""], ayuda: "País de residencia del proveedor." });
+  d("A2", P + "vendedor.idFiscal", "Identificación fiscal del vendedor", "Seller tax ID", "texto", "H", "IT B 1.2", { docs: "FC DAM CO", cas: ["", "S 1.2 (RUC del exportador)"], ayuda: "En exportación, RUC de 11 dígitos del exportador. En importación solo va en la factura." });
   d("A2", P + "vendedor.ubigeo", "UBIGEO del exportador", "Exporter UBIGEO", "codigo", "H", "IT B 1.4", { lista: "ubigeo", obl: "exportación", solo: "exportacion", docs: "DAM", cas: ["", "S 1.4"], ayuda: "Código de ubicación geográfica del domicilio del exportador (decisión D4)." });
   d("A2", P + "vendedor.telefono", "Teléfono del proveedor", "Supplier phone", "texto", "H", "IT C 3.6", { obl: "no", docs: "DAM", cas: ["B 3.6", ""], ayuda: "Código de país, de ciudad y número." });
   d("A2", P + "vendedor.correo", "Correo del proveedor", "Supplier e-mail", "texto", "H", "IT C 3.9", { obl: "no", docs: "DAM", cas: ["B 3.9", ""], ayuda: "Correo electrónico del proveedor, cuando corresponda." });
   d("A2", P + "vendedor.condicion", "Condición del proveedor", "Supplier condition", "codigo", "H", "IT C 3.2", { lista: "condicionProveedor", obl: "importación", solo: "importacion", docs: "DAM", cas: ["B 3.2", ""], ayuda: "Papel del proveedor en la venta: fabricante, distribuidor, comerciante u otro." });
 
   d("A2", P + "comprador.razonSocial", "Comprador / importador", "Buyer / importer", "texto", "H", "IT A 1.1, IT C 1.1", { docs: "FC PL BL DAM SEG CO HR", cas: ["A 1.1, B 1.1", ""], ayuda: "Quien compra. En importación es el importador ante SUNAT; en exportación no tiene casilla." });
-  d("A2", P + "comprador.direccion", "Dirección del comprador", "Buyer address", "texto", "H", "IT A 1.3", { docs: "FC PL BL DAM CO", cas: ["A 1.3", ""], ayuda: "Domicilio del importador o del comprador extranjero." });
-  d("A2", P + "comprador.ciudad", "Ciudad del comprador", "Buyer city", "texto", "S", "—", { docs: "FC PL BL CO", ayuda: "Ciudad del comprador." });
-  d("A2", P + "comprador.pais", "País del comprador", "Buyer country", "codigo", "H*", "ISO 3166 alfa-2", { lista: "pais", docs: "FC PL BL CO", ayuda: "País del comprador." });
-  d("A2", P + "comprador.idFiscal", "Identificación fiscal del comprador", "Buyer tax ID", "texto", "H", "IT A 1.2", { docs: "FC DAM", cas: ["A 1.2, B 1.2 (RUC, código 4)", ""], ayuda: "En importación, RUC de 11 dígitos; el código de documento 4 = RUC se deriva (IT A 1.2)." });
+  d("A2", P + "comprador.direccion", "Dirección del comprador", "Buyer address", "texto", "H", "IT A 1.3", { docs: "FC PL BL DAM SEG CO", cas: ["A 1.3", ""], ayuda: "Domicilio del importador o del comprador extranjero." });
+  d("A2", P + "comprador.ciudad", "Ciudad del comprador", "Buyer city", "texto", "S", "—", { docs: "FC PL BL SEG CO", ayuda: "Ciudad del comprador." });
+  d("A2", P + "comprador.pais", "País del comprador", "Buyer country", "codigo", "H*", "ISO 3166 alfa-2", { lista: "pais", docs: "FC PL BL SEG CO", ayuda: "País del comprador." });
+  d("A2", P + "comprador.idFiscal", "Identificación fiscal del comprador", "Buyer tax ID", "texto", "H", "IT A 1.2", { docs: "FC DAM CO", cas: ["A 1.2, B 1.2 (RUC, código 4)", ""], ayuda: "En importación, RUC de 11 dígitos; el código de documento 4 = RUC se deriva (IT A 1.2)." });
   d("A2", P + "comprador.ubigeo", "UBIGEO del importador", "Importer UBIGEO", "codigo", "H*", "INEI (tabla SUNAT: F0b)", { lista: "ubigeo", obl: "importación", solo: "importacion", docs: "DAM", cas: ["A 1.4", ""], ayuda: "Código de ubicación geográfica del domicilio del importador." });
 
   d("A2", P + "consignatario.tipo", "Consignatario", "Consignee", "codigo", "S", "—", { lista: "tipoConsignatario", docs: "FC BL", cas: SC, ayuda: "Quien recibe la carga según el B/L: el comprador (por defecto), otra persona o «a la orden de…»." });
@@ -108,16 +108,16 @@ var DICCIONARIO = (function () {
 
   // --- A3 Ruta
   d("A3", G + "ruta.puertoEmbarque.nombre", "Puerto de embarque", "Port of loading", "texto", "H", "IT A 7.6", { docs: "FC PL BL DAM SEG CO HR", cas: ["A 7.6", "S 7.6"], ayuda: "Puerto donde la carga sube al buque." });
-  d("A3", G + "ruta.puertoEmbarque.locode", "Puerto de embarque: código", "Port of loading code", "codigo", "H*", "UN/LOCODE (PV-09)", { lista: "puerto", docs: "BL DAM HR", cas: ["A 7.6", "S 7.6"], ayuda: "UN/LOCODE de 5 caracteres; los 2 primeros son el país." });
+  d("A3", G + "ruta.puertoEmbarque.locode", "Puerto de embarque: código", "Port of loading code", "codigo", "H*", "UN/LOCODE (PV-09)", { lista: "puerto", docs: "BL DAM SEG CO HR", cas: ["A 7.6", "S 7.6"], ayuda: "UN/LOCODE de 5 caracteres; los 2 primeros son el país." });
   d("A3", G + "ruta.puertoDescarga.nombre", "Puerto de descarga", "Port of discharge", "texto", "H", "IT B 7.27", { docs: "FC PL BL DAM SEG CO HR", cas: ["", "Con S 7.27 (transmisión)"], ayuda: "Puerto donde la carga baja del buque." });
-  d("A3", G + "ruta.puertoDescarga.locode", "Puerto de descarga: código", "Port of discharge code", "codigo", "H*", "UN/LOCODE (PV-09)", { lista: "puerto", docs: "BL DAM HR", cas: ["", "Con S 7.27 (transmisión)"], ayuda: "UN/LOCODE de 5 caracteres." });
+  d("A3", G + "ruta.puertoDescarga.locode", "Puerto de descarga: código", "Port of discharge code", "codigo", "H*", "UN/LOCODE (PV-09)", { lista: "puerto", docs: "BL DAM SEG CO HR", cas: ["", "Con S 7.27 (transmisión)"], ayuda: "UN/LOCODE de 5 caracteres." });
   d("A3", G + "ruta.paisAdquisicion", "País de adquisición", "Country of acquisition", "codigo", "H", "IT A 7.27", { lista: "pais", obl: "importación", solo: "importacion", docs: "DAM", cas: ["A 7.27", ""], ayuda: "País donde se compró la mercancía; por defecto, el del proveedor." });
   d("A3", G + "ruta.lugarRecepcion", "Lugar de recepción", "Place of receipt", "texto", "S", "—", { obl: "no", docs: "BL", ayuda: "Solo con transporte combinado." });
   d("A3", G + "ruta.lugarEntrega", "Lugar de entrega", "Place of delivery", "texto", "S", "—", { obl: "no", docs: "BL", ayuda: "Solo con transporte combinado." });
 
   // --- A4 Condiciones comerciales
-  d("A4", G + "comercial.incoterm", "Incoterm", "Incoterm", "codigo", "H", "IT C 5.4; Incoterms® 2020 [H*]", { lista: "incoterm", docs: "FC BL DAM SEG HR", cas: ["B 5.4", "S 6.1–6.5"], ayuda: "Regla Incoterms® 2020 pactada: define costos, riesgos y documentos." });
-  d("A4", G + "comercial.lugarConvenido", "Lugar convenido", "Named place", "texto", "H", "IT C 5.4", { docs: "FC DAM HR", cas: ["B 5.4", ""], ayuda: "Lugar que acompaña al Incoterm; debe cuadrar con los puertos (E03)." });
+  d("A4", G + "comercial.incoterm", "Incoterm", "Incoterm", "codigo", "H", "IT C 5.4; Incoterms® 2020 [H*]", { lista: "incoterm", docs: "FC BL DAM SEG CO HR", cas: ["B 5.4", "S 6.1–6.5"], ayuda: "Regla Incoterms® 2020 pactada: define costos, riesgos y documentos." });
+  d("A4", G + "comercial.lugarConvenido", "Lugar convenido", "Named place", "texto", "H", "IT C 5.4", { docs: "FC DAM SEG HR", cas: ["B 5.4", ""], ayuda: "Lugar que acompaña al Incoterm; debe cuadrar con los puertos (E03)." });
   d("A4", G + "comercial.moneda", "Moneda", "Currency", "codigo", "H", "IT A 7.29, IT IV.4", { lista: "moneda", docs: "FC DAM SEG HR", cas: ["A 7.29, B 5.5", ""], ayuda: "Moneda del contrato (USD en v1)." });
   d("A4", G + "comercial.facturaNumero", "N° de factura", "Invoice No.", "texto", "H", "IT A 7.36, IT C 5.2", { docs: "FC PL DAM SEG CO HR", cas: ["A 7.36, B 5.2", "S 7.36"], ayuda: "Número de la factura comercial." });
   d("A4", G + "comercial.facturaFecha", "Fecha de factura", "Invoice date", "fecha", "H", "IT A 7.36, IT C 5.3", { docs: "FC PL DAM SEG CO HR", cas: ["A 7.36, B 5.3", "S 7.36"], ayuda: "Fecha de emisión de la factura." });
@@ -165,10 +165,10 @@ var DICCIONARIO = (function () {
   // --- B1–B2 Mercancía y embalaje (por ítem)
   d("B1", I + "nombre", "Nombre del producto", "Product name", "texto", "H", "IT C 5.12", { docs: "FC PL BL DAM SEG CO", cas: ["B 5.12", ""], ayuda: "Nombre común de la mercancía." });
   d("B1", I + "descripcion", "Descripción", "Description", "texto", "H", "IT A 7.35, IT B 7.35", { docs: "FC PL DAM CO", cas: ["A 7.35, B 5.19", "S 7.35"], ayuda: "Denominación, presentación, material, uso y otras características (IT A 7.35). En exportación, en español." });
-  d("B1", I + "marca", "Marca", "Brand", "texto", "H", "IT C 5.13", { docs: "FC PL DAM", cas: ["B 5.13", ""], ayuda: "Marca comercial." });
-  d("B1", I + "modelo", "Modelo", "Model", "texto", "H", "IT C 5.14", { obl: "importación", docs: "FC PL DAM", cas: ["B 5.14", ""], ayuda: "Código o nombre del modelo. Obligatorio en importación (casilla B 5.14 del Formato B); en exportación no tiene casilla y es opcional [S]." });
+  d("B1", I + "marca", "Marca", "Brand", "texto", "H", "IT C 5.13", { docs: "FC PL DAM CO", cas: ["B 5.13", ""], ayuda: "Marca comercial." });
+  d("B1", I + "modelo", "Modelo", "Model", "texto", "H", "IT C 5.14", { obl: "importación", docs: "FC PL DAM CO", cas: ["B 5.14", ""], ayuda: "Código o nombre del modelo. Obligatorio en importación (casilla B 5.14 del Formato B); en exportación no tiene casilla y es opcional [S]." });
   d("B1", I + "subpartida", "Subpartida nacional", "HS code (10 digits)", "texto", "H", "IT A 7.19; arancel: PV-10", { docs: "FC BL DAM CO", cas: ["A 7.19", "S 7.19"], ayuda: "10 dígitos; los 6 primeros son del Sistema Armonizado." });
-  d("B1", I + "subpartidaVerificada", "Subpartida verificada", "HS code verified", "sino", "S", "—", { docs: "HR", ayuda: "Marca si la subpartida se comprobó en el arancel; si no, sale POR VERIFICAR (A08)." });
+  d("B1", I + "subpartidaVerificada", "Subpartida verificada", "HS code verified", "sino", "S", "—", { docs: "CO HR", ayuda: "Marca si la subpartida se comprobó en el arancel; si no, sale POR VERIFICAR (A08)." });
   d("B1", I + "paisOrigen", "País de origen", "Country of origin", "codigo", "H", "IT A 7.26, IT C 5.7", { lista: "pais", docs: "FC DAM CO", cas: ["A 7.26, B 5.7", ""], ayuda: "País donde se fabricó la mercancía." });
   d("B1", I + "ubigeoOrigen", "UBIGEO de fabricación", "Place of manufacture (UBIGEO)", "codigo", "H", "IT B 7.26", { lista: "ubigeo", obl: "exportación", solo: "exportacion", docs: "DAM", cas: ["", "S 7.26"], ayuda: "En exportación, la casilla de origen lleva el UBIGEO del lugar de fabricación (IT B 7.26)." });
   d("B1", I + "estado", "Estado", "Condition", "codigo", "H", "IT C 5.16 (exportación: PV-09)", { lista: "estado", docs: "DAM", cas: ["B 5.16", "S 7.20"], ayuda: "Nuevo, usado, etc." });
@@ -189,7 +189,7 @@ var DICCIONARIO = (function () {
 
   // --- B3 Contenedor
   var C = E + "contenedor.";
-  d("B3", C + "tipo", "Tipo de contenedor", "Container type", "codigo", "H*", "ISO 6346", { lista: "tipoContenedor", docs: "PL BL HR", ayuda: "Tamaño y tipo ISO." });
+  d("B3", C + "tipo", "Tipo de contenedor", "Container type", "codigo", "H*", "ISO 6346", { lista: "tipoContenedor", docs: "PL BL SEG HR", ayuda: "Tamaño y tipo ISO." });
   d("B3", C + "numero", "N° de contenedor", "Container No.", "texto", "H*", "ISO 6346; casilla: IT A 9", { docs: "PL BL DAM SEG HR", cas: ["A 9", "S 9"], ayuda: "4 letras + 6 dígitos + dígito de control ISO 6346." });
   d("B3", C + "precinto", "Precinto", "Seal No.", "texto", "H", "IT A 9", { docs: "PL BL DAM SEG HR", cas: ["A 9", "S 9"], ayuda: "Número del sello de seguridad." });
   d("B3", C + "tara", "Tara (kg)", "Tare (kg)", "numero", "PV", "PV-16", { docs: "BL HR", cas: SC, ayuda: "Peso del contenedor vacío (placa del contenedor)." });
@@ -230,7 +230,7 @@ var DICCIONARIO = (function () {
   d("B5", S + "guerra", "Cláusula de guerra", "War clauses", "sino", "H*", "ICC 2009", { obl: "no", docs: "SEG", ayuda: "Cobertura adicional de guerra." });
   d("B5", S + "huelgas", "Cláusula de huelgas", "Strikes clauses", "sino", "H*", "ICC 2009", { obl: "no", docs: "SEG", ayuda: "Cobertura adicional de huelgas." });
   d("B5", S + "coberturaPct", "Cobertura (%)", "Cover (%)", "numero", "H*", "Incoterms® 2020, CIF/CIP A5", { obl: "si hay seguro", docs: "SEG HR", ayuda: "Mínimo 110 % en CIF y CIP." });
-  d("B5", S + "tasaPrimaPct", "Tasa de prima (%)", "Premium rate (%)", "numero", "S", "—", { obl: "si hay seguro", docs: "FC DAM HR", ayuda: "Prima = suma asegurada × tasa." });
+  d("B5", S + "tasaPrimaPct", "Tasa de prima (%)", "Premium rate (%)", "numero", "S", "—", { obl: "si hay seguro", docs: "FC DAM SEG HR", ayuda: "Prima = suma asegurada × tasa." });
   d("B5", S + "lugarPagoSiniestros", "Lugar de pago de siniestros", "Claims payable at", "texto", "S", "—", { obl: "si hay seguro", docs: "SEG", ayuda: "Dónde y en qué moneda se pagan los siniestros." });
   d("B5", S + "agenteReclamos", "Agente de reclamos", "Claims / survey agent", "texto", "S", "—", { obl: "no", docs: "SEG", ayuda: "A quién avisar en destino en caso de daño." });
   d("B5", S + "pctTablaSunat", "% tabla de seguros SUNAT", "SUNAT insurance table %", "numero", "PV", "IT C 8.4; porcentajes: PV-06", { obl: "importación sin seguro", solo: "importacion", docs: "DAM", cas: ["A 7.32", ""], ayuda: "Porcentaje de la tabla de SUNAT cuando no hay póliza (PV-06)." });
@@ -245,7 +245,7 @@ var DICCIONARIO = (function () {
 
   // --- B7 Valoración
   var VA = E + "valoracion.";
-  d("B7", VA + "flete", "Flete internacional (USD)", "Ocean freight (USD)", "numero", "H", "IT C 8.3.1; IT A 6.2", { obl: "C/D e importación", docs: "FC BL DAM HR", cas: ["B 8.3.1 → A 6.2, 7.31", ""], ayuda: "Del puerto de embarque al de destino." });
+  d("B7", VA + "flete", "Flete internacional (USD)", "Ocean freight (USD)", "numero", "H", "IT C 8.3.1; IT A 6.2", { obl: "C/D e importación", docs: "FC BL DAM SEG HR", cas: ["B 8.3.1 → A 6.2, 7.31", ""], ayuda: "Del puerto de embarque al de destino." });
   // [clave, es, en, casilla, marca, fuente, ayuda]
   [
     ["gastosExw815", "Gastos hasta el embarque (EXW)", "Pre-carriage costs (EXW)", "B 8.1.5", "PV", "IT C 5.9 (rótulo: PV)", "Solo en EXW; suma al FOB. Nombre exacto de la casilla: POR VERIFICAR."],

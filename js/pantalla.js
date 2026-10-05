@@ -507,6 +507,9 @@
       hoja.style.zoom = f < 1 ? f.toFixed(3) : "";
       // F10: la escala también va como variable CSS para agrandar el área táctil de los «?» de la hoja (css/estilos.css).
       if (f < 1) { hoja.style.setProperty("--escala-hoja", f.toFixed(3)); } else { hoja.style.removeProperty("--escala-hoja"); }
+      // F10.1 (auditoría F10-X1): con la hoja reducida, las ayudas «?» también se ofrecen fuera de la hoja, a tamaño normal.
+      var lista = panel.querySelector(".doc-ayudas-lista");
+      if (lista) { lista.hidden = !(f < 1); }
     });
     var b = $("btn-doc-tamano");
     if (b) {
@@ -608,6 +611,8 @@
       visor.setAttribute("aria-label", "Hoja A4: " + d.def.es);
       visor.appendChild(d.hoja);
       pn.appendChild(visor);
+      var lista = Documentos.listaAyudas(d.hoja, d.def.id);
+      if (lista) { pn.appendChild(lista); }
       frag.appendChild(pn);
     });
     return frag;
@@ -781,6 +786,7 @@
       (r.sinDato.length ? " · entradas sin dato en el modelo: " + r.sinDato.join(", ") : "") +
       " · Cobertura del plan (§4/§5, PLAN anexo A): " + (okCob ? "completa" : "REVISAR") + ", " + cob.requisitos + " requisitos (" +
       cob.porEstado.dato + " con datos, " + cob.porEstado.derivado + " derivados" +
+      (cob.porEstado.pv ? ", " + cob.porEstado.pv + " representado(s) con POR VERIFICAR, sin valor resuelto" : "") +
       (cob.porEstado.reservado ? ", " + cob.porEstado.reservado + " reservados a fases posteriores" : "") + ")" +
       (cob.sinRequisito.length ? " · campos sin requisito: " + cob.sinRequisito.join(", ") : "") +
       (cob.patronesHuerfanos.length ? " · requisitos sin campo: " + cob.patronesHuerfanos.join(", ") : "");

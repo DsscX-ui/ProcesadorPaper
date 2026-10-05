@@ -164,6 +164,48 @@ var Documentos = (function () {
     return btn;
   }
 
+  // F10.1 (auditoría F10-X1): en un celular la hoja A4 se ve al ~40 % y los «?» de la DAM quedan a 13 px unos de otros:
+  // no caben objetivos de 24 × 24 px sin taparse. Por eso, mientras la hoja está reducida, debajo de ella se muestra la
+  // lista de sus ayudas, fuera de la hoja y sin escalar: un botón por casilla (alto mínimo 44 px, uno debajo de otro) que
+  // abre el mismo texto de la ayuda de la hoja (copiado con textContent). Ids propios («lista-» + id de la ayuda), así que
+  // no se duplican; el «?» de la hoja sigue funcionando igual. No se imprime.
+  // La muestra pantalla.js (ajustarEscala) solo mientras la hoja está reducida.
+  function listaAyudas(hoja, docId) {
+    var botones = hoja.querySelectorAll(".dam-ayuda-btn");
+    if (!botones.length) { return null; }
+    var caja = el("details", "doc-ayudas-lista");
+    caja.hidden = true;
+    caja.appendChild(el("summary", null, "Ayudas de las casillas de esta hoja (" + botones.length + "), para leerlas en el celular"));
+    caja.appendChild(el("p", "nota", "Son las mismas ayudas de los botones «?» de la hoja, en letra normal. También puedes usar «Ver en tamaño real»."));
+    var ul = el("ul");
+    Array.prototype.forEach.call(botones, function (b) {
+      // La hoja aún no está en el documento (se arma en un fragmento): se busca el panel dentro de ella.
+      var original = hoja.querySelector('[id="' + b.getAttribute("aria-controls") + '"]');
+      if (!original) { return; }
+      var li = el("li");
+      var btn = el("button", "doc-ayuda-item", (b.getAttribute("aria-label") || "Ayuda").replace(/^Ayuda de la casilla /, "Casilla ").replace(/^Ayuda: /, ""));
+      btn.type = "button";
+      var id = "lista-" + original.id;
+      btn.setAttribute("aria-expanded", "false");
+      btn.setAttribute("aria-controls", id);
+      var texto = el("div", "doc-ayuda-texto");
+      texto.id = id;
+      texto.hidden = true;
+      Array.prototype.forEach.call(original.querySelectorAll("p"), function (q) { texto.appendChild(el("p", null, q.textContent)); });
+      btn.addEventListener("click", function () {
+        var abierto = btn.getAttribute("aria-expanded") === "true";
+        btn.setAttribute("aria-expanded", abierto ? "false" : "true");
+        texto.hidden = abierto;
+      });
+      li.appendChild(btn);
+      li.appendChild(texto);
+      ul.appendChild(li);
+    });
+    caja.appendChild(ul);
+    caja.setAttribute("data-doc", docId);
+    return caja;
+  }
+
   // Lista de datos «rótulo: valor» en una caja. filas: [[es, en, valor (texto o nodo), opciones], …]
   // opciones (F9): { blanco: true → un valor vacío queda EN BLANCO (D17) en lugar de «—»; ayuda: [textos] → botón «?»
   // junto al rótulo con la explicación (el motivo de la casilla en blanco, de dónde sale el dato…) }.
@@ -498,7 +540,7 @@ var Documentos = (function () {
     el: el, rotulo: rotulo, etiquetaMarca: etiquetaMarca, marcaDato: marcaDato, marcaEfectiva: marcaEfectiva, etiquetaEfectiva: etiquetaEfectiva,
     conMarca: conMarca, puertoMarcado: puertoMarcado, sa6Marcado: sa6Marcado, subpartidaMarcada: subpartidaMarcada, estadoSubpartida: estadoSubpartida, hayPvSubpartida: hayPvSubpartida, cifra: cifra,
     datos: datos, filaDato: filaDato, ayuda: ayuda, advertencias: advertencias, avisoRevision: avisoRevision, tabla: tabla, hoja: hoja, parte: parte, idFiscal: idFiscal,
-    consignatario: consignatario, notify: notify, embarcador: embarcador, clasesBulto: clasesBulto, contenedor: contenedor,
+    listaAyudas: listaAyudas, consignatario: consignatario, notify: notify, embarcador: embarcador, clasesBulto: clasesBulto, contenedor: contenedor,
     fecha: fecha, fechaHora: fechaHora, enteroEnLetras: enteroEnLetras, opcion: opcion, sa6: sa6, precio: precio, puerto: puerto, enLetras: enLetras
   };
 })();

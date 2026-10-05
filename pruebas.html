@@ -2060,6 +2060,55 @@
         String(cob.porEstado.reservado || 0));
     })();
 
+    // ============================================================ F10.1: correcciones de la auditoría de F10
+    (function () {
+      grupo("F10.1. Correcciones de la auditoría de F10",
+        "F10-X1: con la hoja reducida (celular), las ayudas «?» también se ofrecen fuera de la hoja, en una lista sin escalar con botones de 44 px de alto (Documentos.listaAyudas; " +
+        "pantalla.js la muestra solo mientras la hoja está reducida; el área táctil real se mide en Chrome a 390 px, verificacion/F10/resultado.txt). " +
+        "F10-X2: el dígito verificador de la subpartida queda «POR VERIFICAR» en la cobertura, no «derivado».");
+      var caja = document.createElement("div");
+      caja.style.cssText = "position:absolute; left:-10000px; top:0; width:390px; visibility:hidden;";
+      document.body.appendChild(caja);
+      var docs = documentosDe(ejemplo("caso1")).porId, hDam = docs.dam_a.hoja, hFc = docs.factura.hoja;
+      caja.appendChild(hDam);
+      var lista = Documentos.listaAyudas(hDam, "dam_a");
+      caja.appendChild(lista);
+      var items = lista.querySelectorAll(".doc-ayuda-item"), qs = hDam.querySelectorAll(".dam-ayuda-btn");
+      prueba("F10-X1 · DAM A (caso 1): un botón de la lista por cada «?» de la hoja", String(qs.length), String(items.length));
+      prueba("F10-X1 · la lista sin la factura (sin «?») no se crea; nace oculta (pantalla.js la muestra con la hoja reducida)", "true · true",
+        String(Documentos.listaAyudas(hFc, "factura") === null) + " · " + String(lista.hidden));
+      var ids = Array.prototype.map.call(caja.querySelectorAll("[id]"), function (n) { return n.id; });
+      var rotos = Array.prototype.filter.call(items, function (b) { return !lista.querySelector('[id="' + b.getAttribute("aria-controls") + '"]'); }).length;
+      prueba("F10-X1 · ids únicos (hoja + lista) y aria-controls de la lista válidos", "true · 0",
+        String(ids.length === ids.filter(function (v, i, a) { return a.indexOf(v) === i; }).length) + " · " + rotos);
+      var b0 = items[6], t0 = lista.querySelector('[id="' + b0.getAttribute("aria-controls") + '"]');
+      var orig = hDam.querySelector('[id="' + qs[6].getAttribute("aria-controls") + '"]');
+      b0.click();
+      prueba("F10-X1 · tocar un botón de la lista abre el mismo texto que el «?» de la hoja (aria-expanded = true)", "true · true · true",
+        String(!t0.hidden) + " · " + String(b0.getAttribute("aria-expanded") === "true") + " · " +
+        String(t0.textContent === Array.prototype.map.call(orig.querySelectorAll("p"), function (q) { return q.textContent; }).join("")));
+      b0.click();
+      prueba("F10-X1 · …y volver a tocarlo lo cierra", "true · false", String(t0.hidden) + " · " + b0.getAttribute("aria-expanded"));
+      prueba("F10-X1 · el botón de la lista nombra la casilla del «?» (aria-label sin «Ayuda de la casilla»)", "true",
+        String(qs[6].getAttribute("aria-label") === "Ayuda de la casilla " + b0.textContent.replace(/^Casilla /, "")));
+      lista.hidden = false; lista.open = true;
+      var r0 = items[0].getBoundingClientRect(), r1 = items[1].getBoundingClientRect();
+      prueba("F10-X1 · botones de la lista a ancho completo y ≥ 44 px de alto, uno debajo de otro (sin solaparse)", "true · true · true",
+        String(r0.width >= 300) + " · " + String(r0.height >= 44) + " · " + String(r1.top >= r0.bottom - 0.5));
+      document.body.removeChild(caja);
+
+      var dv = DICCIONARIO.cobertura.filter(function (q) { return q.requisito === "Dígito verificador de la subpartida"; })[0];
+      prueba("F10-X2 · DV de la subpartida: estado «pv» (representado, sin valor), conserva PV-27 y dice que no se calcula", "pv · true · true",
+        dv.estado + " · " + String(/PV-27/.test(dv.nota)) + " · " + String(/No se calcula/.test(dv.nota)));
+      prueba("F10-X2 · ningún requisito «derivado» dice que no se calcula", "ninguno",
+        DICCIONARIO.cobertura.filter(function (q) { return q.estado === "derivado" && /no se calcula/i.test(q.nota); }).map(function (q) { return q.requisito; }).join(", ") || "ninguno");
+      var cob = DICCIONARIO.revisarCobertura();
+      prueba("F10-X2 · cobertura: requisitos por estado (dato · derivado · POR VERIFICAR · reservado)", "57 · 10 · 1 · 0",
+        [cob.porEstado.dato, cob.porEstado.derivado, cob.porEstado.pv, cob.porEstado.reservado].join(" · "));
+      prueba("F10-X2 · la DAM A sigue mostrando «DV: POR VERIFICAR» en 7.19 (sin dígito inventado)", "true",
+        String(/DV:\s*POR VERIFICAR/.test(hDam.textContent)));
+    })();
+
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");
     var indice = document.getElementById("indice");

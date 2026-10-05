@@ -125,7 +125,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"766 de 766 pruebas correctas"** en verde.
+2. Arriba debe decir **"777 de 777 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -159,7 +159,8 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    (marca del asegurado y del beneficiario, riesgo en CIF y CIP, filas SEG y CO de la trazabilidad). El grupo F10 comprueba la
    impresión: que ningún documento de ambos casos es más ancho que el área útil de A4 (182 mm; si lo fuera, Chrome reduciría
    todo el PDF), el estilo compacto de la lista de empaque, que dentro de las hojas solo hay botones «?» (no se imprimen) y el
-   área táctil del «?».
+   área táctil del «?». El grupo F10.1 comprueba la lista de ayudas fuera de la hoja (un botón por «?», mismo texto, ids únicos,
+   44 px de alto) y que el dígito verificador de la subpartida figura como POR VERIFICAR, no como dato derivado.
 6. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -181,8 +182,10 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
    explica por qué y te lleva a «Revisión». Las advertencias no bloquean; la hoja resumen las lista.
 2. Cada documento se ve en una hoja A4. En el celular la hoja se reduce al ancho de la pantalla; **Ver en tamaño real**
    la muestra a su tamaño (desliza dentro del recuadro gris). Los botones **?** de la hoja tienen un área de toque mayor que
-   el círculo que se ve: 24 × 24 px en tamaño real y en los certificados; con la DAM reducida en un celular, 24 px de ancho
-   pero menos de alto (los «?» de casillas vecinas están muy juntos), así que para tocarlos con comodidad usa **Ver en tamaño real**.
+   el círculo que se ve (24 × 24 px a tamaño real y en los certificados). Con la hoja reducida (celular), los «?» de la DAM
+   quedan demasiado juntos para el dedo; por eso, **debajo de la hoja** aparece **«Ayudas de las casillas de esta hoja»**: una
+   lista, en letra normal, con un botón grande por casilla que abre la misma ayuda. También puedes usar **Ver en tamaño real**.
+   Esa lista solo se ve con la hoja reducida y no se imprime.
 3. **Imprimir este documento** o **Imprimir todos** abre el diálogo del navegador: Destino **Guardar como PDF**,
    Tamaño **A4**, márgenes **predeterminados**, escala **predeterminada (100 %)**. Ctrl+P también imprime todos. Nunca se
    imprimen el formulario, los paneles ni los botones «?». Desde F10 **todos los documentos caben en el ancho de A4**: el PDF
@@ -211,8 +214,8 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
   al pasar el cursor también se ve.
 - **Casilla en blanco** (solo número y rótulo) = el instructivo manda «No llenar», la llena otro (Aduana, funcionario,
   zona primaria…) o no aplica al régimen (por ejemplo, S 7.31 a 7.34 en la exportación). El motivo se lee con el botón
-  **?** de la cabecera de la casilla (con el teclado: Tab hasta el botón y Enter; en el celular, tocándolo); también al pasar
-  el cursor. Ese botón y su ayuda no se imprimen.
+  **?** de la cabecera de la casilla (con el teclado: Tab hasta el botón y Enter; en el celular, tocándolo o desde la lista
+  «Ayudas de las casillas de esta hoja», debajo de la hoja); también al pasar el cursor. Ese botón y su ayuda no se imprimen.
 - **POR VERIFICAR** (amarillo) = no se puede afirmar con las fuentes de la carpeta: nunca se inventa (dígito verificador de
   la subpartida PV-27; reparto del flete y del seguro entre series PV-04). Una **PV pequeña** junto a un código en blanco
   = código oficial por verificar: se ve el nombre (banco, «Caja de cartón», razón social del agente) y el código queda en
@@ -336,6 +339,6 @@ La herramienta mantiene el comportamiento actual en cada una hasta que decidas:
 **Todas las fases están terminadas (F1 a F10); queda solo la revisión de Aarón.** El plan completo está en `PLAN.md`
 (§10: fases; §11: decisiones). F0b (verificación de fuentes en el portal de SUNAT) sigue pendiente de acceso.
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18), F8a.3 (correcciones de la auditoría de F8a.2), F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b), F8c (DAM Formato C, liquidación), F8c.1 (correcciones de la auditoría de F8c), F9 (certificado de seguro y certificado de origen), F9.1 (correcciones de la auditoría de F9) y **F10** (ajustes de impresión, esta guía y revisión final).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18), F8a.3 (correcciones de la auditoría de F8a.2), F8b (DAM Formato B de la declaración del valor, con B1), F8b.1 (correcciones de la auditoría de F8b), F8c (DAM Formato C, liquidación), F8c.1 (correcciones de la auditoría de F8c), F9 (certificado de seguro y certificado de origen), F9.1 (correcciones de la auditoría de F9) **F10** (ajustes de impresión, esta guía y revisión final) y **F10.1** (correcciones de la auditoría de F10: ayudas «?» para el celular y cobertura del dígito verificador).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia (y guarda las copias de las fuentes).
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas, PDF y resultados de las pruebas en Chrome).

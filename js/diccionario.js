@@ -460,8 +460,10 @@ var DICCIONARIO = (function () {
   // ---------------------------------------------------------------- Cobertura del plan (F21-M1)
   // Matriz requisito del plan (§4 y fila de §5) → rutas del diccionario. "x.*" cubre todas las rutas que
   // empiezan por "x.". Estado: "dato" (se ingresa), "derivado" (lo calcula js/calculos.js; se indica dónde)
-  // o "reservado" (se mostrará en una fase posterior; desde F10 ninguno). Los fijos de v1 que muestra una plantilla también
-  // cuentan como "derivado" (se indica dónde). La misma tabla está en PLAN.md, anexo A.
+  // "pv" (F10.1: la casilla se representa, pero su valor queda POR VERIFICAR; no se calcula ni se deriva) o "reservado" (se
+  // mostrará en una fase posterior; desde F10 ninguno). Los fijos de v1 que muestra una plantilla también cuentan como
+  // "derivado" (se indica dónde). La cobertura mide que cada requisito esté representado (campo o casilla), no que su valor
+  // esté resuelto. La misma tabla está en PLAN.md, anexo A.
   // [§4, fila de §5, requisito, rutas, estado, nota]
   var R = "generales.", PA = "generales.partes.", IT = "especificos.items[].", EX = "especificos.";
   var COBERTURA = [
@@ -503,7 +505,7 @@ var DICCIONARIO = (function () {
     ["A6", "Declaración del valor", "Condiciones de la transacción (rubro 7)", [R + "valor.rubro7.*"], "dato", ""],
     ["B1", "Nombre, descripción, marca, modelo", "Nombre, descripción, marca y modelo", [IT + "nombre", IT + "descripcion", IT + "marca", IT + "modelo"], "dato", ""],
     ["B1", "Subpartida + dígito verificador", "Subpartida nacional y casilla «verificada»", [IT + "subpartida", IT + "subpartidaVerificada"], "dato", ""],
-    ["B1", "Subpartida + dígito verificador", "Dígito verificador de la subpartida", [], "derivado", "No se calcula: la casilla A 7.19 lo muestra como «DV: POR VERIFICAR» (PV-27; dam_a.js)"],
+    ["B1", "Subpartida + dígito verificador", "Dígito verificador de la subpartida", [], "pv", "No se calcula ni se deriva (el algoritmo no está en las fuentes de la carpeta): la casilla A 7.19 lo muestra como «DV: POR VERIFICAR» (PV-27; dam_a.js)"],
     ["B1", "País de origen", "País de origen (y UBIGEO de fabricación en exportación)", [IT + "paisOrigen", IT + "ubigeoOrigen"], "dato", ""],
     ["B1", "Estado", "Estado", [IT + "estado"], "dato", ""],
     ["B1", "Cantidad y unidad comercial / física", "Cantidad, unidad comercial y unidad física", [IT + "cantidad", IT + "unidadComercial", IT + "unidadFisica"], "dato", ""],
@@ -540,7 +542,7 @@ var DICCIONARIO = (function () {
   }
 
   // Comprueba la matriz: toda entrada del diccionario está cubierta por un requisito del plan y
-  // todo patrón de la matriz corresponde a algún campo. Los requisitos derivados y reservados se cuentan aparte.
+  // todo patrón de la matriz corresponde a algún campo. Los requisitos derivados, POR VERIFICAR y reservados se cuentan aparte.
   function revisarCobertura() {
     var rutas = campos.map(function (c) { return c.ruta; });
     var sinRequisito = rutas.filter(function (r) {
@@ -551,7 +553,7 @@ var DICCIONARIO = (function () {
       e.rutas.forEach(function (p) { if (!rutas.some(function (r) { return cubre(p, r); })) { patronesHuerfanos.push(p); } });
       if (e.estado === "dato" && !e.rutas.length) { patronesHuerfanos.push("(sin rutas) " + e.requisito); }
     });
-    var cuenta = { dato: 0, derivado: 0, reservado: 0 };
+    var cuenta = { dato: 0, derivado: 0, pv: 0, reservado: 0 };
     COBERTURA.forEach(function (e) { cuenta[e.estado] = (cuenta[e.estado] || 0) + 1; });
     return { requisitos: COBERTURA.length, campos: rutas.length, sinRequisito: sinRequisito, patronesHuerfanos: patronesHuerfanos, porEstado: cuenta };
   }

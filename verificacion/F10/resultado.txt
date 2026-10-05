@@ -1,20 +1,43 @@
-F10 — verificación final (Chrome headless 154.0.8037.57, 05-10-2026 18:06 PE)
+F10.1 — verificación final tras la auditoría de F10 (Chrome headless 154.0.8037.57, 05-10-2026 18:20 PE)
 
 pruebas.html:
-766 de 766 pruebas correctas
+777 de 777 pruebas correctas
 ERRORES: ninguno
 
-index.html, ambos casos, todas las pestañas a 1280 y 390 px (desborde, «?» y consola):
+F10-X1 — ÁREA TÁCTIL EFECTIVA a 390 px (hoja reducida al 39.8 %), sondeo con elementFromPoint desde el centro de cada objetivo:
+- Lista «Ayudas de las casillas de esta hoja» (fuera de la hoja, sin escalar), objetivo recomendado en el celular:
+    caso 1 @390 «DAM A» lista de ayudas fuera de la hoja: visible; 32 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 1 @390 «DAM A1» lista de ayudas fuera de la hoja: visible; 15 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 1 @390 «DAM B» lista de ayudas fuera de la hoja: visible; 77 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 1 @390 «DAM B1» lista de ayudas fuera de la hoja: visible; 6 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 1 @390 «DAM C» lista de ayudas fuera de la hoja: visible; 22 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 1 @390 «SEG» lista de ayudas fuera de la hoja: visible; 4 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 2 @390 «DAM A» lista de ayudas fuera de la hoja: visible; 44 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 2 @390 «DAM A1» lista de ayudas fuera de la hoja: visible; 27 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+    caso 2 @390 «CO» lista de ayudas fuera de la hoja: visible; 5 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
+- «?» dentro de la hoja reducida (se conserva; en la DAM, 2 «?» de una columna están a 13 px reales): mínimo 12.5 px de alto × 24 px de ancho; certificados 24 × 24.
+- «Ver en tamaño real» (zoom 1):
+    caso 1 @390 «DAM A» en tamaño real: área táctil mínima del «?»=24.0 px
+    caso 2 @390 «DAM A» en tamaño real: área táctil mínima del «?»=24.0 px
+- A 1280 px la lista no se muestra (hoja a tamaño real); «?» de la hoja 24 × 24 px.
+
+index.html, ambos casos, todas las pestañas a 1280 y 390 px (desborde, «?», lista y consola):
 caso 1 @1280 «FC»: desborde=false; ayudas «?»=0
 caso 1 @1280 «PL»: desborde=false; ayudas «?»=0
 caso 1 @1280 «IE»: desborde=false; ayudas «?»=0
 caso 1 @1280 «B/L»: desborde=false; ayudas «?»=0
 caso 1 @1280 «VGM»: desborde=false; ayudas «?»=0
+caso 1 @1280 «DAM A» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 1 @1280 «DAM A»: desborde=false; ayudas «?»=32; área táctil mínima=24.0 px
+caso 1 @1280 «DAM A1» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 1 @1280 «DAM A1»: desborde=false; ayudas «?»=15; área táctil mínima=24.0 px
+caso 1 @1280 «DAM B» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 1 @1280 «DAM B»: desborde=false; ayudas «?»=77; área táctil mínima=24.0 px
+caso 1 @1280 «DAM B1» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 1 @1280 «DAM B1»: desborde=false; ayudas «?»=6; área táctil mínima=24.0 px
+caso 1 @1280 «DAM C» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 1 @1280 «DAM C»: desborde=false; ayudas «?»=22; área táctil mínima=24.0 px
+caso 1 @1280 «SEG» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 1 @1280 «SEG»: desborde=false; ayudas «?»=4; área táctil mínima=24.0 px
 caso 1 @1280 «HR»: desborde=false; ayudas «?»=0
 caso 1 @1280: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, DAM B, DAM B1, DAM C, SEG, HR; área táctil mínima del «?»=24.0 px; errores de consola=ninguno
@@ -24,11 +47,17 @@ caso 1 @390 «PL»: desborde=false; ayudas «?»=0
 caso 1 @390 «IE»: desborde=false; ayudas «?»=0
 caso 1 @390 «B/L»: desborde=false; ayudas «?»=0
 caso 1 @390 «VGM»: desborde=false; ayudas «?»=0
+caso 1 @390 «DAM A» lista de ayudas fuera de la hoja: visible; 32 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 1 @390 «DAM A»: desborde=false; ayudas «?»=32; área táctil mínima=12.5 px
+caso 1 @390 «DAM A1» lista de ayudas fuera de la hoja: visible; 15 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 1 @390 «DAM A1»: desborde=false; ayudas «?»=15; área táctil mínima=13.0 px
+caso 1 @390 «DAM B» lista de ayudas fuera de la hoja: visible; 77 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 1 @390 «DAM B»: desborde=false; ayudas «?»=77; área táctil mínima=12.5 px
+caso 1 @390 «DAM B1» lista de ayudas fuera de la hoja: visible; 6 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 1 @390 «DAM B1»: desborde=false; ayudas «?»=6; área táctil mínima=13.0 px
+caso 1 @390 «DAM C» lista de ayudas fuera de la hoja: visible; 22 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 1 @390 «DAM C»: desborde=false; ayudas «?»=22; área táctil mínima=13.0 px
+caso 1 @390 «SEG» lista de ayudas fuera de la hoja: visible; 4 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 1 @390 «SEG»: desborde=false; ayudas «?»=4; área táctil mínima=24.0 px
 caso 1 @390 «HR»: desborde=false; ayudas «?»=0
 caso 1 @390 «DAM A» en tamaño real: área táctil mínima del «?»=24.0 px
@@ -38,8 +67,11 @@ caso 2 @1280 «PL»: desborde=false; ayudas «?»=0
 caso 2 @1280 «IE»: desborde=false; ayudas «?»=0
 caso 2 @1280 «B/L»: desborde=false; ayudas «?»=0
 caso 2 @1280 «VGM»: desborde=false; ayudas «?»=0
+caso 2 @1280 «DAM A» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 2 @1280 «DAM A»: desborde=false; ayudas «?»=44; área táctil mínima=24.0 px
+caso 2 @1280 «DAM A1» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 2 @1280 «DAM A1»: desborde=false; ayudas «?»=27; área táctil mínima=24.0 px
+caso 2 @1280 «CO» lista de ayudas fuera de la hoja: oculta (hoja a tamaño real)
 caso 2 @1280 «CO»: desborde=false; ayudas «?»=5; área táctil mínima=24.0 px
 caso 2 @1280 «HR»: desborde=false; ayudas «?»=0
 caso 2 @1280: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, CO, HR; área táctil mínima del «?»=24.0 px; errores de consola=ninguno
@@ -49,19 +81,19 @@ caso 2 @390 «PL»: desborde=false; ayudas «?»=0
 caso 2 @390 «IE»: desborde=false; ayudas «?»=0
 caso 2 @390 «B/L»: desborde=false; ayudas «?»=0
 caso 2 @390 «VGM»: desborde=false; ayudas «?»=0
+caso 2 @390 «DAM A» lista de ayudas fuera de la hoja: visible; 44 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 2 @390 «DAM A»: desborde=false; ayudas «?»=44; área táctil mínima=12.5 px
+caso 2 @390 «DAM A1» lista de ayudas fuera de la hoja: visible; 27 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 2 @390 «DAM A1»: desborde=false; ayudas «?»=27; área táctil mínima=13.0 px
+caso 2 @390 «CO» lista de ayudas fuera de la hoja: visible; 5 botones; área táctil efectiva mínima=314.0 × 43.5 px; solapamientos=0; abre el mismo texto=true; ids únicos=true
 caso 2 @390 «CO»: desborde=false; ayudas «?»=5; área táctil mínima=24.0 px
 caso 2 @390 «HR»: desborde=false; ayudas «?»=0
 caso 2 @390 «DAM A» en tamaño real: área táctil mínima del «?»=24.0 px
 caso 2 @390: pestañas=FC, PL, IE, B/L, VGM, DAM A, DAM A1, CO, HR; área táctil mínima del «?»=12.5 px; errores de consola=ninguno
 
-Área táctil = sondeo con elementFromPoint desde el centro de cada «?» (px reales de pantalla). A 390 px la DAM se ve al 39.8 %:
-24 px de ancho × ~12.5 px de alto (dos «?» de una columna están a 13 px reales); certificados 24 × 24; «Ver en tamaño real» 24 × 24.
-
-ESCALA DE IMPRESIÓN (PDF A4, preferCSSPageSize, sin escala):
-Ancho útil de A4 = 182 mm = 687 px CSS. Ancho de contenido medido con el CSS de impresión: 687 px en todos los documentos (arriba).
-Alto de la palabra del título (14 pt) en el PDF individual frente a «Imprimir todos» (F9 «todos»: 18.97 pt = 88.5 %, reducido):
+ESCALA DE IMPRESIÓN (PDF A4, preferCSSPageSize, sin escala) — sin cambios respecto de F10:
+Ancho útil de A4 = 182 mm = 687 px CSS; ancho de contenido medido = 687 px en todos los documentos (arriba); «?» y lista de ayudas visibles al imprimir = 0.
+Alto del título (14 pt) individual frente a «Imprimir todos» (F9 «todos»: 18.97 pt = 88.5 %, reducido):
 caso 1 bl            páginas= 1  alto título individual=21.43 pt  en «todos»=21.43 pt  relación=100.0 %
 caso 1 dam_a         páginas= 2  alto título individual=21.43 pt  en «todos»=21.43 pt  relación=100.0 %
 caso 1 dam_a1        páginas= 1  alto título individual=21.43 pt  en «todos»=21.43 pt  relación=100.0 %
@@ -86,7 +118,7 @@ caso 2 resumen       páginas= 3  alto título individual=21.43 pt  en «todos»
 caso 2 vgm           páginas= 1  alto título individual=21.43 pt  en «todos»=21.43 pt  relación=100.0 %
 caso 2 «todos»: x máx. de texto = 555.8 pt (límite del área útil 595.3 − 39.7 = 555.6 pt)
 
-PAGINACIÓN de «Imprimir todos» (uso de cada página = última línea de contenido / alto útil; sin títulos huérfanos):
+PAGINACIÓN de «Imprimir todos» (uso de cada página; sin títulos huérfanos):
 == caso 1 «Imprimir todos»: 20 páginas
 p1: usado= 92 %  última línea: / Total gross weight
 p2: usado= 72 %  última línea: / Measurement
@@ -124,10 +156,8 @@ p12: usado= 99 %  última línea: A4 Moneda ● ● H ● ● IT A 7.29, IT IV.4
 p13: usado= 56 %  última línea: calculos.js.
 
 «Página X de Y» global (D16):
-caso 1: Página 1 de 20 … Página 20 de 20 (20 pies)
-caso 2: Página 1 de 13 … Página 13 de 13 (13 pies)
+caso 1: 20 pies, último «Página 20 de 20»
+caso 2: 13 pies, último «Página 13 de 13»
 
-Revisión visual de las hojas de contacto de ambos PDF «todos»: sin títulos huérfanos, sin filas partidas, sin páginas casi vacías;
-SEG: certificado completo (con declaración y firma) en la 1.ª página, cuadro didáctico con su título en la 2.ª.
-CO: 2 páginas; el cierre (8, 9, 10 y nota de la DAM) va junto en la 2.ª (no cabe en 1 sin reducir la letra: ocupa ~25 % y quedan ~21 % libres).
-Pantalla: la DAM a 1280 px conserva su rejilla (captura f10-caso1-DAM_A-1280.png).
+SEG: certificado completo en la 1.ª página, cuadro didáctico con su título en la 2.ª. CO: 2 páginas, cierre (8, 9, 10 y nota) junto en la 2.ª.
+F10-X2: el DV de la subpartida figura como POR VERIFICAR (estado «pv») en la cobertura; la DAM A sigue mostrando «DV: POR VERIFICAR» (PV-27).

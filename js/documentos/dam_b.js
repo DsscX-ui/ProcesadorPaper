@@ -281,11 +281,13 @@
     cuerpo.appendChild(caja);
   }
 
+  // La herramienta no pide los datos del declarante (v1): la casilla queda EN BLANCO (D17; auditoría F8b-B1),
+  // sin líneas de relleno; quién la formula va en la ayuda «?».
   function declarante(cuerpo) {
     cuerpo.appendChild(rubro("", "Declarante del Formato B", [
-      casilla("", "Nombre, código y número del documento de identificación y cargo", lineas([el("span", "doc-linea", "Nombre: ______________________"), "Documento de identificación: ______________", "Cargo: ______________"]),
+      casilla("", "Nombre, código y número del documento de identificación y cargo", "",
         { fuente: "IT C, DECLARANTE DEL FORMATO B (RS 80-2019)", ancho: 6,
-          motivo: "Lo formula el importador (persona natural) o el representante legal o la persona autorizada de la empresa importadora; en ningún caso el agente de aduana, que lo suscribe en representación del dueño o consignatario con su clave electrónica." })
+          motivo: "Sin datos del declarante en esta operación (la herramienta no los pide en v1). Lo formula el importador (persona natural) o el representante legal o la persona autorizada de la empresa importadora; en ningún caso el agente de aduana, que lo suscribe en representación del dueño o consignatario con su clave electrónica." })
     ]));
   }
 

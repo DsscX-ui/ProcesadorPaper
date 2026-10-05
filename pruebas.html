@@ -1680,6 +1680,17 @@
       prueba("XSS: la razón social del proveedor se muestra como texto (sin crear <img>)", "true · 0", String(valB(bx, null, "3.1") === "<img src=x onerror=alert(1)>") + " · " + bx.querySelectorAll("img").length);
     })();
 
+    grupo("F8b.1. Correcciones de la auditoría de F8b", "F8b-B1: la casilla «Declarante del Formato B» queda EN BLANCO (D17) mientras no haya datos del declarante; conserva rótulo, fuente y ayuda «?».");
+    (function () {
+      var b = documentosDe(ejemplo("caso1")).porId.dam_b.hoja;
+      var c = Array.prototype.filter.call(b.querySelectorAll('[data-casilla=""]'), function (n) { return /documento de identificación y cargo/.test(n.querySelector(".dam-rot").textContent); })[0];
+      prueba("B1 · la casilla del declarante existe y su área de valor está vacía (sin «Nombre: ____»)", "true · «» · false",
+        String(!!c) + " · «" + (c ? c.querySelector(".dam-valor").textContent : "?") + "» · " + String(/_{3,}/.test(b.textContent)));
+      prueba("B1 · conserva el rótulo, la fuente de IT C y la ayuda «?» con quién la formula", "true · true · true",
+        String(/Nombre, código y número/.test(c.querySelector(".dam-rot").textContent)) + " · " + String(/DECLARANTE DEL FORMATO B/.test(c.querySelector(".dam-fuente").textContent)) + " · " +
+        String(!!c.querySelector(".dam-ayuda-btn[aria-controls]") && /importador/.test(c.querySelector(".dam-ayuda").textContent)));
+    })();
+
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");
     var indice = document.getElementById("indice");

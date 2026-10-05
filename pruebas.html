@@ -2000,6 +2000,66 @@
         [!!cierre && /8\. Observaciones/.test(cierre.textContent), !!cierre && /10\. Certificación/.test(cierre.textContent), !!cierre && /S 7\.9/.test(cierre.textContent)].map(String).join(" · "));
     })();
 
+    // ============================================================ F10: impresión y área táctil
+    (function () {
+      grupo("F10. Impresión A4 al 100 % y área táctil del «?»",
+        "Las hojas se miden en pantalla, donde ya tienen el ancho real de A4 (210 mm − 2 × 14 mm de margen = 182 mm útiles, el mismo ancho que deja @page al imprimir). " +
+        "Si una tabla fuera más ancha, Chrome reduciría TODO el PDF de «Imprimir todos» (antes de F10 salía al ~89 % por la lista de empaque). " +
+        "Que el «?» no se imprime y la escala real del PDF se comprueban con Chrome headless (verificacion/F10/resultado.txt).");
+      // Monta las hojas en un contenedor fuera de la vista (para medir) y lo retira al terminar.
+      var caja = document.createElement("div");
+      caja.style.cssText = "position:absolute; left:-10000px; top:0; visibility:hidden;";
+      document.body.appendChild(caja);
+      var anchas = [], botonesAjenos = 0, nDocs = 0, packingTh = [], rubroPad = [];
+      ["caso1", "caso2"].forEach(function (id) {
+        documentosDe(ejemplo(id)).gen.docs.forEach(function (d) {
+          nDocs++;
+          caja.appendChild(d.hoja);
+          var util = d.hoja.querySelector(".doc-cuerpo").clientWidth;
+          Array.prototype.forEach.call(d.hoja.querySelectorAll(".doc-cuerpo > *, .doc-cuerpo table"), function (n) {
+            if (n.scrollWidth > util + 1 || n.getBoundingClientRect().width > util + 1) { anchas.push(id + " " + d.def.id + " (" + n.tagName.toLowerCase() + " " + Math.round(n.scrollWidth) + " px > " + util + " px)"); }
+          });
+          // Todo botón dentro de una hoja debe ser un «?» (.dam-ayuda-btn), la única clase de botón que el CSS oculta al imprimir.
+          botonesAjenos += Array.prototype.filter.call(d.hoja.querySelectorAll("button"), function (b) { return !b.classList.contains("dam-ayuda-btn"); }).length;
+          if (d.def.id === "packing") {
+            Array.prototype.forEach.call(d.hoja.querySelectorAll(".doc-packing thead th.num"), function (th) { packingTh.push(getComputedStyle(th).whiteSpace); });
+          }
+          if (d.def.id === "dam_a") { rubroPad.push(parseFloat(getComputedStyle(d.hoja.querySelector("section.dam-rubro")).paddingTop)); }
+        });
+      });
+      prueba("Ancho útil de A4 en pantalla = 182 mm (≈ 688 px CSS)", "688", String(Math.round(caja.querySelector(".doc-cuerpo").clientWidth)));
+      prueba("Ningún bloque ni tabla de los " + nDocs + " documentos (ambos casos) supera el ancho útil de A4: el PDF se imprime al 100 %", "ninguno", anchas.join(", ") || "ninguno");
+      prueba("Lista de empaque (estilo compacto .doc-packing): sus encabezados numéricos pueden partirse en líneas (white-space normal)", "normal",
+        packingTh.filter(function (v, i, a) { return a.indexOf(v) === i; }).join(", "));
+      prueba("Lista de empaque: la tabla lleva la clase .doc-packing en ambos casos", "2",
+        String(Array.prototype.filter.call(caja.querySelectorAll('.hoja-doc[data-doc="packing"] table'), function (t) { return t.classList.contains("doc-packing"); }).length));
+      prueba("Dentro de las hojas solo hay botones «?» (.dam-ayuda-btn, ocultos al imprimir): ningún otro botón se imprimiría", "0", String(botonesAjenos));
+      prueba("Rubros de la DAM: relleno compacto (≈ 1.2 mm ≈ 4.5 px), no los 16 px de las secciones de la página", "true · true",
+        rubroPad.map(function (v) { return String(v > 3 && v < 6); }).join(" · "));
+
+      // Área táctil del «?»: el ::after transparente mide 24 px reales de pantalla con la hoja a tamaño real, y en una hoja
+      // escalada al 39.8 % (móvil de 390 px) mide 24 px / 0.398 ≈ 60 px de ancho y 32 px de alto (tope) de la hoja.
+      var hDam = caja.querySelector('.hoja-doc[data-doc="dam_a"]'), btn = hDam.querySelector(".dam-ayuda-btn");
+      var area = function () { var a = getComputedStyle(btn, "::after"); return Math.round(parseFloat(a.width)) + " × " + Math.round(parseFloat(a.height)); };
+      prueba("«?» de la DAM a tamaño real (zoom 1): área táctil 24 × 24 px", "24 × 24", area());
+      hDam.style.setProperty("--escala-hoja", "0.398");
+      prueba("«?» de la DAM con la hoja al 39.8 %: área de 60 × 32 px de la hoja (24 × 12.7 px reales; más alto taparía el «?» vecino)", "60 × 32", area());
+      hDam.style.removeProperty("--escala-hoja");
+      var hSeg = caja.querySelector('.hoja-doc[data-doc="seguro"]'), btnSeg = hSeg.querySelector(".dam-ayuda-btn");
+      hSeg.style.setProperty("--escala-hoja", "0.398");
+      var aSeg = getComputedStyle(btnSeg, "::after");
+      prueba("«?» del certificado de seguro con la hoja al 39.8 %: 60 × 60 px de la hoja (24 × 24 px reales)", "60 × 60",
+        Math.round(parseFloat(aSeg.width)) + " × " + Math.round(parseFloat(aSeg.height)));
+      prueba("«?» del formulario (.btn-ayuda): área mínima de 24 × 24 px", "true", (function () {
+        var b = document.createElement("button"); b.className = "btn-ayuda"; b.textContent = "?"; caja.appendChild(b);
+        var r = b.getBoundingClientRect(); return String(r.width >= 24 && r.height >= 24); })());
+      document.body.removeChild(caja);
+
+      var cob = DICCIONARIO.revisarCobertura();
+      prueba("Anexo A: ningún requisito queda «reservado» a una fase posterior (destinación, DV de la subpartida y unidad de carga ya salen en la DAM)", "0",
+        String(cob.porEstado.reservado || 0));
+    })();
+
     // ============================================================ Pintar
     var cont = document.getElementById("grupos");
     var indice = document.getElementById("indice");

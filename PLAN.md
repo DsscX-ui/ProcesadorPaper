@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18) **F8a.3** (correcciones de la auditoría de F8a.2) **F8b** (DAM Formato B de la declaración del valor, con B1) **F8b.1** (correcciones de la auditoría de F8b) **F8c** (DAM Formato C de la liquidación) **F8c.1** (correcciones de la auditoría de F8c) **F9** (certificado de seguro y certificado de origen) y **F9.1** (correcciones de la auditoría de F9; `pruebas.html`: 755 de 755 pruebas correctas). **Fase actual: F10 (ajustes de impresión, `LEEME.md` y revisión final) pendiente de lanzar.** Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18) **F8a.3** (correcciones de la auditoría de F8a.2) **F8b** (DAM Formato B de la declaración del valor, con B1) **F8b.1** (correcciones de la auditoría de F8b) **F8c** (DAM Formato C de la liquidación) **F8c.1** (correcciones de la auditoría de F8c) **F9** (certificado de seguro y certificado de origen) **F9.1** (correcciones de la auditoría de F9) y **F10** (ajustes de impresión, `LEEME.md` final y revisión final; `pruebas.html`: 766 de 766 pruebas correctas). **Estado: todas las fases terminadas; pendiente solo la revisión de Aarón** (dudas abiertas al final de §11 y en `LEEME.md`). F0b sigue a la espera de acceso a `www.sunat.gob.pe`. Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -887,7 +887,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | **F8b** ✔ | DAM Formato B (+B1), solo con tu aprobación de F8a | FOB unitarios y sección 8 = §9.1 |
 | **F8c** ✔ | DAM Formato C (liquidación) | Tributos = §9.1 |
 | **F9** ✔ | Certificado de seguro + certificado de origen (condicionales) | Con FOB no hay seguro; con CIF sí; sin preferencia no hay CO |
-| F10 | Ajustes de impresión, `LEEME.md` (fuentes, fechas, límites) y revisión final | Generas los PDF de ambos casos de principio a fin |
+| **F10** ✔ | Ajustes de impresión, `LEEME.md` (fuentes, fechas, límites) y revisión final | Generas los PDF de ambos casos de principio a fin (`verificacion/F10/`) |
 
 ---
 
@@ -991,6 +991,33 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - Consignatario en el B/L: nominativo → el consignatario elegido; **a la orden** → «A la orden de / To the order of: …». Si el consignatario es «a la orden de…» y el notify es «el consignatario», el B/L pide indicar a quién notificar.
 - Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
 - Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
+
+**Ajustes de impresión, guía y revisión final (F10)** [S salvo donde se cita]
+
+- **Impresión al 100 % en A4:** antes «Imprimir todos» salía al ~89 % porque la tabla de la lista de empaque (12 columnas) medía 777 px CSS frente a los 687 px del ancho útil (210 − 2 × 14 mm); Chrome reduce todo el PDF si un documento no cabe. Ahora los encabezados numéricos de `.doc-packing` pueden partirse en líneas (las cifras no) y la tabla mide 687 px. Medido con Chrome headless: ancho de contenido = 687 px en los 21 documentos de ambos casos; alto del título (14 pt) igual en el PDF individual y en «Imprimir todos» (21.43 pt, relación 100 %; F9: 18.97 pt ≈ 88.5 %). En la factura y el CO, el SA puede pasar su marca a otra línea (la descripción gana ancho).
+- **Paginación** (solo CSS; sin cambiar tamaños de letra ni contenido): `@page` con 12 mm arriba y abajo (antes 16 mm; caben el aviso de 10 pt y «Página X de Y»); al imprimir, interlineado 1.25, márgenes de cajas y firmas más cortos y la traducción inglesa de los rótulos a 6.5 pt; los rubros de la DAM (`section.dam-rubro`) ya no heredan el relleno de 16 px de las secciones de la página (también en pantalla, porque la hoja es la vista previa A4); títulos de rubro y de caja que no se parten (`break-inside: avoid`) y que siempre van con su primera fila de casillas (sin títulos huérfanos); la declaración de la factura va con su bloque anterior.
+- **Resultado** (ambos casos, «Imprimir todos» = suma de los individuales): caso 1, 20 páginas (FC 1, PL 1, IE 1, B/L 1, VGM 1, DAM A 2, A1 1, B 3, B1 1, C 2, SEG 2, HR 4); caso 2, 13 páginas (FC 1, PL 1, IE 1, B/L 1, VGM 1, DAM A 2, A1 1, CO 2, HR 3). «Página X de Y» global (D16) en todas.
+- **Certificados:** SEG deja el certificado completo (con la declaración y la firma) en la 1.ª página y el cuadro didáctico de la prima, con su título, en la 2.ª. CO **no cabe** en 1 página sin reducir la letra (su cierre ocupa ~25 % de una página y en la 1.ª quedan libres ~21 %; probado también con márgenes de cajas y firmas más cortos): queda en 2, con el cierre (8 observaciones, 9 declaración, 10 certificación y la nota de la DAM) junto en la 2.ª, de modo que las firmas no quedan solas.
+- **«?» en móvil:** un `::after` transparente agranda el área táctil: 24 × 24 px reales a tamaño real (zoom 1) y en los certificados también con la hoja reducida; en la DAM reducida al 39.8 % (390 px), 24 px de ancho × ~12.7 px de alto, porque dos «?» de una misma columna están a 13 px reales y un área mayor taparía al vecino (con «Ver en tamaño real», 24 × 24). `pantalla.js` pasa la escala como `--escala-hoja`. El «?» del formulario mide al menos 24 × 24 px. No se imprimen (0 visibles al imprimir).
+- **Anexo A:** los tres requisitos *reservados* (destinación, DV de la subpartida, unidad de carga) ya los muestra la DAM desde F8a: pasan a **derivado** (valor fijo o derivado que muestra la plantilla, con el dónde). No se añadió cobertura nueva.
+- `LEEME.md` es la guía final para el estudiante (qué hace, flujo, casos, marcas, fuentes con fechas, límites, pruebas y dudas abiertas). Regresiones en `pruebas.html` (grupo F10, 11 pruebas). Evidencia: `verificacion/F10/resultado.txt`, PDF de cada documento y de «Imprimir todos», capturas.
+
+**Dudas abiertas para Aarón (al cierre de F10; se mantiene el comportamiento actual)**
+
+- Ceros «0.000» en el Formato A frente a blanco en B y C.
+- «NO NUMERADA» en A, A1 y B frente al rubro 2 en blanco en C.
+- Numeración «1.1» del importador en el Formato C [verificar].
+- Fecha del tipo de cambio del caso 1 (el ejemplo no la trae; PV-07).
+- Firma «____» en la casilla A 8.
+- Redacción de la prima en el certificado de seguro (§6.4).
+- Campo propio de «asegurado» (hoy se deduce del Incoterm, H\*).
+- Marca PV-12 del criterio de origen.
+- 6 decimales en el Formato B.
+- Rótulos de 8.1.2, 8.1.3 y 8.1.5 POR VERIFICAR.
+- «FOB total del ítem» y «ajuste total del ítem» sin casilla numerada.
+- Impresión en Edge y lector de pantalla: POR VERIFICAR (D16).
+- F0b: contraste de las fuentes con el portal de SUNAT (PV-30).
+- CO en 2 páginas (1 página solo reduciendo la letra).
 
 **Certificado de seguro y certificado de origen (F9)** [S salvo donde se cita]
 
@@ -1121,7 +1148,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 
 ## Anexo A. Matriz de cobertura del plan (§4 y §5 → diccionario)
 
-Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingresa; **derivado** = lo calcula `calculos.js`; *reservado* = se mostrará en una fase posterior. `x.*` cubre todas las rutas que empiezan por `x.`; `items[]` = cada ítem.
+Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingresa; **derivado** = lo calcula `calculos.js` o es un valor fijo de v1 que muestra una plantilla (se indica dónde); *reservado* = se mostrará en una fase posterior (desde F10, ninguno: los tres reservados ya salen en la DAM). `x.*` cubre todas las rutas que empiezan por `x.`; `items[]` = cada ítem.
 
 | §4 | Fila de §5 | Requisito | Rutas del diccionario | Estado |
 |---|---|---|---|---|
@@ -1131,7 +1158,7 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 | A1 | — | Modalidad de carga (FCL) | `generales.operacion.modalidadCarga` | dato |
 | A2 | Vendedor / proveedor / exportador | Vendedor: datos, condición, RUC y UBIGEO | `generales.partes.vendedor.*` | dato |
 | A2 | Comprador / importador | Comprador: datos, RUC y UBIGEO | `generales.partes.comprador.*` | dato |
-| A2 | Comprador / importador | Código de documento (4 = RUC) | — | **derivado**: Fijo en v1 (IT A 1.2); se mostrará en la DAM (F8a) |
+| A2 | Comprador / importador | Código de documento (4 = RUC) | — | **derivado**: Fijo en v1 (IT A 1.2); lo muestra la casilla A 1.2 (dam_a.js) |
 | A2 | Consignatario y notify | Consignatario y parte a notificar | `generales.partes.consignatario.*`, `generales.partes.notify.*` | dato |
 | A2 | Naviera | Naviera | `generales.partes.naviera.*` | dato |
 | A2 | Agente marítimo | Agente marítimo | `generales.partes.agenteMaritimo.*` | dato |
@@ -1154,7 +1181,7 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 | A4 | Entidad financiera, modalidad y medio de pago | Medio de pago y pago diferido | `generales.comercial.medioPago`, `generales.comercial.pagoDiferido.*` | dato |
 | A4 | — | N° de contrato u orden de compra | `generales.comercial.contrato` | dato |
 | A5 | Aduana, destinación, modalidad, tipo de despacho | Aduana, modalidad y tipo de despacho | `generales.aduana.aduana`, `generales.aduana.modalidadDespacho`, `generales.aduana.tipoDespacho` | dato |
-| A5 | Aduana, destinación, modalidad, tipo de despacho | Destinación (10 / 40) | — | *reservado*: Se deriva del tipo de operación; se mostrará en la DAM (F8a) |
+| A5 | Aduana, destinación, modalidad, tipo de despacho | Destinación (10 / 40) | — | **derivado**: Fija según el tipo de operación (10 importación, 40 exportación); la muestran las plantillas en la cabecera de los Formatos A, A1 y C (dam_a.js, dam_c.js) |
 | A5 | Agente de aduana, N° de orden | N° de orden y fecha de formulación | `generales.aduana.numeroOrden`, `generales.aduana.fechaFormulacion` | dato |
 | A5 | Tipo de cambio | Tipo de cambio, fecha y fuente | `generales.aduana.tipoCambio`, `generales.aduana.tipoCambioFecha`, `generales.aduana.tipoCambioFuente` | dato |
 | A5 | Región de destino | Región de destino | `generales.aduana.regionDestino` | dato |
@@ -1163,7 +1190,7 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 | A6 | Declaración del valor | Condiciones de la transacción (rubro 7) | `generales.valor.rubro7.*` | dato |
 | B1 | Nombre, descripción, marca, modelo | Nombre, descripción, marca y modelo | `especificos.items[].nombre`, `especificos.items[].descripcion`, `especificos.items[].marca`, `especificos.items[].modelo` | dato |
 | B1 | Subpartida + dígito verificador | Subpartida nacional y casilla «verificada» | `especificos.items[].subpartida`, `especificos.items[].subpartidaVerificada` | dato |
-| B1 | Subpartida + dígito verificador | Dígito verificador de la subpartida | — | *reservado*: Queda vacío con PV-27 en la DAM (F8a) |
+| B1 | Subpartida + dígito verificador | Dígito verificador de la subpartida | — | **derivado**: No se calcula: la casilla A 7.19 lo muestra como «DV: POR VERIFICAR» (PV-27; dam_a.js) |
 | B1 | País de origen | País de origen (y UBIGEO de fabricación en exportación) | `especificos.items[].paisOrigen`, `especificos.items[].ubigeoOrigen` | dato |
 | B1 | Estado | Estado | `especificos.items[].estado` | dato |
 | B1 | Cantidad y unidad comercial / física | Cantidad, unidad comercial y unidad física | `especificos.items[].cantidad`, `especificos.items[].unidadComercial`, `especificos.items[].unidadFisica` | dato |
@@ -1175,7 +1202,7 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 | B2 | Medidas y volumen | Medidas del bulto | `especificos.items[].largoCm`, `especificos.items[].anchoCm`, `especificos.items[].altoCm` | dato |
 | B2 | Marcas | Marcas de embarque | `especificos.marcasEmbarque` | dato |
 | B3 | Contenedor y precinto | Tipo, número y precinto del contenedor | `especificos.contenedor.tipo`, `especificos.contenedor.numero`, `especificos.contenedor.precinto` | dato |
-| B3 | Contenedor y precinto | Unidad de carga (02) | — | *reservado*: Fija en v1 (IT A 7.37 k); se mostrará en la DAM (F8a) |
+| B3 | Contenedor y precinto | Unidad de carga (02) | — | **derivado**: Fija en v1 (IT A 7.37 k); la muestra la casilla A 7.37 k) en importación (dam_a.js) |
 | B3 | Tara y VGM | Tara, estiba y datos de la declaración VGM | `especificos.contenedor.tara`, `especificos.contenedor.estibaTrincaje`, `especificos.contenedor.vgmMetodo`, `especificos.contenedor.vgmResponsable`, `especificos.contenedor.vgmFecha` | dato |
 | B4 | Nave y viaje | Nave, viaje, booking y manifiesto | `especificos.transporte.nave`, `especificos.transporte.viaje`, `especificos.transporte.booking`, `especificos.transporte.manifiesto` | dato |
 | B4 | N° de B/L | Datos del B/L (número, tipo, originales, emisión, cláusulas, embarcador) | `especificos.transporte.blNumero`, `especificos.transporte.blTipo`, `especificos.transporte.blOriginales`, `especificos.transporte.blLugarEmision`, `especificos.transporte.blFechaEmision`, `especificos.transporte.fechaShippedOnBoard`, `especificos.transporte.clausulaSlac`, `especificos.transporte.clausulaStc`, `especificos.transporte.shipper` | dato |

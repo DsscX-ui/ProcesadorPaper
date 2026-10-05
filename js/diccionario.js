@@ -460,7 +460,8 @@ var DICCIONARIO = (function () {
   // ---------------------------------------------------------------- Cobertura del plan (F21-M1)
   // Matriz requisito del plan (§4 y fila de §5) → rutas del diccionario. "x.*" cubre todas las rutas que
   // empiezan por "x.". Estado: "dato" (se ingresa), "derivado" (lo calcula js/calculos.js; se indica dónde)
-  // o "reservado" (se mostrará en una fase posterior). La misma tabla está en PLAN.md, anexo A.
+  // o "reservado" (se mostrará en una fase posterior; desde F10 ninguno). Los fijos de v1 que muestra una plantilla también
+  // cuentan como "derivado" (se indica dónde). La misma tabla está en PLAN.md, anexo A.
   // [§4, fila de §5, requisito, rutas, estado, nota]
   var R = "generales.", PA = "generales.partes.", IT = "especificos.items[].", EX = "especificos.";
   var COBERTURA = [
@@ -470,7 +471,7 @@ var DICCIONARIO = (function () {
     ["A1", "—", "Modalidad de carga (FCL)", [R + "operacion.modalidadCarga"], "dato", ""],
     ["A2", "Vendedor / proveedor / exportador", "Vendedor: datos, condición, RUC y UBIGEO", [PA + "vendedor.*"], "dato", ""],
     ["A2", "Comprador / importador", "Comprador: datos, RUC y UBIGEO", [PA + "comprador.*"], "dato", ""],
-    ["A2", "Comprador / importador", "Código de documento (4 = RUC)", [], "derivado", "Fijo en v1 (IT A 1.2); se mostrará en la DAM (F8a)"],
+    ["A2", "Comprador / importador", "Código de documento (4 = RUC)", [], "derivado", "Fijo en v1 (IT A 1.2); lo muestra la casilla A 1.2 (dam_a.js)"],
     ["A2", "Consignatario y notify", "Consignatario y parte a notificar", [PA + "consignatario.*", PA + "notify.*"], "dato", ""],
     ["A2", "Naviera", "Naviera", [PA + "naviera.*"], "dato", ""],
     ["A2", "Agente marítimo", "Agente marítimo", [PA + "agenteMaritimo.*"], "dato", ""],
@@ -493,7 +494,7 @@ var DICCIONARIO = (function () {
     ["A4", "Entidad financiera, modalidad y medio de pago", "Medio de pago y pago diferido", [R + "comercial.medioPago", R + "comercial.pagoDiferido.*"], "dato", ""],
     ["A4", "—", "N° de contrato u orden de compra", [R + "comercial.contrato"], "dato", ""],
     ["A5", "Aduana, destinación, modalidad, tipo de despacho", "Aduana, modalidad y tipo de despacho", [R + "aduana.aduana", R + "aduana.modalidadDespacho", R + "aduana.tipoDespacho"], "dato", ""],
-    ["A5", "Aduana, destinación, modalidad, tipo de despacho", "Destinación (10 / 40)", [], "reservado", "Se deriva del tipo de operación; se mostrará en la DAM (F8a)"],
+    ["A5", "Aduana, destinación, modalidad, tipo de despacho", "Destinación (10 / 40)", [], "derivado", "Fija según el tipo de operación (10 importación, 40 exportación); la muestran las plantillas en la cabecera de los Formatos A, A1 y C (dam_a.js, dam_c.js)"],
     ["A5", "Agente de aduana, N° de orden", "N° de orden y fecha de formulación", [R + "aduana.numeroOrden", R + "aduana.fechaFormulacion"], "dato", ""],
     ["A5", "Tipo de cambio", "Tipo de cambio, fecha y fuente", [R + "aduana.tipoCambio", R + "aduana.tipoCambioFecha", R + "aduana.tipoCambioFuente"], "dato", ""],
     ["A5", "Región de destino", "Región de destino", [R + "aduana.regionDestino"], "dato", ""],
@@ -502,7 +503,7 @@ var DICCIONARIO = (function () {
     ["A6", "Declaración del valor", "Condiciones de la transacción (rubro 7)", [R + "valor.rubro7.*"], "dato", ""],
     ["B1", "Nombre, descripción, marca, modelo", "Nombre, descripción, marca y modelo", [IT + "nombre", IT + "descripcion", IT + "marca", IT + "modelo"], "dato", ""],
     ["B1", "Subpartida + dígito verificador", "Subpartida nacional y casilla «verificada»", [IT + "subpartida", IT + "subpartidaVerificada"], "dato", ""],
-    ["B1", "Subpartida + dígito verificador", "Dígito verificador de la subpartida", [], "reservado", "Queda vacío con PV-27 en la DAM (F8a)"],
+    ["B1", "Subpartida + dígito verificador", "Dígito verificador de la subpartida", [], "derivado", "No se calcula: la casilla A 7.19 lo muestra como «DV: POR VERIFICAR» (PV-27; dam_a.js)"],
     ["B1", "País de origen", "País de origen (y UBIGEO de fabricación en exportación)", [IT + "paisOrigen", IT + "ubigeoOrigen"], "dato", ""],
     ["B1", "Estado", "Estado", [IT + "estado"], "dato", ""],
     ["B1", "Cantidad y unidad comercial / física", "Cantidad, unidad comercial y unidad física", [IT + "cantidad", IT + "unidadComercial", IT + "unidadFisica"], "dato", ""],
@@ -514,7 +515,7 @@ var DICCIONARIO = (function () {
     ["B2", "Medidas y volumen", "Medidas del bulto", [IT + "largoCm", IT + "anchoCm", IT + "altoCm"], "dato", ""],
     ["B2", "Marcas", "Marcas de embarque", [EX + "marcasEmbarque"], "dato", ""],
     ["B3", "Contenedor y precinto", "Tipo, número y precinto del contenedor", [EX + "contenedor.tipo", EX + "contenedor.numero", EX + "contenedor.precinto"], "dato", ""],
-    ["B3", "Contenedor y precinto", "Unidad de carga (02)", [], "reservado", "Fija en v1 (IT A 7.37 k); se mostrará en la DAM (F8a)"],
+    ["B3", "Contenedor y precinto", "Unidad de carga (02)", [], "derivado", "Fija en v1 (IT A 7.37 k); la muestra la casilla A 7.37 k) en importación (dam_a.js)"],
     ["B3", "Tara y VGM", "Tara, estiba y datos de la declaración VGM", [EX + "contenedor.tara", EX + "contenedor.estibaTrincaje", EX + "contenedor.vgmMetodo", EX + "contenedor.vgmResponsable", EX + "contenedor.vgmFecha"], "dato", ""],
     ["B4", "Nave y viaje", "Nave, viaje, booking y manifiesto", [EX + "transporte.nave", EX + "transporte.viaje", EX + "transporte.booking", EX + "transporte.manifiesto"], "dato", ""],
     ["B4", "N° de B/L", "Datos del B/L (número, tipo, originales, emisión, cláusulas, embarcador)", [EX + "transporte.blNumero", EX + "transporte.blTipo", EX + "transporte.blOriginales", EX + "transporte.blLugarEmision", EX + "transporte.blFechaEmision", EX + "transporte.fechaShippedOnBoard", EX + "transporte.clausulaSlac", EX + "transporte.clausulaStc", EX + "transporte.shipper"], "dato", ""],

@@ -505,6 +505,8 @@
       var disponible = visor.clientWidth - 16;
       var f = tamanoReal ? 1 : Math.min(1, disponible / ANCHO_A4_PX);
       hoja.style.zoom = f < 1 ? f.toFixed(3) : "";
+      // F10: la escala también va como variable CSS para agrandar el área táctil de los «?» de la hoja (css/estilos.css).
+      if (f < 1) { hoja.style.setProperty("--escala-hoja", f.toFixed(3)); } else { hoja.style.removeProperty("--escala-hoja"); }
     });
     var b = $("btn-doc-tamano");
     if (b) {
@@ -778,7 +780,8 @@
       (r.sinEntrada.length ? " · datos del modelo sin entrada: " + r.sinEntrada.join(", ") : "") +
       (r.sinDato.length ? " · entradas sin dato en el modelo: " + r.sinDato.join(", ") : "") +
       " · Cobertura del plan (§4/§5, PLAN anexo A): " + (okCob ? "completa" : "REVISAR") + ", " + cob.requisitos + " requisitos (" +
-      cob.porEstado.dato + " con datos, " + cob.porEstado.derivado + " derivados, " + cob.porEstado.reservado + " reservados a fases posteriores)" +
+      cob.porEstado.dato + " con datos, " + cob.porEstado.derivado + " derivados" +
+      (cob.porEstado.reservado ? ", " + cob.porEstado.reservado + " reservados a fases posteriores" : "") + ")" +
       (cob.sinRequisito.length ? " · campos sin requisito: " + cob.sinRequisito.join(", ") : "") +
       (cob.patronesHuerfanos.length ? " · requisitos sin campo: " + cob.patronesHuerfanos.join(", ") : "");
     $("revision-diccionario").className = ok ? "ok" : "error";

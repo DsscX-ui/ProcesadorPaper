@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) y **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18; `pruebas.html`: 612 de 612 pruebas correctas). **Fase actual: F8a revisada; F8b pendiente de lanzar.** Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18) y **F8a.3** (correcciones de la auditoría de F8a.2; `pruebas.html`: 620 de 620 pruebas correctas). **Fase actual: F8a revisada; F8b pendiente de lanzar.** Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -856,7 +856,7 @@ Los RUC de ambos casos son ficticios y cumplen el módulo 11 [H\*]:
 
 | Concepto | Valor |
 |---|---|
-| Bultos (S 13.2, sin contar contenedor ni paletas) | 140 cajas |
+| Bultos (total de embalaje, sin contar contenedor ni paletas; se ve en «Resultados», la lista de empaque y la hoja resumen). La casilla S 13.2 queda **en blanco** (D18 b) | 140 cajas |
 | Peso neto / peso bruto | 1 470.00 kg / 1 588.00 kg |
 | Volumen | 6.720 + 6.480 = 13.200 m³ |
 | S 6.1 = 6.5 (FOB) | USD 39 550.000 |
@@ -992,9 +992,16 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
 - Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
 
+**Correcciones de la auditoría de F8a.2 (Codex), aplicadas en F8a.3**
+
+- F8a.2-M1: S 7.20 muestra el texto del estado («Nuevo / Bueno») y deja el código **en blanco** con PV pequeña (D18 c): la lista de IT C 5.16 es la del Formato B y no confirma el código de la exportación (PV-09).
+- F8a.2-M2: los motivos que salieron de las casillas en blanco (D17) y las notas de las marcas pequeñas ya no quedan solo en `title`: cada casilla con motivo lleva un botón **«?»** en su cabecera (fuera del área de valor; `aria-expanded` y `aria-controls`, teclado y toque, el mismo patrón del formulario) que despliega la explicación. El botón y la ayuda no se imprimen; las casillas siguen en blanco.
+- F8a.2-B1: §9.2 ya no asocia los 140 bultos a S 13.2: son el total de embalaje de «Resultados», la lista de empaque y la hoja resumen; S 13.2 queda en blanco (D18 b).
+- Regresiones en `pruebas.html` (grupo F8a.3).
+
 **Revisión de Aarón del Formato A, aplicada en F8a.2 (D17 y D18)**
 
-- `casilla()` de `dam_a.js`: con estado «no-llenar», «reservada» o «no-aplica», o sin valor, la casilla queda **en blanco** (sin clase `dam-gris`); el estado va en `data-estado` y el motivo en la ayuda emergente (`title`), junto con la fuente. Lo mismo para las que antes decían «—» o «— (no se acoge)» (A 7.5, 7.9 sin CO, 7.20, 7.22–7.25; S 7.28, 7.37) y para A 3.4 en despacho anticipado (PV pequeña, PV-26 en la ayuda).
+- `casilla()` de `dam_a.js`: con estado «no-llenar», «reservada» o «no-aplica», o sin valor, la casilla queda **en blanco** (sin clase `dam-gris`); el estado va en `data-estado` y el motivo en la ayuda emergente (`title`), junto con la fuente (desde F8a.3, también en la ayuda «?» accesible). Lo mismo para las que antes decían «—» o «— (no se acoge)» (A 7.5, 7.9 sin CO, 7.20, 7.22–7.25; S 7.28, 7.37) y para A 3.4 en despacho anticipado (PV pequeña, PV-26 en la ayuda).
 - Pesos 7.14 y 7.15 con `Calculos.formato.kg` (2 decimales).
 - Marca pequeña (superíndice «PV» o «S», nota en la ayuda) para los códigos oficiales en blanco: 5.1, 7.13, 3.1, 4.1, 8, tipo de despacho en importación y moneda de 7.29; «U» de 7.16 con «S». Un código escrito por el usuario y sin marca PV propia sí se muestra (con la marca de su campo). La leyenda de la nota explica la casilla en blanco y la PV pequeña.
 - S 13.1 y 13.2 y A/S 7.39 según D18 b y d; nota RS 129 según D18 a.

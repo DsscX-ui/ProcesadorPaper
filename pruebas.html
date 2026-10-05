@@ -1302,9 +1302,11 @@
       prueba("Subpartida 7.19 con DV «POR VERIFICAR» (PV-27), no inventado", "true · true", String(/8414\.51\.00\.00/.test(cas(a, 1, "7.19"))) + " · " +
         String(!!a.querySelector('[data-serie="1"] [data-casilla="7.19"] .marca-pv') && /PV-27/.test(cas(a, 1, "7.19"))));
       prueba("A 3.4 en despacho anticipado sin fecha: en blanco con PV pequeña (PV-26 en la ayuda)", "true · PV", String(/PV-26/.test(a.querySelector('.dam-rubro:not(.dam-serie) [data-casilla="3.4"] .dam-mini .marca-pv').title)) + " · " + cas(a, null, "3.4"));
+      // Texto visible de la casilla (sin el panel de ayuda «?», que está oculto y no se imprime: F8a.3).
+      function visible(n) { var c = n.cloneNode(true); Array.prototype.forEach.call(c.querySelectorAll(".dam-ayuda"), function (p) { p.remove(); }); return c.textContent; }
       prueba("A 7.35 sin la nota RS 129-2026 en series que no son celulares (D18 a); la regla, en la ayuda", "false · false · true",
-        String(/párrafo añadido por RS 129-2026/.test(a.querySelector('[data-serie="1"] [data-casilla="7.35"]').textContent)) + " · " +
-        String(/párrafo añadido por RS 129-2026/.test(a1.querySelector('[data-serie="2"] [data-casilla="7.35"]').textContent)) + " · " +
+        String(/párrafo añadido por RS 129-2026/.test(visible(a.querySelector('[data-serie="1"] [data-casilla="7.35"]')))) + " · " +
+        String(/párrafo añadido por RS 129-2026/.test(visible(a1.querySelector('[data-serie="2"] [data-casilla="7.35"]')))) + " · " +
         String(/RS 129-2026/.test(a.querySelector('[data-serie="1"] [data-casilla="7.35"]').title)));
       prueba("Fechas DD MM AAAA (IT IV.6): 7.7 = 14 10 2026", "14 10 2026 · 14 10 2026", cas(a, 1, "7.7") + " · " + Documentos.fechaDam("2026-10-14"));
       prueba("A 7.37: unidad de carga 02 y región 40615", "true", String(/02 — Contenedores/.test(cas(a, 1, "7.37")) && /40615/.test(cas(a, 1, "7.37"))));
@@ -1472,6 +1474,62 @@
       var conCodigo = ejemplo("caso1"); conCodigo.generales.partes.entidadFinanciera.codigo = "99"; delete conCodigo.marcas["generales.partes.entidadFinanciera.codigo"];
       prueba("D18 c · con un código escrito y sin marca PV propia, se muestra (con la marca de su campo) y sin PV pequeña", "true · false",
         String(/Código: 99/.test(val(documentosDe(conCodigo).porId.dam_a.hoja, null, "5.1"))) + " · " + String(miniPv(documentosDe(conCodigo).porId.dam_a.hoja, null, "5.1")));
+    })();
+
+    grupo("F8a.3. Correcciones de la auditoría de F8a.2", "F8a.2-M1 (S 7.20: texto del estado y código en blanco con PV pequeña) y F8a.2-M2 (los motivos de las casillas en blanco, en una ayuda «?» accesible con teclado y toque, fuera del valor).");
+    (function () {
+      function casN(hoja, serie, num) { return hoja.querySelector((serie ? '[data-serie="' + serie + '"] ' : ".dam-rubro:not(.dam-serie) ") + '[data-casilla="' + num + '"]'); }
+      // Líneas del valor sin las marcas pequeñas, separadas por « | ».
+      function sinMini(n) { var v = n.querySelector(".dam-valor").cloneNode(true); Array.prototype.forEach.call(v.querySelectorAll(".dam-mini"), function (m) { m.remove(); });
+        var raiz = v.firstChild && v.firstChild.nodeType === 1 && v.childNodes.length === 1 ? v.firstChild : v;
+        return Array.prototype.map.call(raiz.childNodes, function (c) { return c.textContent.replace(/\s+/g, " ").trim(); }).filter(Boolean).join(" | "); }
+      var c1 = documentosDe(ejemplo("caso1")), c2 = documentosDe(ejemplo("caso2"));
+      var a = c1.porId.dam_a.hoja, a1 = c1.porId.dam_a1.hoja, b = c2.porId.dam_a.hoja, b1 = c2.porId.dam_a1.hoja;
+
+      // M1: S 7.20 en las dos series del caso 2.
+      prueba("M1 · S 7.20: «Nuevo / Bueno» + código en blanco con PV pequeña (series 1 y 2), sin «10 —»", "Nuevo / Bueno | Código: · true · false | Nuevo / Bueno | Código: · true · false",
+        [[b, 1], [b1, 2]].map(function (p) {
+          var n = casN(p[0], p[1], "7.20");
+          return sinMini(n) + " · " + String(!!n.querySelector(".dam-mini .marca-pv") && /IT C 5\.16/.test(n.querySelector(".dam-mini .marca-pv").title)) + " · " + String(/\b10\b/.test(n.querySelector(".dam-valor").textContent));
+        }).join(" | "));
+      var usado = ejemplo("caso2"); usado.especificos.items[0].estado = "20";
+      prueba("M1 · con otro estado (20) se ve su texto y el código sigue en blanco", "Usado | Código:", sinMini(casN(documentosDe(usado).porId.dam_a.hoja, 1, "7.20")));
+
+      // M2: ayuda accesible.
+      var hojas = [a, a1, b, b1], conMotivo = [], ok = true;
+      hojas.forEach(function (h) {
+        Array.prototype.forEach.call(h.querySelectorAll("[data-casilla]"), function (n) {
+          var btn = n.querySelector(":scope > .dam-cas-cab > .dam-ayuda-btn");
+          if (n.hasAttribute("data-estado") || n.querySelector(".dam-valor .dam-mini")) { conMotivo.push(n); if (!btn) { ok = false; } }
+          if (btn) {
+            var panel = document.getElementById(btn.getAttribute("aria-controls")) || n.querySelector("#" + btn.getAttribute("aria-controls"));
+            if (!panel || panel.parentNode !== n || !panel.hidden || btn.getAttribute("aria-expanded") !== "false" || btn.type !== "button" ||
+              !/^Ayuda de la casilla/.test(btn.getAttribute("aria-label")) || n.querySelector(".dam-valor").contains(btn) || n.querySelector(".dam-valor").contains(panel)) { ok = false; }
+          }
+        });
+      });
+      prueba("M2 · toda casilla en blanco por estado o con marca pequeña tiene botón «?» (fuera del valor, aria-expanded/aria-controls, panel oculto)", "true · true", String(conMotivo.length > 40) + " · " + String(ok));
+      var ids = [];
+      hojas.forEach(function (h) { Array.prototype.forEach.call(h.querySelectorAll(".dam-ayuda"), function (p) { ids.push(p.id); }); });
+      prueba("M2 · los paneles de ayuda tienen id único", "true", String(ids.length > 40 && ids.every(function (id, i) { return ids.indexOf(id) === i; })));
+      function ayudaDe(n) { var p = n.querySelector(".dam-ayuda"); return p ? p.textContent : ""; }
+      prueba("M2 · 7.39 y S 13.1/13.2: el responsable [verificar] se lee en la ayuda accesible (no solo en title)", "true · true · true",
+        String(/\[verificar\]/.test(ayudaDe(casN(a, 1, "7.39")))) + " · " + String(/\[verificar\]/.test(ayudaDe(casN(b, null, "13.1")))) + " · " + String(/\[verificar\]/.test(ayudaDe(casN(b, null, "13.2")))));
+      prueba("M2 · «No llenar» (S 7.31) y la nota de una PV pequeña (5.1, PV-09) se leen en la ayuda", "true · true",
+        String(/No llenar/.test(ayudaDe(casN(b, 1, "7.31")))) + " · " + String(/PV-09/.test(ayudaDe(casN(a, null, "5.1")))));
+      // El botón abre y cierra el panel (teclado: es un <button>; Enter y Espacio lo activan como un clic).
+      document.body.appendChild(a);
+      var n739 = casN(a, 1, "7.39"), btn = n739.querySelector(".dam-ayuda-btn"), panel = n739.querySelector(".dam-ayuda");
+      btn.focus();
+      var foco = document.activeElement === btn;
+      btn.click();
+      var abierto = btn.getAttribute("aria-expanded") + " · " + String(!panel.hidden);
+      btn.click();
+      var cerrado = btn.getAttribute("aria-expanded") + " · " + String(!panel.hidden);
+      a.remove();
+      prueba("M2 · el botón recibe el foco y abre/cierra la ayuda", "true | true · true | false · false", String(foco) + " | " + abierto + " | " + cerrado);
+      prueba("M2 · las casillas siguen EN BLANCO (D17): el motivo no está en el área de valor", "false",
+        String(hojas.some(function (h) { return Array.prototype.some.call(h.querySelectorAll(".dam-valor"), function (v) { return /No llenar|No aplica|Reservada|\[verificar\]/.test(v.textContent); }); })));
     })();
 
     // ============================================================ Pintar

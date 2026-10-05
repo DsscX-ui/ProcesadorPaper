@@ -75,8 +75,11 @@
 
   // Casilla numerada. o: { fuente, estado ("no-llenar" | "reservada" | "no-aplica"), motivo, ancho (1–6), nota, rs129, cuadre }.
   // valor: texto, nodo o vacío. Con estado, o sin valor, la casilla queda EN BLANCO (D17): el motivo (el del estado
-  // o o.motivo) va solo en la ayuda emergente (title) y en data-estado, no dentro de la casilla.
+  // o o.motivo) no va dentro de la casilla, sino en su AYUDA: botón «?» en la cabecera de la casilla (fuera del área
+  // de valor; teclado y toque, el mismo patrón del formulario) que despliega el motivo y las notas de las marcas
+  // pequeñas (PV, S). También queda en la ayuda emergente (title) y en data-estado. La ayuda no se imprime.
   var MOTIVOS = { "no-llenar": "No llenar (instructivo)", "reservada": "Reservada a la Administración Aduanera", "no-aplica": "No aplica a este régimen" };
+  var nAyuda = 0;
   function casilla(num, rotulo, valor, o) {
     o = o || {};
     var c = el("div", "dam-cas" + (o.ancho ? " dam-w" + o.ancho : ""));
@@ -104,7 +107,32 @@
     c.appendChild(f);
     var motivo = o.motivo || (o.estado ? MOTIVOS[o.estado] : "");
     c.title = (num ? "Casilla " + num + " · " : "") + (o.fuente || "") + (motivo ? " · " + motivo : "");
+    // Notas de las marcas pequeñas del valor (código en blanco PV, «U» supuesto…): también a la ayuda accesible.
+    var notas = Array.prototype.map.call(v.querySelectorAll(".dam-mini .marca"), function (m) { return m.title; })
+      .filter(function (t, i, l) { return t && l.indexOf(t) === i; });
+    if (motivo || notas.length) { ayuda(c, cab, num, rotulo, [motivo].concat(notas)); }
     return c;
+  }
+
+  // Botón «?» + panel desplegable con la explicación de la casilla (aria-expanded / aria-controls, como en el formulario).
+  function ayuda(c, cab, num, rotulo, textos) {
+    var id = "dam-ayuda-" + (++nAyuda);
+    var btn = el("button", "dam-ayuda-btn", "?");
+    btn.type = "button";
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-controls", id);
+    btn.setAttribute("aria-label", "Ayuda de la casilla " + (num ? num + " " : "") + rotulo);
+    cab.appendChild(btn);
+    var panel = el("div", "dam-ayuda");
+    panel.id = id;
+    panel.hidden = true;
+    textos.filter(Boolean).forEach(function (t) { panel.appendChild(el("p", null, t)); });
+    c.appendChild(panel);
+    btn.addEventListener("click", function () {
+      var abierto = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", abierto ? "false" : "true");
+      panel.hidden = abierto;
+    });
   }
 
   // RS 129-2026 (CC RS129 art. 1): único cambio de la copia local, párrafo final de IT A 7.35. La nota solo va en las
@@ -346,7 +374,11 @@
       cas.push(casilla("7.33", "Ajuste valor US$", cifra(s.ajuste), { fuente: "IT A 7.33 (Σ B 5.10 de la serie)" }));
       cas.push(casilla("7.34", "Valor aduana US$", el("strong", null, cifra(s.valorAduana)), { fuente: "IT A 7.34 (= 7.30 + 7.31 + 7.32 + 7.33)" }));
     } else {
-      cas.push(casilla("7.20", "Tipo (estado de la mercancía)", marcado(ctx, opc("estado", x0.estado), rutaItem(i0, "estado")), { fuente: "IT B 7.20; código en exportación: PV-09", ancho: 2 }));
+      // Estado (D18 c; auditoría F8a.2-M1): la lista de IT C 5.16 es del Formato B y no confirma el código de S 7.20.
+      // Se muestra el texto («Nuevo / Bueno») y el código queda EN BLANCO con PV pequeña.
+      cas.push(casilla("7.20", "Tipo (estado de la mercancía)", lineas([opc("estado", x0.estado, true),
+        codigoEnBlanco("Código", "PV-09: la lista de estados de IT C 5.16 es del Formato B (importación); no confirma el código de S 7.20 en la exportación.")]),
+        { fuente: "IT B 7.20; código en exportación: PV-09", ancho: 2 }));
       ["7.21", "7.22", "7.23", "7.24", "7.25"].forEach(function (n) {
         cas.push(nl(n, { "7.21": "Subpartida Naladisa / Nabandina – DV", "7.22": "TM", "7.23": "TPI", "7.24": "TPN", "7.25": "Código liberatorio" }[n]));
       });
@@ -428,7 +460,7 @@
       "; el diseño gráfico del anexo no está en la copia local, por eso la disposición es didáctica (PV-23). Cifras con 3 decimales en USD (IT IV.3, IV.4); pesos en kg con 2 decimales [S]; fechas DD MM AAAA (IT IV.6). " +
       "La DAM real se transmite electrónicamente y prevalece sobre el papel (IT IV.8). "));
     var leyenda = el("span", "dam-leyenda");
-    leyenda.appendChild(document.createTextNode("Casilla en blanco = no se llena, la llena otro o no aplica (el motivo, en la ayuda de la casilla) · "));
+    leyenda.appendChild(document.createTextNode("Casilla en blanco = no se llena, la llena otro o no aplica (el motivo, en el botón «?» de la casilla, que no se imprime) · "));
     leyenda.appendChild(D.etiquetaMarca("PV"));
     leyenda.appendChild(document.createTextNode(" = no se puede afirmar con las fuentes de la carpeta; "));
     leyenda.appendChild(marcaMini("PV"));

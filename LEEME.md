@@ -80,7 +80,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 
 1. Haz doble clic en `pruebas.html` (o usa el enlace de `index.html`).
-2. Arriba debe decir **"592 de 592 pruebas correctas"** en verde.
+2. Arriba debe decir **"620 de 620 pruebas correctas"** en verde.
 3. Cada grupo compara el valor esperado (las cifras de `PLAN.md` §9.1 y §9.2, controles de RUC, contenedor,
    IMEI y UN/LOCODE, y casos borde) con el obtenido. Una prueba que falla se ve en rojo y dice "✘ FALLA".
 4. Los grupos F3-M1 a F3-M5 son pruebas de regresión de las correcciones de la auditoría de F3 (bultos exactos,
@@ -98,7 +98,8 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    el VGM (carga + estiba + tara) y el contenido del borrador de B/L. El grupo F7.1 son las regresiones de la auditoría de F6/F7.
    El grupo F8a comprueba que las casillas del Formato A (series, 6.1–6.5, 7.30–7.34, S 7.26…) son las de `PLAN.md` §9.1 y §9.2
    y que la hoja A1 solo aparece con más de una serie. El grupo F8a.1 son las regresiones de la auditoría de F8a y el F8a.2,
-   las de la revisión de Aarón (D17/D18: pesos con 2 decimales, casillas en blanco, nota RS 129 solo en celulares, 7.39 y S 13).
+   las de la revisión de Aarón (D17/D18: pesos con 2 decimales, casillas en blanco, nota RS 129 solo en celulares, 7.39 y S 13); el F8a.3, las de la
+   auditoría de F8a.2 (estado de S 7.20 sin código y ayuda «?» accesible de cada casilla en blanco).
 5. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
@@ -137,11 +138,13 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 - Cada casilla muestra su **número** («7.35»), su rótulo, el valor y, abajo en gris pequeño, la **fuente** («IT A 7.35»);
   al pasar el cursor también se ve.
 - **Casilla en blanco** (solo número y rótulo) = el instructivo manda «No llenar», la llena otro (Aduana, funcionario,
-  zona primaria…) o no aplica al régimen (por ejemplo, S 7.31 a 7.34 en la exportación). El motivo aparece al pasar el cursor.
+  zona primaria…) o no aplica al régimen (por ejemplo, S 7.31 a 7.34 en la exportación). El motivo se lee con el botón
+  **?** de la cabecera de la casilla (con el teclado: Tab hasta el botón y Enter; en el celular, tocándolo); también al pasar
+  el cursor. Ese botón y su ayuda no se imprimen.
 - **POR VERIFICAR** (amarillo) = no se puede afirmar con las fuentes de la carpeta: nunca se inventa (dígito verificador de
   la subpartida PV-27; reparto del flete y del seguro entre series PV-04). Una **PV pequeña** junto a un código en blanco
   = código oficial por verificar: se ve el nombre (banco, «Caja de cartón», razón social del agente) y el código queda en
-  blanco (PV-09, PV-28). La «U» de la unidad física lleva una **S** pequeña (supuesto). **H*** = conocimiento general.
+  blanco (PV-09, PV-28; también el código del estado en S 7.20, porque la lista de IT C 5.16 es del Formato B). La «U» de la unidad física lleva una **S** pequeña (supuesto). **H*** = conocimiento general.
 - El registro de aduana dice **«NO NUMERADA»**: el número, la fecha de numeración y el canal los pone SUNAT.
 - Cifras con **3 decimales** en USD y fechas **DD MM AAAA** (IT IV.3, IV.4, IV.6); los **pesos en kg con 2 decimales**
   (decisión D17). La casilla **7.35** de importación lleva la nota del párrafo añadido por la **RS 129-2026** (series e IMEI
@@ -154,7 +157,7 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 
 En construcción, por fases. El plan completo está en `PLAN.md` (§10: fases; §11: decisiones).
 Hechas: F1, F2, F2.1 (correcciones de la auditoría de F2), F3 (cálculos y página de pruebas), F4 (validaciones y
-panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a) y F8a.2 (revisión de Aarón, D17/D18).
+panel de errores y advertencias), F3.1, F4.1 y F4.2 (correcciones de las auditorías de F3 y F4), F5 (formulario editable), F5.1 (correcciones de la auditoría de F5), F6 (factura comercial, lista de empaque y hoja resumen), F7 (instrucciones de embarque, borrador de B/L y VGM), F7.1 (correcciones de la auditoría de F6/F7), F8a (DAM Formato A de ingreso y salida, con A1), F8a.1 (correcciones de la auditoría de F8a), F8a.2 (revisión de Aarón, D17/D18) y F8a.3 (correcciones de la auditoría de F8a.2).
 Siguiente: **F8b** (DAM Formato B).
 La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo se usa como referencia.
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas y JSON).

@@ -471,11 +471,24 @@ a.btn-ir { display: inline-block; padding: 2px 10px; border: 1px solid #93c5fd; 
 .dam-leyenda { display: block; margin-top: 0.6mm; }
 .dam-serie { break-before: auto; }
 .dam-serie .dam-rubro-tit { background: #1d4ed8; }
+/* F8a.3 (auditoría F8a.2-M2): ayuda de la casilla con botón «?» en su cabecera (teclado y toque), fuera del valor; no se imprime. */
+.dam-cas-cab { display: flex; align-items: flex-start; gap: 1pt; }
+.dam-cas-cab .dam-rot { flex: 1; min-width: 0; }
+.dam-ayuda-btn { flex: none; min-width: 4.2mm; min-height: 4.2mm; padding: 0; margin: 0; font-size: 6.4pt; line-height: 1; font-weight: 700; border-radius: 50%; }
+.dam-ayuda-btn[aria-expanded="true"] { background: #dbeafe; border-color: #93c5fd; }
+.dam-ayuda { margin: 0.4mm 0; padding: 0.4mm 1mm; font-size: 6.4pt; background: #f8fafc; border-left: 1.5pt solid #93c5fd; }
+.dam-ayuda p { margin: 0; }
+/* F8b: DAM — Formato B (+B1), declaración del valor. */
+.dam-pregunta .dam-rot { font-weight: 400; }
+.dam-didactico { margin: 1.6mm 0; padding: 1mm 1.5mm; border: 0.6pt dashed #6b7280; }
+.dam-didactico h4 { margin: 0 0 0.6mm; font-size: 7.8pt; }
+.dam-didactico .doc-tabla { font-size: 7pt; }
+.dam-didactico p { margin: 0.6mm 0; }
 
 @media print {
   .documentos { border: none; padding: 0; margin: 0; background: none; }
   .documentos > :not(#vista-documentos) { display: none !important; }
-  .doc-controles, .doc-ayuda-vista, .doc-marca-agua, .doc-pie, .doc-aviso { display: none !important; }
+  .doc-controles, .doc-ayuda-vista, .doc-marca-agua, .doc-pie, .doc-aviso, .dam-ayuda-btn, .dam-ayuda { display: none !important; }
   .doc-panel { display: none; }
   .doc-panel.a-imprimir { display: block; }
   .doc-panel.a-imprimir:not(.primera) { break-before: page; }

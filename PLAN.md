@@ -1,6 +1,6 @@
 # PLAN — Generador didáctico de documentos del transporte marítimo internacional
 
-> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18) **F8a.3** (correcciones de la auditoría de F8a.2) y **F8b** (DAM Formato B de la declaración del valor, con B1; `pruebas.html`: 663 de 663 pruebas correctas). **Fase actual: F8c (Formato C) pendiente de lanzar.** Revisión de Aarón al final de cada fase.
+> **Estado:** plan **v2 aprobado**. Fases hechas: F1, F2, **F2.1** (correcciones de la auditoría de F2 y decisiones D1–D9, §11), **F3** (cálculos y `pruebas.html`), **F4** (validaciones y panel «Revisión de la operación»), **F3.1** (correcciones de la auditoría de F3), **F4.1** (correcciones de la auditoría de F4) , **F4.2** (pendientes menores de las re-auditorías) **F5** (formulario editable), **F5.1** (correcciones de la auditoría de F5) **F6** (factura comercial, lista de empaque y hoja resumen) **F7** (instrucciones de embarque, borrador de B/L y VGM) y **F7.1** (correcciones de la auditoría de F6/F7) **F8a** (DAM Formato A de ingreso y salida, con A1) **F8a.1** (correcciones de la auditoría de F8a) **F8a.2** (revisión de Aarón del Formato A, decisiones D17 y D18) **F8a.3** (correcciones de la auditoría de F8a.2) **F8b** (DAM Formato B de la declaración del valor, con B1) **F8b.1** (correcciones de la auditoría de F8b) y **F8c** (DAM Formato C de la liquidación; `pruebas.html`: 697 de 697 pruebas correctas). **Fase actual: F9 (certificado de seguro y certificado de origen) pendiente de lanzar.** Revisión de Aarón al final de cada fase.
 > **Aviso:** todo lo que genere esta herramienta es **DIDÁCTICO y NO VÁLIDO PARA TRÁMITES REALES**.
 
 **Marcas que usa este plan (y que se verán en la herramienta)**
@@ -885,7 +885,7 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 | F7 ✔ | Instrucciones de embarque / borrador de B/L + VGM | Bultos, peso bruto, volumen y contenedor = lista de empaque |
 | **F8a** ✔ | **DAM Formato A** (ingreso y salida, con A1) | Series, casillas y valores = §9.1 y §9.2. **Pausa: revisión de Aarón antes de seguir.** Revisada en F8a.2 (D17, D18). |
 | **F8b** ✔ | DAM Formato B (+B1), solo con tu aprobación de F8a | FOB unitarios y sección 8 = §9.1 |
-| F8c | DAM Formato C (liquidación) | Tributos = §9.1 |
+| **F8c** ✔ | DAM Formato C (liquidación) | Tributos = §9.1 |
 | F9 | Certificado de seguro + certificado de origen (condicionales) | Con FOB no hay seguro; con CIF sí; sin preferencia no hay CO |
 | F10 | Ajustes de impresión, `LEEME.md` (fuentes, fechas, límites) y revisión final | Generas los PDF de ambos casos de principio a fin |
 
@@ -991,6 +991,22 @@ Cada fase termina en un commit y en una verificación que puedes hacer tú, sin 
 - Consignatario en el B/L: nominativo → el consignatario elegido; **a la orden** → «A la orden de / To the order of: …». Si el consignatario es «a la orden de…» y el notify es «el consignatario», el B/L pide indicar a quién notificar.
 - Descripción **genérica** de la carga (nombres de los productos, SA a 6 dígitos y N° de factura, sin precios), con «STC / said to contain»; flete *prepaid* o *collect* según el dato `fleteBl` (D8) y «pagadero en» el puerto de embarque o de descarga; N° de originales en letras («TRES (3)»); cláusulas SLAC y STC explicadas.
 - Bultos, peso bruto, volumen, contenedor y precinto llevan `data-cuadre`: el cuadro de cuadre de la hoja resumen y `pruebas.html` (grupos F7) comprueban que son los de la lista de empaque.
+
+**DAM Formato C (F8c)** [S salvo donde se cita]
+
+- `js/documentos/dam_c.js` genera el **Formato C** (liquidación de la deuda tributaria aduanera), **solo en la importación** (IT IV.1: regímenes que cancelan o garantizan tributos; en la exportación no se genera). Casillas de **IT D** con número, rótulo, valor y fuente, en la misma rejilla de los Formatos A y B (`Documentos.dam`, que ahora también exporta `agente`) y con las reglas D17/D18.
+- Cabecera (aduana, N° de orden, destinación, modalidad, tipo de despacho en blanco con PV pequeña; número de declaración «No llenar»); rubro 1 (1.1 importador, 1.2 documento, 1.3 almacén = depósito temporal con RUC en blanco y PV-28); rubro 2 «NO NUMERADA».
+- **Rubro 3:** 3.1–3.5 = A 6.1–6.5 (mismos textos).
+- **Rubro 4:** primero un **cuadro didáctico por serie** (valor aduana, tasa AV, 4.1–4.4, base del IGV, 4.5, 4.6, 4.7 y total; la liquidación se hace por serie y se suma, §6.6; el IT D solo trae las casillas del total) con la aritmética de cada serie a la vista; luego la rejilla con los **totales**: 4.1–4.7 (en 0 → en blanco, «Sin monto» en la ayuda), la **base del IGV** como casilla sin número con H\* (antidumping fuera: PV-17), **4.8 = POR VERIFICAR (PV-02)** sin monto, **4.9 en blanco** (no aplica en v1 [S]), 4.10–4.13 sin rótulo en el IT (en blanco) y el **Total** (4.1 a 4.7; no incluye 4.8).
+- **Rubro 5:** forma de pago en blanco (se llena a mano, IT D 5); tipo de cambio venta con su marca (S en el caso 1), fecha (en blanco si no hay dato) y fuente (PV-07); total en soles = total del rubro 4 × tipo de cambio, con 2 decimales [S; PV-08].
+- Rubros 6 (despachador de aduana, código en blanco PV-28, fecha de formulación; firma en blanco), 7 y 8 reservados, en blanco.
+- **Percepción del IGV fuera del Formato C:** recuadro didáctico rotulado «FUERA DEL FORMATO C» después del formato: base = valor aduana + tributos del Formato C (incluido el antidumping, H\* Ley 29173 + PV-17, D11), tasa con PV-01 (un valor por operación, D2/D6), monto en USD y en soles, y el total a pagar en soles (tributos + percepción).
+- La plantilla **solo lee** `r.valorAduana`, `r.series[].liquidacion`, `r.liquidacion`, `r.percepcion` y `r.soles` (no hizo falta añadir totales a `calculos.js`). Las cifras llevan `data-cuadre` propias (`c31`…`c35`, `c41`, `c45`, `c46`, `cTotal`, por serie `cVa1`, `c41s1`, `cBase1`…; `cSoles`, `cPercepcion`…), que no son del cuadro de cuadre de la hoja resumen (no se añade columna).
+- Regresiones en `pruebas.html` (grupo F8c, 32 pruebas: cifras de §9.1 por serie y totales, 3.1–3.5 = A 6.1–6.5, 4.8 POR VERIFICAR, 4.9 en blanco, soles, percepción fuera del formato con sus marcas, caso 2 sin Formato C, bloqueo con errores, mutación ISC + antidumping, XSS).
+
+**Correcciones de la auditoría de F8b (Codex), aplicadas en F8b.1**
+
+- F8b-B1: la casilla «Declarante del Formato B» queda **en blanco** (D17) mientras la herramienta no pida los datos del declarante; conserva rótulo, fuente y ayuda «?». Regresión en `pruebas.html` (grupo F8b.1).
 
 **DAM Formato B y B1 (F8b)** [S salvo donde se cita]
 

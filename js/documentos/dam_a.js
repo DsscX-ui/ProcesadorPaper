@@ -12,7 +12,7 @@
    PV pequeña (D18 c), nunca inventado. Otras dudas (DV PV-27, reparto PV-04…) se muestran «POR VERIFICAR».
    Solo LEE la operación y el resultado de Calculos.calcular (series, prorrateos, 6.1–6.5); no calcula ni redondea.
    Script clásico: se registra en Documentos (antes de la hoja resumen) y deja en Documentos.dam las piezas de la
-   rejilla (casilla, rubro, marcas pequeñas) que reutiliza el Formato B (dam_b.js). */
+   rejilla (casilla, rubro, marcas pequeñas) que reutilizan los Formatos B y C (dam_b.js, dam_c.js). */
 
 (function () {
   var D = Documentos, Fm = Calculos.formato, el = D.el;
@@ -517,7 +517,7 @@
 
   // Para pruebas.html.
   D.fechaDam = fechaDam;
-  // Piezas de la rejilla de la DAM que reutiliza el Formato B (dam_b.js, F8b): mismas casillas, marcas y ayuda «?».
+  // Piezas de la rejilla de la DAM que reutilizan los Formatos B y C (dam_b.js, F8b; dam_c.js, F8c): mismas casillas, marcas y ayuda «?».
   D.dam = { casilla: casilla, rubro: rubro, lineas: lineas, marcaMini: marcaMini, codigoEnBlanco: codigoEnBlanco,
-    porVerificar: porVerificar, marcado: marcado, pvPropia: pvPropia, esPv: esPv, fechaDam: fechaDam, leyenda: leyenda };
+    porVerificar: porVerificar, marcado: marcado, pvPropia: pvPropia, esPv: esPv, fechaDam: fechaDam, leyenda: leyenda, agente: agente };
 })();

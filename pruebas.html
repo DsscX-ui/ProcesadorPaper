@@ -36,6 +36,7 @@
   <script src="js/documentos/bl.js"></script>
   <script src="js/documentos/dam_a.js"></script>
   <script src="js/documentos/dam_b.js"></script>
+  <script src="js/documentos/dam_c.js"></script>
   <script src="js/documentos/resumen.js"></script>
   <script>
   /* Página de pruebas. Solo lee resultados de Calculos y Validaciones; no calcula nada por su cuenta.
@@ -1179,7 +1180,7 @@
     [["caso1", "4,489.00"], ["caso2", "3,788.00"]].forEach(function (c) {
       var x = documentosDe(ejemplo(c[0]));
       var pl = x.porId.packing.cifras;
-      prueba(c[0] + ": orden de los documentos (F8b: B y B1 solo en la importación)", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1," + (c[0] === "caso1" ? "dam_b,dam_b1," : "") + "resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
+      prueba(c[0] + ": orden de los documentos (F8b/F8c: B, B1 y C solo en la importación)", "factura,packing,instrucciones,bl,vgm,dam_a,dam_a1," + (c[0] === "caso1" ? "dam_b,dam_b1,dam_c," : "") + "resumen", x.gen.docs.map(function (d) { return d.def.id; }).join(","));
       ["instrucciones", "bl"].forEach(function (id) {
         var k = x.porId[id].cifras;
         prueba(c[0] + " · " + id + ": bultos, peso bruto, volumen, contenedor y precinto = PL",
@@ -1689,6 +1690,101 @@
       prueba("B1 · conserva el rótulo, la fuente de IT C y la ayuda «?» con quién la formula", "true · true · true",
         String(/Nombre, código y número/.test(c.querySelector(".dam-rot").textContent)) + " · " + String(/DECLARANTE DEL FORMATO B/.test(c.querySelector(".dam-fuente").textContent)) + " · " +
         String(!!c.querySelector(".dam-ayuda-btn[aria-controls]") && /importador/.test(c.querySelector(".dam-ayuda").textContent)));
+    })();
+
+    grupo("F8c. DAM Formato C (liquidación) = PLAN §9.1", "Liquidación de tributos, solo importación (IT D). Se leen las casillas y las cifras (data-cuadre) que MUESTRA la hoja. Cifras con 3 decimales (IT IV.3); soles con 2 [S]. La percepción va FUERA del Formato C (PV-01).");
+    (function () {
+      function casC(hoja, num) { return hoja.querySelector('.dam-rejilla > [data-casilla="' + num + '"]'); }
+      function valC(hoja, num) {
+        var n = casC(hoja, num);
+        if (!n) { return "(no está)"; }
+        var v = n.querySelector(".dam-valor").cloneNode(true);
+        Array.prototype.forEach.call(v.querySelectorAll(".dam-mini"), function (m) { m.remove(); });
+        return v.textContent.replace(/\s+/g, " ").trim();
+      }
+      var o1 = ejemplo("caso1"), antes = JSON.stringify(o1);
+      var x = documentosDe(o1), dc = x.porId.dam_c, c = dc && dc.hoja, k = dc ? dc.cifras : {};
+      prueba("Caso 1: se genera el Formato C (pestaña «DAM C») y no modifica la operación", "true · DAM C · true", String(!!c) + " · " + (x.gen.docs.filter(function (d) { return d.def.id === "dam_c"; }).map(function (d) { return d.def.codigo; })[0] || "") + " · " + String(JSON.stringify(o1) === antes));
+
+      // Rubro 3 = A 6.1–6.5.
+      prueba("3.1 · 3.2 · 3.3 · 3.4 · 3.5 = §9.1 (FOB, flete, seguro, ajuste, valor aduana)", "18,123.870 · 1,850.000 · 66.130 · 0.000 · 20,040.000",
+        ["c31", "c32", "c33", "c34", "c35"].map(function (q) { return k[q]; }).join(" · "));
+      var a = x.porId.dam_a.cifras;
+      prueba("3.1–3.5 = A 6.1–6.5 (mismos textos)", "true", String([1, 2, 3, 4, 5].every(function (i) { return k["c3" + i] === a["dam6" + i]; })));
+
+      // Por serie (§9.1).
+      prueba("Serie 1: VA · AV · base IGV · IGV · IPM = §9.1", "8,693.630 · 521.618 · 9,215.248 · 1,474.440 · 184.305",
+        [k.cVa1, k.c41s1, k.cBase1, k.c46s1, k.c45s1].join(" · "));
+      prueba("Serie 2: VA · AV · base IGV · IGV · IPM = §9.1", "11,346.370 · 0.000 · 11,346.370 · 1,815.419 · 226.927",
+        [k.cVa2, k.c41s2, k.cBase2, k.c46s2, k.c45s2].join(" · "));
+      prueba("Cuadro por serie: tasa AV 6 % y 0 %; base total 20,561.618", "6 % · 0 % · 20,561.618",
+        Array.prototype.map.call(c.querySelectorAll(".dam-tabla-c tbody tr"), function (tr) { return tr.children[2].textContent; }).join(" · ") + " · " + k.cBase);
+      prueba("Aritmética por serie a la vista («base = VA + AV = … → IGV … · IPM …»)", "true", String(/Serie 1: base = 8,693\.630 \+ 521\.618 \(AV 6 %\) = 9,215\.248 → IGV 1,474\.440 · IPM 184\.305/.test(c.textContent)));
+
+      // Totales (casillas del rubro 4).
+      prueba("Totales: 4.1 AV · 4.6 IGV · 4.5 IPM · Total = §9.1", "521.618 · 3,289.859 · 411.232 · 4,222.709", [k.c41, k.c46, k.c45, k.cTotal].join(" · "));
+      prueba("Las cifras son las de calculos.js (sin recalcular en la plantilla)", "true",
+        String(k.cTotal === F.damAC(x.r.liquidacion.total) && k.c46 === F.damAC(x.r.liquidacion.igv) && k.c46s2 === F.damAC(x.r.series[1].liquidacion.igv)));
+      prueba("4.2 · 4.3 · 4.4 · 4.7 (montos 0) EN BLANCO con «Sin monto» en la ayuda «?»", "«»«»«»«» · true",
+        ["4.2", "4.3", "4.4", "4.7"].map(function (n) { return "«" + valC(c, n) + "»"; }).join("") + " · " +
+        String(["4.2", "4.3", "4.4", "4.7"].every(function (n) { return /Sin monto/.test(casC(c, n).querySelector(".dam-ayuda").textContent); })));
+      prueba("Control: 4.8 servicio de despacho muestra POR VERIFICAR (PV-02), sin monto", "true · false",
+        String(!!casC(c, "4.8").querySelector(".dam-valor .marca-pv") && /PV-02/.test(valC(c, "4.8"))) + " · " + String(/\d/.test(valC(c, "4.8").replace("PV-02", ""))));
+      prueba("4.9 interés compensatorio: en blanco, no aplica en v1 [S]", "«» · no-aplica · true",
+        "«" + valC(c, "4.9") + "» · " + casC(c, "4.9").getAttribute("data-estado") + " · " + String(/v1/.test(casC(c, "4.9").title)));
+      prueba("Base del IGV: casilla sin número, con H* (antidumping fuera, PV-17 en el cuadro)", "20,561.618 H* · true",
+        Array.prototype.filter.call(c.querySelectorAll('[data-casilla=""]'), function (n) { return /Base del IGV/.test(n.textContent); }).map(function (n) { return n.querySelector(".dam-valor").textContent; })[0] + " · " +
+        String(/antidumping \(4\.7\) queda fuera/.test(c.querySelector(".dam-c-series").textContent) && !!c.querySelector(".dam-c-series .marca-pv")));
+
+      // Rubro 5 (soles).
+      prueba("Rubro 5: tipo de cambio 3.500 (S) · total tributos en soles = 4,222.709 × 3.500 = S/ 14,779.48 [S]", "3.500 · S/ 14,779.48 · 14,779.48",
+        Array.prototype.filter.call(c.querySelectorAll('[data-casilla=""]'), function (n) { return /Tipo de cambio venta/.test(n.textContent); })[0].querySelector(".dam-valor").textContent.replace(/S$/, "").trim() + " · " + k.cSoles + " · " + F.comercial(x.r.soles.tributos));
+      prueba("Rubro 5: forma de pago y fecha del tipo de cambio en blanco (se llenan al pagar); fuente con POR VERIFICAR (PV-07)", "«» · «» · true",
+        Array.prototype.filter.call(c.querySelectorAll('[data-casilla=""]'), function (n) { return /Forma de pago|Fecha del tipo de cambio/.test(n.querySelector(".dam-rot").textContent); })
+          .map(function (n) { return "«" + n.querySelector(".dam-valor").textContent + "»"; }).join(" · ") + " · " +
+        String(Array.prototype.some.call(c.querySelectorAll('[data-casilla=""]'), function (n) { return /Fuente del tipo de cambio/.test(n.textContent) && !!n.querySelector(".dam-valor .marca-pv"); })));
+
+      // Percepción fuera del Formato C.
+      var fu = c.querySelector('[data-fuera="percepcion"]');
+      prueba("Percepción: recuadro «FUERA DEL FORMATO C», no es casilla; base 24,262.709; monto 849.195 = §9.1; S/ 2,972.18", "true · false · 24,262.709 · 849.195 · 2,972.18",
+        String(!!fu && /FUERA DEL FORMATO C/.test(fu.querySelector("h4").textContent)) + " · " + String(!!fu.closest("[data-casilla]")) + " · " +
+        [k.cPercepcionBase, k.cPercepcion, k.cPercepcionSoles].join(" · "));
+      prueba("Percepción: marcas PV-01, H* (Ley 29173) y PV-17 visibles", "true · true · true",
+        String(/PV-01/.test(Array.prototype.map.call(fu.querySelectorAll(".marca-pv"), function (m) { return m.title; }).join())) + " · " +
+        String(Array.prototype.some.call(fu.querySelectorAll(".marca-hx"), function (m) { return /29173/.test(m.title); })) + " · " +
+        String(/PV-17/.test(Array.prototype.map.call(fu.querySelectorAll(".marca-pv"), function (m) { return m.title; }).join())));
+      prueba("Total en soles (tributos + percepción) = calculos.js", "true", String(fu.textContent.indexOf("= S/ " + F.comercial(x.r.soles.total)) !== -1));
+      prueba("Ninguna casilla numerada del rubro 4 se llama «Percepción»", "false", String(Array.prototype.some.call(c.querySelectorAll("[data-casilla]"), function (n) { return /ercepci/.test(n.querySelector(".dam-rot").textContent); })));
+
+      // Cabecera, rubros 1, 2, 6–8 y reglas D17.
+      prueba("1.1 · 1.2 · rubro 2", "Importadora Didáctica Andina S.A.C. — FICTICIA · 4 — RUC 20000000001 · NO NUMERADA", [valC(c, "1.1"), valC(c, "1.2"), valC(c, "2")].join(" · "));
+      prueba("1.3 almacén = depósito temporal con RUC en blanco y PV pequeña (PV-28)", "true · true", String(/Depósito Temporal Didáctico/.test(valC(c, "1.3"))) + " · " + String(!!casC(c, "1.3").querySelector(".dam-mini .marca-pv")));
+      prueba("7 y 8 reservadas, en blanco", "reservada · reservada · «»", casC(c, "7").getAttribute("data-estado") + " · " + casC(c, "8").getAttribute("data-estado") + " · «" + valC(c, "7") + valC(c, "8") + "»");
+      prueba("D17 · ninguna casilla muestra el motivo dentro; sin relleno gris ni líneas «____»", "false · false · false",
+        String(Array.prototype.some.call(c.querySelectorAll(".dam-valor"), function (v) { return /No llenar|No aplica|Reservada|Sin monto|uso exclusivo/.test(v.textContent); })) + " · " +
+        String(!!c.querySelector(".dam-gris")) + " · " + String(/_{3,}/.test(c.textContent)));
+      prueba("Cada casilla muestra su número y una fuente de IT D (o del plan si es un cálculo sin casilla)", "true", String(Array.prototype.every.call(c.querySelectorAll("[data-casilla]"), function (n) {
+        var num = n.getAttribute("data-casilla");
+        return /Fuente: (IT D|PLAN|PV-07)/.test(n.querySelector(".dam-fuente").textContent) && (num === "" || n.querySelector(".dam-num").textContent === num);
+      })));
+      prueba("Toda casilla con motivo tiene ayuda «?» accesible", "true", String(Array.prototype.every.call(c.querySelectorAll("[data-estado]"), function (n) { return !!n.querySelector(".dam-cas-cab .dam-ayuda-btn[aria-controls]"); })));
+      prueba("La DAM C dice «DIDÁCTICO» y tiene marca de agua", "true", String(/DOCUMENTO DIDÁCTICO – NO VÁLIDO/.test(c.textContent) && !!c.querySelector(".doc-marca-agua")));
+
+      // Exportación, errores y mutaciones.
+      var y = documentosDe(ejemplo("caso2"));
+      prueba("Caso 2 (exportación): no se genera el Formato C", "false", String(!!y.porId.dam_c));
+      var w = ejemplo("caso1"); w.especificos.items[0].pesoBrutoBulto = 1;
+      prueba("Con errores (E05) no se genera el Formato C", "true · false", String(documentosDe(w).gen.bloqueado) + " · " + String(!!documentosDe(w).porId.dam_c));
+      var ad = ejemplo("caso1"); ad.especificos.items[2].antidumping = 100; ad.especificos.items[2].isc = 10;
+      var da = documentosDe(ad), ka = da.porId.dam_c.cifras;
+      prueba("Con ISC 10 y antidumping 100 en la serie 2: 4.4 = 10.000 y 4.7 = 100.000; base IGV serie 2 suma el ISC pero no el antidumping", "10.000 · 100.000 · 11,356.370",
+        valC(da.porId.dam_c.hoja, "4.4") + " · " + valC(da.porId.dam_c.hoja, "4.7") + " · " + ka.cBase2);
+      prueba("…y la base de la percepción sí incluye el antidumping (D11)", "true", String(ka.cPercepcionBase === F.damAC(da.r.percepcion.base) && /incluye antidumping 100\.000/.test(da.porId.dam_c.hoja.querySelector(".dam-fuera").textContent)));
+      var xss = ejemplo("caso1"); xss.generales.partes.comprador.razonSocial = "<img src=x onerror=alert(1)>";
+      var cx = documentosDe(xss).porId.dam_c.hoja;
+      prueba("XSS: la razón social del importador se muestra como texto (sin crear <img>)", "true · 0", String(valC(cx, "1.1") === "<img src=x onerror=alert(1)>") + " · " + cx.querySelectorAll("img").length);
+      var cq = Documentos.cuadre(x.gen.ctx);
+      prueba("Hoja resumen: el cuadro de cuadre sigue sin columna para la DAM C y todo cuadra", "FC,PL,IE,B/L,VGM,DAM A · true", cq.docs.map(function (d) { return d.def.codigo; }).join(",") + " · " + String(cq.todoCuadra));
     })();
 
     // ============================================================ Pintar

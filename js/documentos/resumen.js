@@ -82,7 +82,9 @@
     var lista = esperadas(ctx);
     function claves(e) { return e[4] ? Object.keys(e[4]) : [e[0]]; }
     function esperadoEn(e, k) { return e[4] ? e[4][k] : e[3]; }
-    var docs = ctx.generados.map(function (g) { return { def: g.def, cifras: D.cifras(g.hoja) }; })
+    // La HR contiene el propio cuadro: se excluye también al consultar el contexto ya generado.
+    var docs = ctx.generados.filter(function (g) { return g.def.id !== "resumen"; })
+      .map(function (g) { return { def: g.def, cifras: D.cifras(g.hoja) }; })
       .filter(function (d) { return lista.some(function (e) { return claves(e).some(function (k) { return k in d.cifras; }); }); });
     var todo = true;
     var filas = lista.map(function (e) {

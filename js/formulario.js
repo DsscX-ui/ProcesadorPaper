@@ -349,6 +349,8 @@ var Formulario = (function () {
     function construirCampo(campo, ruta, i) {
       var cid = id + "-" + ruta.replace(/[^A-Za-z0-9]+/g, "-");
       var fila = el("div", "cf");
+      // Aplica la condición desde la construcción, antes del primer recálculo.
+      fila.hidden = !DICCIONARIO.sePide(campo, op, i);
       fila.setAttribute("data-ruta", ruta);
       fila.tabIndex = -1;
       if (campo.tipo === "equipos" || AREA_TEXTO[campo.ruta]) { fila.classList.add("cf-ancho"); }

@@ -1230,3 +1230,5 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 | C | Tipo, clase y N° de bultos | Bultos, numeración, pesos, volumen y VGM | — | **derivado**: calculos.js: items[], totales, vgm |
 | C | Precio unitario y valor | Series, FOB por ítem y unitario, ajustes, flete y seguro por serie, valor en aduana | — | **derivado**: calculos.js: items[].fob, series[], valorAduana, exportacion |
 | C | Tributos, TPI | Liquidación, percepción y pago en soles | — | **derivado**: calculos.js: liquidacion, percepcion, soles |
+
+Entrada numérica P1: `limitesNumero` admite mínimo opcional; montos, tasas, tributos, tara, estiba, originales y plazos tienen mínimo 0. El pago diferido admite 0–100 %. Cantidades, precios, pesos y medidas del ítem mantienen E07; tipo de cambio mantiene E15.

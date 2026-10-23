@@ -20,18 +20,19 @@ var Modelo = (function () {
     marcas: 5000
   };
 
-  // Límites de cada dato numérico (F3-M4): [valor absoluto máximo, decimales máximos]. Los usan Abrir
+  // Límites de cada dato numérico (F3-M4): [valor absoluto máximo, decimales máximos, mínimo opcional]. Los usan Abrir
   // y Calculos.calcular, así ninguna cifra sale del rango de enteros exactos de JavaScript (±2^53 − 1)
   // ni se redondea en silencio. Además, el valor total de la factura no puede superar USD 1,000,000,000
   // (lo comprueba calculos.js). Se aplican por nombre del dato (última parte de la ruta).
-  var MONTO = [1000000000, 2], PCT = [1000, 4], TRIBUTO = [1000000000, 3];
+  var MONTO = [1000000000, 2, 0], PCT = [1000, 4, 0], TRIBUTO = [1000000000, 3, 0];
   var LIMITES_NUMERO = {
+    // Sin mínimo: los datos del ítem siguen con E07 y tipoCambio sigue con E15.
     cantidad: [1000000, 3], precioUnitario: [1000000, 6], unidadesPorBulto: [1000000, 3],
     pesoNetoBulto: [100000, 2], pesoBrutoBulto: [100000, 2],
     largoCm: [10000, 1], anchoCm: [10000, 1], altoCm: [10000, 1],
-    tara: [100000, 2], estibaTrincaje: [100000, 2], blOriginales: [100, 0],
-    tasaAV: PCT, tasaPercepcion: PCT, coberturaPct: PCT, tasaPrimaPct: PCT, pctTablaSunat: PCT, porcentaje: PCT,
-    plazoDias: [10000, 0], tipoCambio: [1000, 3],
+    tara: [100000, 2, 0], estibaTrincaje: [100000, 2, 0], blOriginales: [100, 0, 0],
+    tasaAV: PCT, tasaPercepcion: PCT, coberturaPct: PCT, tasaPrimaPct: PCT, pctTablaSunat: PCT, porcentaje: [100, 4, 0],
+    plazoDias: [10000, 0, 0], tipoCambio: [1000, 3],
     sobretasa: TRIBUTO, derechoEspecifico: TRIBUTO, isc: TRIBUTO, antidumping: TRIBUTO,
     flete: MONTO, gastosExw815: MONTO, otros816: MONTO, ajuste812: MONTO, ajuste813: MONTO,
     descuentosNoAceptables814: MONTO, comisiones821: MONTO, envases822: MONTO, materiales8231: MONTO,
@@ -57,6 +58,9 @@ var Modelo = (function () {
     if (typeof valor !== "number" || !isFinite(valor)) { return "número no válido"; }
     var lim = LIMITES_NUMERO[clave];
     if (!lim) { return ""; }
+    if (lim[2] != null && valor < lim[2]) {
+      return "el valor " + valor + " es negativo; debe ser " + lim[2] + " o mayor";
+    }
     if (Math.abs(valor) > lim[0]) {
       return "el valor " + valor + " supera el máximo de " + lim[0].toLocaleString("en-US") + " que admite la herramienta";
     }

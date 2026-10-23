@@ -55,7 +55,7 @@ var Formulario = (function () {
     var t = String(texto == null ? "" : texto).trim();
     if (t === "") { return { valor: null, error: "" }; }
     var limpio = t;
-    if (/^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) {
+    if (/^[+-]?[1-9]\d{0,2}(,\d{3})+(\.\d+)?$/.test(t)) {
       limpio = t.replace(/,/g, "");
     } else if (t.indexOf(",") !== -1) {
       return { valor: null, error: "Usa punto decimal; la coma solo separa miles (ej. 1,234.50)." };
@@ -338,7 +338,7 @@ var Formulario = (function () {
         var lim = Modelo.limitesNumero[claveDe(ruta)];
         if (lim) {
           partes.push("máx. " + lim[0].toLocaleString("en-US") + " · " + (lim[1] ? "hasta " + lim[1] + " decimales" : "sin decimales") +
-            " · punto decimal");
+            (lim[2] === 0 ? " · mín. 0" : "") + " · punto decimal");
         }
       }
       if (campo.tipo === "equipos") { partes.push("una línea por equipo: serie;IMEI;IMEI (máx. 4 IMEI)"); }

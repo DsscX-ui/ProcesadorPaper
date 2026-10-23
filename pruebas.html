@@ -477,6 +477,34 @@
         String(/rango que la herramienta calcula con exactitud/.test(lanza(function () { Calculos.calcular(op2); }))));
     })();
 
+    grupo("P1-4. Signo y rangos de entrada");
+    (function () {
+      var o = ejemplo("caso1"); o.especificos.valoracion.flete = -100;
+      prueba("Abrir: flete negativo", "true", String(/valoracion\.flete: el valor -100 es negativo/.test(Modelo.revisarArchivo(o))));
+      [["especificos.contenedor.tara", -2200], ["especificos.contenedor.estibaTrincaje", -1],
+        ["especificos.seguro.tasaPrimaPct", -0.3], ["especificos.seguro.pctTablaSunat", -1],
+        ["especificos.valoracion.expOtrosDeducibles", -1], ["especificos.items.0.tasaAV", -6]].forEach(function (p) {
+        var a = ejemplo("caso1"), ks = p[0].split("."), obj = a;
+        ks.slice(0, -1).forEach(function (k) { obj = obj[k]; }); obj[ks[ks.length - 1]] = p[1];
+        prueba("Abrir: negativo en " + p[0], "true", String(/es negativo/.test(Modelo.revisarArchivo(a))));
+      });
+      o = ejemplo("caso1"); o.generales.comercial.pagoDiferido.porcentaje = 101;
+      prueba("Pago diferido > 100 rechazado", "true", String(/supera el máximo de 100/.test(Modelo.revisarArchivo(o))));
+      o.generales.comercial.pagoDiferido.porcentaje = 100;
+      prueba("Pago diferido 100 permitido", "", Modelo.revisarArchivo(o));
+      o = ejemplo("caso1"); o.especificos.contenedor.tara = -2200;
+      prueba("Calcular rechaza tara negativa", "true", String(/Dato fuera de rango en especificos\.contenedor\.tara/.test(lanza(function () { Calculos.calcular(o); }))));
+      o.especificos.contenedor.tara = 2200; o.especificos.valoracion.flete = -100;
+      var e; try { Calculos.calcular(o); } catch (err) { e = err; }
+      var rv = Validaciones.revisionDetenida([Validaciones.problemaDeCalculo(e)]);
+      prueba("E20 señala el dato flete", "E20 → especificos.valoracion.flete", rv.hallazgos[0].id + " → " + rv.hallazgos[0].rutas[0]);
+      prueba("Formulario: flete negativo rechazado", "true", String(!!Formulario.parsearNumero("-100", "flete").error));
+      prueba("Formulario: tipoCambio negativo sigue hasta E15", -3.5, Formulario.parsearNumero("-3.5", "tipoCambio").valor);
+      prueba("0,500 no se interpreta como 500", "true", String(!!Formulario.parsearNumero("0,500", "tasaPrimaPct").error));
+      prueba("12,345 son miles", 12345, Formulario.parsearNumero("12,345", "pesoBrutoBulto").valor);
+      prueba("1,234.5 son miles con decimal", 1234.5, Formulario.parsearNumero("1,234.5", "cantidad").valor);
+    })();
+
     grupo("F3-M5. Percepción: base descompuesta y antidumping (D11)",
       "Base = valor en aduana + tributos (20,040.000 + 4,222.709 = 24,262.709); incluye antidumping [H*; PV-17].");
     prueba("Valor en aduana de la base", "20040.000", r1.percepcion.valorAduana);
@@ -583,6 +611,7 @@
     mutacion("E05", "caso1", "ítem 1 con peso bruto 4.00 < neto 4.50", function (o) { o.especificos.items[0].pesoBrutoBulto = 4; });
     mutacion("E06", "caso1", "ítem 3: 3 050 unidades en cajas de 100", function (o) { o.especificos.items[2].cantidad = 3050; });
     mutacion("E07", "caso1", "ítem 1 con precio unitario 0", function (o) { o.especificos.items[0].precioUnitario = 0; });
+    mutacion("E07", "caso1", "ítem 1 con cantidad −5 (sigue E07)", function (o) { o.especificos.items[0].cantidad = -5; });
     mutacion("E08", "caso1", "subpartida de 8 dígitos", function (o) { o.especificos.items[0].subpartida = "8414.51.00"; });
     mutacion("E09", "caso1", "contenedor EJMU 261014 8 (dígito de control erróneo)", function (o) { o.especificos.contenedor.numero = "EJMU2610148"; });
     mutacion("E10", "caso1", "RUC del importador de 10 dígitos", function (o) { o.generales.partes.comprador.idFiscal = "2000000000"; });
@@ -829,6 +858,7 @@
         return !fi.querySelector(".cf-cab .marca") || !fi.querySelector(".btn-ayuda[aria-controls]");
       })));
       var c1 = formularioDe(ejemplo("caso1"));
+      prueba("La pista del flete incluye mín. 0", "true", String(/mín\. 0/.test(c1.fila("especificos.valoracion.flete").querySelector(".cf-pista").textContent)));
       var porItem = DICCIONARIO.campos.filter(function (c) { return c.ruta.indexOf("items[]") !== -1; }).length;
       prueba("Caso 1 (3 ítems): controles = generales + 3 × campos de ítem", String(esperadas.length - porItem + 3 * porItem), String(c1.rutas().length));
       prueba("Listas cerradas → selector con «código — texto» (modalidad de pago)", "SELECT · 2 — Pago a crédito",

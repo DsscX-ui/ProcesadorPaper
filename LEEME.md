@@ -110,10 +110,10 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 
 - **Contador** (arriba, en verde o rojo): cuántos errores y advertencias hay y sus códigos.
   Ejemplo con el caso 1: «✔ Sin errores · 6 advertencias (A01, A08, A19, A20)».
-- **Errores (E01–E22), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
+- **Errores (E01–E23), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
   E20 significa que un número no se pudo usar (no es número, supera su máximo o tiene decimales de más): la revisión y
   los resultados quedan en pausa hasta corregirlo. Cada error también se marca en rojo junto a su campo del formulario.
-- **Advertencias (A01–A21), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
+- **Advertencias (A01–A22), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
   C01 y C02 son avisos del propio cálculo: C01, un reparto hecho en partes iguales porque su base suma 0
   (por ejemplo, flete con pesos brutos en 0); C02, ajustes sin ningún ítem marcado como objeto de ajuste.
 - Cada aviso dice **qué pasa**, **por qué importa** y **cómo corregirlo**, con su **fuente** y su **marca**
@@ -163,7 +163,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    todo el PDF), el estilo compacto de la lista de empaque, que dentro de las hojas solo hay botones «?» (no se imprimen) y el
    área táctil del «?». El grupo F10.1 comprueba la lista de ayudas fuera de la hoja (un botón por «?», mismo texto, ids únicos,
    44 px de alto) y que el dígito verificador de la subpartida figura como POR VERIFICAR, no como dato derivado.
-6. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E19 y cada
+6. Los grupos 12 a 15 prueban las validaciones: los avisos exactos de cada caso y, para cada error E01–E23 y cada
    advertencia alcanzable, una copia del caso alterada a propósito que debe producir ese código.
 
 Los números se muestran con coma de miles y punto decimal (decisión D10): `20,040.00`; en la DAM, `18,123.870` (Formatos A y C) y `21.705231` (Formato B).
@@ -346,3 +346,5 @@ La carpeta `herramienta-comex/` es una versión anterior hecha con otra IA; solo
 La carpeta `verificacion/` guarda las evidencias de cada fase (capturas, PDF y resultados de las pruebas en Chrome).
 
 Los montos, tasas, tributos, tara, estiba y plazos admiten valores desde 0; el porcentaje de pago diferido no supera 100. En el formulario usa punto decimal: «0,500» se rechaza; para 0.5 escribe «0.500».
+
+E23 bloquea fechas inexistentes o mal escritas en los campos que se piden; A22 advierte cronologías imposibles de VGM, embarque, a bordo, B/L y término. No se compara la formulación de la DAM con el embarque: la regla de numeración requiere verificación.

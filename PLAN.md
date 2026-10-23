@@ -542,6 +542,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | E20 | (F5, decisión D14) Dato que la herramienta no puede calcular: en el formulario, un número que no es número, supera su máximo o tiene más decimales de los admitidos (§6.1), o un cálculo que sale del rango exacto. La revisión queda «en pausa» (solo E20) y los resultados no se muestran hasta corregirlo; la edición sigue libre [S]. |
 | E21 | (F7.1, auditoría F7-M1) B/L nominativo con consignatario «a la orden de…»: el documento mezclaría dos modalidades incompatibles [H\*] |
 | E22 | S 6.3 distinto de flete + prima del desglose en exportación CFR/CIF [H: IT B 6.3 y 6.5] |
+| E23 | Fecha inexistente o mal escrita: calendario real, AAAA-MM-DD, años 1900–2100 [H*] |
 
 **Advertencias (se puede generar, pero se muestran en pantalla y en la hoja resumen)**
 
@@ -568,6 +569,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | A19 | Resumen: cantidad de datos con marca [H\*] y PV en la DAM |
 | A20 | Despacho anticipado sin fecha de término de descarga: la casilla A 3.4 queda en PV-26 |
 | A21 | Exportación CPT/CIP/D: S 6.3 menor que los gastos incluidos; conversión a FOB POR VERIFICAR (PV-31) |
+| A22 | Orden cronológico imposible entre VGM, embarque, a bordo, B/L y término de embarque o descarga [H*]. La numeración de la DAM sigue por verificar. |
 
 **Implementación (F4, `js/validaciones.js`)**
 

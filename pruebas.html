@@ -578,8 +578,8 @@
       String(vacia.hallazgos.some(function (h) { return h.id === "E01" && h.rutas[0] === "especificos.items"; })));
     var catE = V.orden.filter(function (id) { return id.charAt(0) === "E"; });
     var catA = V.orden.filter(function (id) { return id.charAt(0) === "A"; });
-    prueba("Catálogo: errores E01–E22 (E20: cálculo en pausa, F5/D14; E21: B/L nominativo «a la orden», F7.1)", "22", String(catE.length) + (catE[0] === "E01" && catE[19] === "E20" && catE[20] === "E21" && catE[21] === "E22" ? "" : " (desordenado)"));
-    prueba("Catálogo: advertencias A01–A21", "21", String(catA.length) + (catA[0] === "A01" && catA[19] === "A20" && catA[20] === "A21" ? "" : " (desordenado)"));
+    prueba("Catálogo: errores E01–E23", "23", String(catE.length) + (catE.every(function (id, i) { return id === "E" + String(i + 1).padStart(2, "0"); }) ? "" : " (desordenado)"));
+    prueba("Catálogo: advertencias A01–A22", "22", String(catA.length) + (catA.every(function (id, i) { return id === "A" + String(i + 1).padStart(2, "0"); }) ? "" : " (desordenado)"));
     prueba("Catálogo: cada regla tiene título, por qué, fuente y marca H/H*/S/PV", "[]", JSON.stringify(V.orden.filter(function (id) {
       var r = V.reglas[id];
       return !r.titulo || !r.porque || !r.fuente || ["H", "H*", "S", "PV"].indexOf(r.marca) === -1;
@@ -599,7 +599,7 @@
       return /nota: el texto supera/.test(Modelo.revisarArchivo(o));
     })()));
 
-    grupo("13. Validaciones: un error por mutación (E01–E22)",
+    grupo("13. Validaciones: un error por mutación (E01–E23)",
       "Cada prueba altera a propósito un dato de una copia de un caso y comprueba que aparece el error esperado.");
     mutacion("E01", "caso1", "vendedor sin razón social", function (o) { o.generales.partes.vendedor.razonSocial = ""; });
     mutacion("E01", "caso2", "se pide trato preferencial y falta el acuerdo (lo usa el certificado de origen)", function (o) { o.especificos.origen.acuerdo = ""; });
@@ -669,7 +669,18 @@
       prepararExportC(o, "CIF", true); o.especificos.valoracion.expOtrosDeducibles = null;
     });
 
-    grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A21, C01–C02)",
+    mutacion("E23", "caso1", "factura 2026-02-31", function (o) { o.generales.comercial.facturaFecha = "2026-02-31"; });
+    mutacion("E23", "caso2", "VGM 2026-04-31", function (o) { o.especificos.contenedor.vgmFecha = "2026-04-31"; });
+    mutacion("E23", "caso1", "mes 13", function (o) { o.generales.comercial.facturaFecha = "2026-13-01"; });
+    ausente("E23", "caso1", "año bisiesto 2028-02-29", function (o) { o.generales.comercial.facturaFecha = "2028-02-29"; });
+    ausente("E23", "caso2", "seguro oculto con fecha imposible", function (o) { o.especificos.seguro.fechaEmision = "2026-02-31"; });
+    (function () {
+      var o = ejemplo("caso1"); o.especificos.transporte.eta = "2026-02-31";
+      var ids = V.ids(revisar(o));
+      prueba("ETA inexistente: E23 y no E13", "true · false", String(ids.indexOf("E23") !== -1) + " · " + String(ids.indexOf("E13") !== -1));
+    })();
+
+    grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A22, C01–C02)",
       "A01, A08, A19 y A20 ya salen en los casos. A10 no se activa mientras su umbral esté POR VERIFICAR (PV-03).");
     ausente("A01", "caso1", "FCA (recomendado para contenedor) no da el aviso", function (o) { o.generales.comercial.incoterm = "FCA"; o.especificos.seguro.hay = false; o.especificos.transporte.fleteBl = "collect"; });
     mutacion("A02", "caso2", "exportación en EXW", function (o) { o.generales.comercial.incoterm = "EXW"; });
@@ -711,6 +722,14 @@
       prepararExportC(o, "CPT"); o.especificos.valoracion.expOtrosDeducibles = 1200;
     });
     ausente("A21", "caso2", "FOB", function () {});
+
+    mutacion("A22", "caso1", "VGM posterior al embarque", function (o) { o.especificos.contenedor.vgmFecha = "2026-10-15"; });
+    mutacion("A22", "caso1", "B/L anterior a bordo", function (o) { o.especificos.transporte.blFechaEmision = "2026-10-13"; });
+    mutacion("A22", "caso1", "a bordo distinto del embarque", function (o) { o.especificos.transporte.fechaShippedOnBoard = "2026-10-15"; });
+    mutacion("A22", "caso2", "término embarque anterior al embarque", function (o) { o.especificos.transporte.fechaTerminoEmbarque = "2026-10-23"; });
+    mutacion("A22", "caso1", "término descarga anterior al embarque", function (o) { o.especificos.transporte.fechaTerminoDescarga = "2026-10-13"; });
+    ausente("A22", "caso1", "cronología coherente", function () {});
+    ausente("A22", "caso2", "cronología coherente", function () {});
 
     grupo("F4-M1. E03: el lugar convenido debe ser el nombre completo del puerto o su UN/LOCODE",
       "Ya no basta con que el nombre aparezca dentro de otra palabra. Variantes admitidas: «Puerto de/del …», «Port of …» y el país del puerto al final.");
@@ -818,10 +837,10 @@
         return r.charAt(0) !== "#" && r !== "especificos.items" && !DICCIONARIO.buscar(r);
       }));
     }).map(function (h) { return h.id + ": " + h.rutas.join(" "); }).slice(0, 5)));
-    prueba("Se probaron todos los errores E01–E22", "[]", JSON.stringify(catE.filter(function (id) {
+    prueba("Se probaron todos los errores E01–E23", "[]", JSON.stringify(catE.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
-    prueba("Se probaron todas las advertencias A01–A21", "[]", JSON.stringify(catA.filter(function (id) {
+    prueba("Se probaron todas las advertencias A01–A22", "[]", JSON.stringify(catA.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
 

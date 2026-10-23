@@ -99,6 +99,10 @@ var Validaciones = (function () {
     "En CFR y CIF el precio incluye el flete (y en CIF la prima). IT B 6.3 manda deducirlos para que S 6.5 sea el FOB; con otra cifra, la DAM declara un FOB distinto del de la factura.",
     "Deja «Otros gastos deducibles» vacío o en 0 para que la herramienta ponga flete + prima, o corrige el flete o la tasa de prima.");
 
+  regla("E23", "Fecha inexistente o mal escrita", "H*", "Calendario; formato AAAA-MM-DD (PLAN §6.1)",
+    "Una fecha debe existir en el calendario para fechar los documentos y comprobar su orden.",
+    "Escribe una fecha real entre 1900 y 2100 con el formato AAAA-MM-DD.");
+
   regla("A01", "Regla marítima con contenedor: considera FCA, CPT o CIP", "H*", "ICC, nota de orientación de Incoterms® 2020",
     "En FAS, FOB, CFR y CIF el riesgo pasa al costado o a bordo del buque, pero la carga en contenedor se entrega antes, en la terminal o el depósito. Entre la entrega y la carga a bordo el riesgo queda en una zona gris.",
     "");
@@ -163,6 +167,10 @@ var Validaciones = (function () {
     "Las deducciones para llegar al FOB dependen de lo que cubra la base FCA o el valor de la mercancía: está POR VERIFICAR (PV-31); la herramienta no las calcula sola.",
     "Revisa qué gastos incluidos en el precio se deben deducir en S 6.3 (PV-31) y escríbelos en «Otros gastos deducibles».");
 
+  regla("A22", "Fechas del embarque en un orden imposible", "H*", "SOLAS VI/2 (VGM antes de cargar); B/L shipped on board",
+    "El VGM debe estar disponible antes de cargar; el B/L a bordo y el término de embarque o descarga deben respetar las fechas de la operación.",
+    "Revisa las fechas con el booking, el B/L y el certificado VGM.");
+
   // Avisos del cálculo (decisión D12) convertidos en advertencias, como pide PLAN §6.5.
   regla("C01", "Reparto en partes iguales (base cero)", "S", "PLAN §6.1 (D12)",
     "Un monto (FOB, flete, seguro o ajustes) debía repartirse en proporción a una base (valor, peso bruto o FOB) que suma 0; como no hay proporción, se repartió en partes iguales.",
@@ -180,7 +188,14 @@ var Validaciones = (function () {
     var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || "");
     return m ? m[3] + "-" + m[2] + "-" + m[1] : String(f);
   }
-  function esFecha(f) { return /^\d{4}-\d{2}-\d{2}$/.test(f || ""); }
+  function esFecha(f) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || "");
+    if (!m) { return false; }
+    var a = +m[1], me = +m[2], d = +m[3];
+    if (a < 1900 || a > 2100) { return false; }
+    var t = new Date(Date.UTC(a, me - 1, d));
+    return t.getUTCFullYear() === a && t.getUTCMonth() === me - 1 && t.getUTCDate() === d;
+  }
 
   function normalizar(t) {
     return String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
@@ -594,8 +609,28 @@ var Validaciones = (function () {
     });
   }
 
+  function revisarFechas(x, agregar) {
+    recorrerCampos(x.op, function (c, ruta, valor) {
+      if (c.tipo === "fecha" && DICCIONARIO.sePide(c, x.op) && !vacio(valor) && !esFecha(valor)) {
+        agregar("E23", "«" + etiqueta(ruta) + "» dice «" + valor + "», que no existe o no está en formato AAAA-MM-DD (1900–2100).", [ruta]);
+      }
+    });
+  }
+
   function revisarFechasYCarga(x, agregar) {
     var t = x.op.especificos.transporte, cont = x.op.especificos.contenedor, r = x.r;
+    function orden(a, b, invalida, texto, rutas) {
+      if (esFecha(a) && esFecha(b) && invalida(a, b)) { agregar("A22", texto + " (" + fechaTexto(a) + " / " + fechaTexto(b) + ").", rutas); }
+    }
+    orden(cont.vgmFecha, t.fechaEmbarque, function (a, b) { return a > b; }, "VGM posterior al embarque",
+      ["especificos.contenedor.vgmFecha", "especificos.transporte.fechaEmbarque"]);
+    orden(t.blFechaEmision, t.fechaShippedOnBoard, function (a, b) { return a < b; }, "B/L emitido antes de la fecha a bordo",
+      ["especificos.transporte.blFechaEmision", "especificos.transporte.fechaShippedOnBoard"]);
+    orden(t.fechaShippedOnBoard, t.fechaEmbarque, function (a, b) { return a !== b; }, "Fecha a bordo distinta de la de embarque",
+      ["especificos.transporte.fechaShippedOnBoard", "especificos.transporte.fechaEmbarque"]);
+    var termino = x.imp ? "fechaTerminoDescarga" : "fechaTerminoEmbarque";
+    orden(t[termino], t.fechaEmbarque, function (a, b) { return a < b; }, "Término de " + (x.imp ? "descarga" : "embarque") + " anterior al embarque",
+      ["especificos.transporte." + termino, "especificos.transporte.fechaEmbarque"]);
     if (esFecha(t.eta) && esFecha(t.fechaEmbarque) && t.eta < t.fechaEmbarque) {
       agregar("E13", "La ETA (" + fechaTexto(t.eta) + ") es anterior al embarque (" + fechaTexto(t.fechaEmbarque) + ").",
         ["especificos.transporte.eta", "especificos.transporte.fechaEmbarque"]);
@@ -696,7 +731,7 @@ var Validaciones = (function () {
   }
 
   var REVISIONES = [revisarObligatorios, revisarIncoterm, revisarSeguro, revisarItems, revisarIdentificadores,
-    revisarValores, revisarFechasYCarga, revisarImei, revisarCodigos, revisarResumen];
+    revisarValores, revisarFechas, revisarFechasYCarga, revisarImei, revisarCodigos, revisarResumen];
 
   // ------------------------------------------------------------------ API
 

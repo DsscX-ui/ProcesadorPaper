@@ -1,6 +1,6 @@
 /* Plantilla: FACTURA COMERCIAL / COMMERCIAL INVOICE (PLAN §3 doc 1, §5 columna FC).
    Solo lee la operación, el resultado de Calculos.calcular y la revisión; no calcula ni redondea.
-   Cifras de cuadre (data-cuadre): valorFactura, bultos, pesoNeto, pesoBruto y, en CIF/CIP, prima (desglose).
+   Cifras de cuadre (data-cuadre): valorFactura, bultos, pesoNeto, pesoBruto y, en el desglose, baseFactura y prima (CIF/CIP).
    Script clásico: se registra en Documentos. */
 
 (function () {
@@ -77,7 +77,7 @@
     var pie = [];
     r.factura.desglose.lineas.forEach(function (l) {
       // La prima lleva cifra de cuadre (F9): la hoja resumen la compara con el certificado de seguro.
-      pie.push({ span: 7, celdas: [l.es + " / " + l.en + " (incluido en el precio)", l.id === "seguro" ? D.cifra(Fm.comercial(l.valor), "prima") : Fm.comercial(l.valor)], clase: "doc-desglose" });
+      pie.push({ span: 7, celdas: [l.es + " / " + l.en + " (incluido en el precio)", l.id === "base" ? D.cifra(Fm.comercial(l.valor), "baseFactura") : (l.id === "seguro" ? D.cifra(Fm.comercial(l.valor), "prima") : Fm.comercial(l.valor))], clase: "doc-desglose" });
     });
     pie.push({ span: 7, celdas: [totalTexto, D.cifra(Fm.comercial(r.totales.valorFactura), "valorFactura")] });
     var tablaItems = D.tabla(columnas, filas, { pie: pie, clase: "doc-items" });

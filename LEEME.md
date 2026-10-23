@@ -121,6 +121,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 - El botón **→ Ir al dato** abre la sección del formulario (y la tarjeta del ítem), centra el campo, lo resalta y pone el cursor en él.
 - **A19** resume cuántos datos de la DAM llevan la marca H* o POR VERIFICAR, con enlaces a los primeros.
 - Resultado esperado: caso 1 → A01, A08, A19 y A20; caso 2 → A01, A08 y A19; ningún error.
+- En exportación se cruza el valor de factura con S 6.1; en CFR/CIF, el Valor FOB de la factura más S 6.4 debe coincidir con S 6.5. El cuadro compara cada documento con sus propios decimales (2 o 3). CPT/CIP/D queda por verificar (PV-31).
 
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
 

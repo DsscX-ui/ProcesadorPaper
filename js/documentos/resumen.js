@@ -57,6 +57,16 @@
       ["precinto", "Precinto", "Seal No.", c.precinto || "—"],
       ["vgm", "VGM (kg)", "Verified gross mass", Fm.kg(r.vgm.total)]
     ];
+    if (r.tipo === "exportacion") {
+      lista[4].push({ valorFactura: Fm.comercial(r.totales.valorFactura), dam61: Fm.damAC(r.totales.valorFactura) });
+      if (r.incoterm === "CFR" || r.incoterm === "CIF") {
+        var base = r.factura.desglose.lineas[0].valor, s64 = r.exportacion.s64;
+        // Esperado independiente de S 6.5: el FOB del desglose más los ajustes de S 6.4.
+        lista.push(["fobFacturaDam", "FOB: factura (Valor FOB) = DAM S 6.5" + (Calculos.esCero(s64) ? "" : " − S 6.4"),
+          "FOB: invoice = export declaration", Fm.comercial(base),
+          { baseFactura: Fm.comercial(base), dam65: Fm.damAC(Calculos.sumar(base, s64)) }]);
+      }
+    }
     // F9: con seguro, la suma asegurada (certificado) y la prima (certificado y desglose CIF/CIP de la factura).
     if (r.seguro.hay) {
       lista.push(["sumaAsegurada", "Suma asegurada (USD)", "Sum insured", Fm.comercial(r.seguro.sumaAsegurada)]);
@@ -70,13 +80,16 @@
   // bultos, pesos ni contenedor; sin este filtro la tabla no cabe en A4 y Chrome reduce todo el PDF).
   function cuadre(ctx) {
     var lista = esperadas(ctx);
+    function claves(e) { return e[4] ? Object.keys(e[4]) : [e[0]]; }
+    function esperadoEn(e, k) { return e[4] ? e[4][k] : e[3]; }
     var docs = ctx.generados.map(function (g) { return { def: g.def, cifras: D.cifras(g.hoja) }; })
-      .filter(function (d) { return lista.some(function (e) { return e[0] in d.cifras; }); });
+      .filter(function (d) { return lista.some(function (e) { return claves(e).some(function (k) { return k in d.cifras; }); }); });
     var todo = true;
     var filas = lista.map(function (e) {
-      var celdas = docs.map(function (d) { return e[0] in d.cifras ? d.cifras[e[0]] : null; });
+      var ks = docs.map(function (d) { return claves(e).filter(function (k) { return k in d.cifras; })[0]; });
+      var celdas = docs.map(function (d, i) { return ks[i] ? d.cifras[ks[i]] : null; });
       var mostradas = celdas.filter(function (x) { return x !== null; });
-      var ok = mostradas.every(function (x) { return x === e[3]; });
+      var ok = celdas.every(function (v, i) { return v === null || v === esperadoEn(e, ks[i]); });
       if (!ok) { todo = false; }
       return { clave: e[0], es: e[1], en: e[2], esperado: e[3], celdas: celdas, ok: ok, enDocs: mostradas.length };
     }).filter(function (f) { return f.enDocs > 0; });
@@ -146,10 +159,12 @@
       "cada columna es la cifra que MUESTRA ese documento (leída de la hoja generada); «·» = ese documento no la muestra; los que no muestran ninguna de estas cifras no tienen columna. " +
       "Documentos: " + cq.docs.map(function (d) { return d.def.codigo + " = " + d.def.es; }).join(" · ") + ". " +
       "Todas salen de un único cálculo (calculos.js), por eso coinciden."));
-    if (imp && r.factura.desglose.lineas.length) {
+    if (r.factura.desglose.lineas.length) {
       s2.appendChild(el("p", "doc-nota", "Precio de la factura según el Incoterm: " + r.factura.desglose.lineas.map(function (l) {
         return l.es + " " + Fm.comercial(l.valor);
-      }).join(" + ") + " = " + Fm.comercial(r.totales.valorFactura) + " USD (el mismo desglose de la factura comercial)."));
+      }).join(" + ") + " = " + Fm.comercial(r.totales.valorFactura) + " USD (el mismo desglose de la factura comercial)." +
+        (!imp && (r.incoterm === "CFR" || r.incoterm === "CIF") ? " La DAM resta flete y prima en S 6.3 (IT B 6.3) y declara S 6.5 = " +
+          Fm.damAC(r.exportacion.s65) + " (fila «FOB» del cuadro)." : "")));
     }
 
     // --- 3. Matriz Incoterms® 2020

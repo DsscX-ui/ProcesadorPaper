@@ -1176,6 +1176,47 @@
         [Documentos.precio(fx("4.100000")), Documentos.precio(fx("0.000001")), Documentos.precio(fx("1.123400"))].join(" · "));
     })();
 
+    grupo("F6-1b. Cuadre cruzado factura ↔ DAM de salida");
+    function exportCuadre(inc) {
+      var o = exportC(inc, inc === "CIF");
+      if (inc === "CIF") {
+        o.especificos.seguro = ejemplo("caso1").especificos.seguro;
+        o.especificos.seguro.fechaEmision = "2026-10-23";
+        o.generales.partes.aseguradora = ejemplo("caso1").generales.partes.aseguradora;
+      }
+      return o;
+    }
+    function filaCuadre(x, clave) { return Documentos.cuadre(x.gen.ctx).filas.filter(function (f) { return f.clave === clave; })[0]; }
+    function celdaCuadre(x, clave, doc) {
+      var q = Documentos.cuadre(x.gen.ctx), i = q.docs.map(function (d) { return d.def.id; }).indexOf(doc);
+      return filaCuadre(x, clave).celdas[i];
+    }
+    (function () {
+      var fob = documentosDe(ejemplo("caso2")), q = Documentos.cuadre(fob.gen.ctx);
+      prueba("FOB: valorFactura incluye S 6.1 de DAM A", "39,550.000", celdaCuadre(fob, "valorFactura", "dam_a"));
+      prueba("FOB: fila valorFactura y todoCuadra", "true · true", String(filaCuadre(fob, "valorFactura").ok) + " · " + q.todoCuadra);
+      prueba("FOB: sin fila fobFacturaDam", "false", String(!!filaCuadre(fob, "fobFacturaDam")));
+      var cif = documentosDe(exportCuadre("CIF")), f = filaCuadre(cif, "fobFacturaDam");
+      prueba("CIF: esperado · factura · DAM · cuadre FOB", "38,219.48 · 38,219.48 · 38,219.480 · true",
+        f.esperado + " · " + celdaCuadre(cif, "fobFacturaDam", "factura") + " · " + celdaCuadre(cif, "fobFacturaDam", "dam_a") + " · " + f.ok);
+      prueba("CIF: todoCuadra", "true", String(Documentos.cuadre(cif.gen.ctx).todoCuadra));
+      prueba("CIF: HR explica S 6.5", "true", String(cif.porId.resumen.hoja.textContent.indexOf("S 6.5 = 38,219.480") !== -1));
+      var o = exportCuadre("CIF"), roto = Modelo.clonar(cif.r);
+      roto.exportacion.s63 = fx("0.000"); roto.exportacion.s65 = roto.exportacion.s61;
+      var gen = Documentos.generar(o, roto, cif.rv, new Date(2026, 9, 3, 10, 0));
+      var cq = Documentos.cuadre(gen.ctx), hr = gen.docs.filter(function (d) { return d.def.id === "resumen"; })[0].hoja;
+      prueba("Defecto anterior: FOB y todoCuadra fallan", "false · false", String(cq.filas.filter(function (f) { return f.clave === "fobFacturaDam"; })[0].ok) + " · " + cq.todoCuadra);
+      prueba("Defecto anterior: HR muestra diferencia y nota ✘", "true · true", String(!!hr.querySelector(".doc-tabla-cuadre .doc-mal")) + " · " + String(hr.textContent.indexOf("✘ Hay diferencias") !== -1));
+      var imp = documentosDe(ejemplo("caso1")); q = Documentos.cuadre(imp.gen.ctx);
+      prueba("Importación: sin fila FOB cruzada", "false", String(!!filaCuadre(imp, "fobFacturaDam")));
+      prueba("Importación: columnas conservadas", "FC,PL,IE,B/L,VGM,DAM A,SEG", q.docs.map(function (d) { return d.def.codigo; }).join(","));
+      prueba("CPT: sin fila FOB (PV-31)", "false", String(!!filaCuadre(documentosDe(exportC("CPT")), "fobFacturaDam")));
+      o = exportCuadre("CIF"); o.especificos.valoracion.expAjustes = 100;
+      var ajustado = documentosDe(o);
+      prueba("CIF con S 6.4: FOB de factura + ajustes = S 6.5", "38,319.480 · true",
+        celdaCuadre(ajustado, "fobFacturaDam", "dam_a") + " · " + filaCuadre(ajustado, "fobFacturaDam").ok);
+    })();
+
     grupo("F6-2. Importe en letras (factura comercial)", "Lee los centavos exactos del monto ya calculado; no redondea.");
     [["0.05", "SON: CERO Y 05/100 DÓLARES AMERICANOS"], ["1.00", "SON: UNO Y 00/100 DÓLARES AMERICANOS"],
       ["21.00", "SON: VEINTIUNO Y 00/100 DÓLARES AMERICANOS"], ["100.00", "SON: CIEN Y 00/100 DÓLARES AMERICANOS"],

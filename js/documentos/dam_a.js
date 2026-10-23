@@ -296,7 +296,8 @@
   // Cantidad física + unidad. «U» va como SUPUESTO pequeño; otra unidad, con la marca efectiva del dato.
   function unidadFisica(ctx, s, i0) {
     var txt = Fm.damCantidad(s.cantidadFisica) + " " + (s.unidadFisica || "");
-    if (s.unidadFisica !== "U") { return marcado(ctx, txt, rutaItem(i0, "unidadFisica")); }
+    var ruta = rutaItem(i0, "unidadFisica");
+    if (ctx.op.marcas[ruta] || s.unidadFisica !== "U") { return marcado(ctx, txt, ruta); }
     var n = el("span", null, txt);
     n.appendChild(marcaMini("S", "Supuesto: RS 129-2026 (anexo VI 6.4) cita «U» como ejemplo; no valida la unidad de A 7.16 (código: PV-09)."));
     return n;

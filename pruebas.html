@@ -1428,6 +1428,20 @@
       prueba("Método 2 ignora pesada conservada", "4489.00", Calculos.calcular(o).vgm.total);
     })();
 
+    grupo("P2-15. Unidad física KG y marca propia en 7.16");
+    (function () {
+      var o = ejemplo("caso2"); o.especificos.items.forEach(function (it) { it.unidadFisica = "KG"; });
+      var x = documentosDe(o), cas = x.porId.dam_a.hoja.querySelector('[data-serie="1"] [data-casilla="7.16"] .dam-valor');
+      prueba("KG disponible como unidad abierta", "Kilogramo", NORMATIVA.opcion("unidadMedida", "KG").texto);
+      prueba("KG: cantidad física = peso neto", "720.00", x.r.series[0].cantidadFisica);
+      prueba("KG: unidad de la serie", "KG", x.r.series[0].unidadFisica);
+      prueba("Exportación: 7.16 serie 1 muestra 720 KG", "true", String(cas.textContent.indexOf("720 KG") !== -1));
+      var aa4 = documentosDe(casoRegresion("AA4_portuaria_camote_CIF_FINAL"));
+      var c = aa4.porId.dam_a.hoja.querySelector('[data-serie="1"] [data-casilla="7.16"]');
+      prueba("AA4: 7.16 conserva marca PV propia", "true", String(!!c.querySelector(".marca-pv")));
+      prueba("AA4: unidad física se conserva en U (V5)", "U", aa4.r.series[0].unidadFisica);
+    })();
+
     grupo("F6-2. Importe en letras (factura comercial)", "Lee los centavos exactos del monto ya calculado; no redondea.");
     [["0.05", "SON: CERO Y 05/100 DÓLARES AMERICANOS"], ["1.00", "SON: UNO Y 00/100 DÓLARES AMERICANOS"],
       ["21.00", "SON: VEINTIUNO Y 00/100 DÓLARES AMERICANOS"], ["100.00", "SON: CIEN Y 00/100 DÓLARES AMERICANOS"],

@@ -504,14 +504,17 @@ var Calculos = (function () {
 
   // F8a: cantidades de la serie para el Formato A. 7.10 = Σ cantidades comerciales, «aunque la unidad no sea la
   // misma en todos los ítems» [H: IT A 7.10]. 7.16 (cantidad física) solo se da si todos los ítems usan como
-  // unidad física su misma unidad comercial; si no, queda null y la DAM la muestra POR VERIFICAR (PV-09).
+  // unidad física su misma unidad comercial, o todos usan KG (= peso neto [S; PV-09]);
+  // si no, queda null y la DAM la muestra POR VERIFICAR (PV-09).
   function cantidadesSerie(s, its, op) {
     var datos = s.items.map(function (i) { return op.especificos.items[i]; });
     s.cantidad = sumaDe(its, "cantidad", 3);
     var unidad = datos[0] ? datos[0].unidadFisica : "";
     var mismas = datos.every(function (d) { return d.unidadFisica === unidad && d.unidadFisica === d.unidadComercial; });
-    s.cantidadFisica = mismas ? s.cantidad : null;
-    s.unidadFisica = mismas ? unidad : "";
+    // KG = peso neto de la serie [S; PV-09]. No se infiere la unidad desde la subpartida.
+    var kilogramos = datos.length > 0 && datos.every(function (d) { return d.unidadFisica === "KG"; });
+    s.cantidadFisica = kilogramos ? s.pesoNeto : (mismas ? s.cantidad : null);
+    s.unidadFisica = kilogramos ? "KG" : (mismas ? unidad : "");
   }
 
   function calcularImportacion(op, r, fobDesdeFormula, flete, casilla, avisar) {

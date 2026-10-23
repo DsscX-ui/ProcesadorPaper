@@ -358,3 +358,5 @@ VGM: el método 1 utiliza la masa pesada del contenedor lleno; el método 2 suma
 A24 avisa de un reefer sin consigna o de una temperatura en un contenedor seco. Temperatura y ventilación se piden para los reefer; la temperatura aparece en las instrucciones y en el borrador de B/L. AA4 FINAL usa formato v3 con −20 °C, ya indicado en la evidencia.
 
 A25 avisa si un RUC 10 acompaña una razón social de sociedad (importador, exportador o agentes). El RUC de ALFAZ se conserva por decisión expresa. A26 avisa si la prima supera 5 %: umbral didáctico configurable en `NORMATIVA.valores.tasaPrimaPlausibleMaxPct`, no es norma.
+
+Unidad física KG: si todos los ítems de la serie usan KG, 7.16 toma el peso neto de la serie [S; PV-09]. No se infiere la unidad por subpartida. AA4 mantiene U y su marca propia POR VERIFICAR en 7.16 hasta comprobar la unidad de 0714.20.90.00 (V5).

@@ -222,7 +222,8 @@ var NORMATIVA = (function () {
     ]),
 
     unidadMedida: lista("Unidad (comercial o física)", "PV", "PV-09; RS129 anexo VI 6.4 cita 'U' como ejemplo", [
-      ["U", "Unidad"]
+      ["U", "Unidad"],
+      ["KG", "Kilogramo"]
     ]),
 
     claseBulto: lista("Clase de bulto", "PV", "PV-09: código en la tabla de SUNAT", [

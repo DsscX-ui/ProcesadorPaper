@@ -162,6 +162,7 @@ var Calculos = (function () {
     damB: function (x) { return numero(x, 6); },        // DAM, Formato B: 6 decimales [H: IT IV.3]
     kg: function (x) { return numero(x, 2); },          // kg con 2 decimales [S]
     m3: function (x) { return numero(x, 3); },          // m³ con 3 decimales [S]
+    m3Bulto: function (x) { return numero(x, igual(x, escalar(x, 3)) ? 3 : 6); },
     cantidad: cantidad,
     // Cantidades en la DAM, Formatos A y C (F8a.1): enteras sin decimales ("360"); no enteras con 3 decimales ("360.500") [H: IT IV.3].
     damCantidad: function (x) { var r = escalar(x, 3); return numero(r, r.v % 1000 === 0 ? 0 : 3); },
@@ -302,9 +303,10 @@ var Calculos = (function () {
         avisar("E07", "Ítem " + (i + 1) + ": faltan las unidades por bulto.");
       }
       var nB = fx(bultos, 0);
-      var volBulto = escalar(dividirFijo(
-        multiplicar(multiplicar(aFijo(it.largoCm, 1), aFijo(it.anchoCm, 1), 2), aFijo(it.altoCm, 1), 3),
-        fx(1000000, 0), 6), 3);                                    // m³ por bulto, 3 decimales
+      // Medidas exactas en cm³; un solo redondeo al convertir el volumen total de la línea a m³.
+      var cm3 = multiplicar(multiplicar(aFijo(it.largoCm, 1), aFijo(it.anchoCm, 1), 2), aFijo(it.altoCm, 1), 3);
+      var volBulto = dividirFijo(cm3, fx(1000000, 0), 6);              // hasta 6 decimales para mostrar
+      var volumen = dividirFijo(multiplicar(cm3, nB, 3), fx(1000000, 0), 3);
       var desde = bultos ? siguienteBulto : 0, hasta = bultos ? siguienteBulto + bultos - 1 : 0;
       siguienteBulto += bultos;
       return {
@@ -315,7 +317,7 @@ var Calculos = (function () {
         pesoNeto: multiplicar(aFijo(it.pesoNetoBulto, 2), nB, 2),
         pesoBruto: multiplicar(aFijo(it.pesoBrutoBulto, 2), nB, 2),
         volumenBulto: volBulto,
-        volumen: multiplicar(volBulto, nB, 3),
+        volumen: volumen,
         objetoAjuste: it.objetoAjuste === true,
         bultosExactos: bultosExactos            // false: la cantidad no es múltiplo de las unidades por bulto (E06)
       };

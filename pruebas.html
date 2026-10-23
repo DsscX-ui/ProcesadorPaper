@@ -376,6 +376,25 @@
     function codigos(r) { return r.avisos.map(function (a) { return a.codigo + (a.concepto ? ":" + a.concepto : ""); }).join(","); }
     function lanza(fn) { try { fn(); return "sin error"; } catch (e) { return "error: " + e.message; } }
 
+    grupo("P2-7. Volumen con un solo redondeo");
+    function cajasVolumen(n, l, a, h) {
+      var o = ejemplo("caso2"); o.especificos.items = [o.especificos.items[0]];
+      // No quedan marcas de los ítems retirados en este caso sintético.
+      Object.keys(o.marcas).forEach(function (k) { if (/items\.[1-9]/.test(k)) { delete o.marcas[k]; } });
+      var it = o.especificos.items[0]; it.cantidad = n; it.unidadesPorBulto = 1;
+      it.largoCm = l; it.anchoCm = a; it.altoCm = h; return o;
+    }
+    (function () {
+      var r = Calculos.calcular(cajasVolumen(500, 45, 32, 28));
+      prueba("500 cajas 45×32×28: volumen total", "20.160", r.totales.volumen);
+      prueba("Volumen por caja exacto", "0.040320", r.items[0].volumenBulto);
+      prueba("Formato por caja conserva precisión", "0.040320", F.m3Bulto(r.items[0].volumenBulto));
+      prueba("1000 bultos 5×5×5: no se pierde volumen", "0.125", Calculos.calcular(cajasVolumen(1000, 5, 5, 5)).totales.volumen);
+      prueba("Caso 1 sin cambio de volumen", "25.440", r1.totales.volumen);
+      prueba("Caso 2 sin cambio de volumen", "13.200", r2.totales.volumen);
+      prueba("AA4 sin cambio de volumen", "54.480", Calculos.calcular(casoRegresion("AA4_portuaria_camote_CIF_FINAL")).totales.volumen);
+    })();
+
     grupo("F3-M1. Bultos con división no exacta (sin redondeo previo)",
       "3 000.001 o 3 000.01 unidades en cajas de 100 no llenan 30 cajas: son 31 bultos y aviso E06.");
     [["3000.001", 31], ["3000.01", 31], ["3000", 30]].forEach(function (e) {
@@ -1275,6 +1294,13 @@
       var ajustado = documentosDe(o);
       prueba("CIF con S 6.4: FOB de factura + ajustes = S 6.5", "38,319.480 · true",
         celdaCuadre(ajustado, "fobFacturaDam", "dam_a") + " · " + filaCuadre(ajustado, "fobFacturaDam").ok);
+    })();
+
+    grupo("P2-7b. Volumen mostrado en la lista de empaque");
+    (function () {
+      var x = documentosDe(cajasVolumen(500, 45, 32, 28));
+      prueba("PL muestra volumen por caja con precisión", "true", String(x.porId.packing.hoja.textContent.indexOf("0.040320 m³") !== -1));
+      prueba("PL muestra volumen total exacto", "20.160", x.porId.packing.cifras.volumen);
     })();
 
     grupo("F6-2. Importe en letras (factura comercial)", "Lee los centavos exactos del monto ya calculado; no redondea.");

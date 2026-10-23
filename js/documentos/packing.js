@@ -17,7 +17,7 @@
   // Medidas y, debajo, el volumen por bulto que calculó calculos.js.
   function medidasYVolumen(it, ri) {
     var s = el("span", null, medidas(it));
-    s.appendChild(el("span", "doc-linea", Fm.m3(ri.volumenBulto) + " m³"));
+    s.appendChild(el("span", "doc-linea", Fm.m3Bulto(ri.volumenBulto) + " m³"));
     return s;
   }
 

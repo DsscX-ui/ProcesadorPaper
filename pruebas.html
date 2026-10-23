@@ -126,6 +126,36 @@
     prueba("Cantidad entera", "3,000", F.cantidad(fx("3000.000")));
     prueba("Porcentaje", "3.5 %", F.pct(fx("3.5000")));
 
+    grupo("F2-v3. Formato 3 y migración desde v2");
+    function comoV2(o) {
+      o = Modelo.clonar(o); o.version = 2;
+      ["vgmMasaPesada", "temperaturaC", "ventilacion"].forEach(function (k) { delete o.especificos.contenedor[k]; });
+      return o;
+    }
+    (function () {
+      prueba("Versión del formato", 3, Modelo.version);
+      var v2 = comoV2(ejemplo("caso1")), original = JSON.stringify(v2), a = Modelo.interpretar(original);
+      prueba("Migración v2: error vacío", "", a.error);
+      prueba("Migración v2: versión 3", 3, a.operacion.version);
+      prueba("Migración v2: aviso", "true", String(a.aviso.indexOf("versión 2") !== -1));
+      var c = a.operacion.especificos.contenedor;
+      prueba("Migración: campos nuevos por defecto", "null · null · ", String(c.vgmMasaPesada) + " · " + c.temperaturaC + " · " + c.ventilacion);
+      prueba("Migración no modifica la fuente", original, JSON.stringify(v2));
+      prueba("Revisión estricta rechaza v2 sin migrar", "true", String(!!Modelo.revisarArchivo(v2)));
+      var aa4 = Modelo.interpretar(JSON.stringify(comoV2(casoRegresion("AA4_portuaria_camote_CIF_FINAL"))));
+      prueba("AA4 v2 abre con aviso", "true", String(!aa4.error && aa4.aviso.indexOf("versión 2") !== -1));
+      prueba("AA4 migrado conserva FOB", "34050.000", Calculos.calcular(aa4.operacion).exportacion.s65);
+      [1, 4].forEach(function (v) { var o = ejemplo("caso1"); o.version = v;
+        prueba("Rechaza versión " + v, "true", String(!!Modelo.interpretar(JSON.stringify(o)).error));
+      });
+      var o = ejemplo("caso1"); o.especificos.contenedor.temperaturaC = -20;
+      prueba("Temperatura -20 aceptada", "", Modelo.revisarArchivo(o));
+      o.especificos.contenedor.temperaturaC = -150;
+      prueba("Temperatura -150 rechazada", "true", String(!!Modelo.revisarArchivo(o)));
+      o.especificos.contenedor.temperaturaC = null; o.especificos.contenedor.vgmMasaPesada = -1;
+      prueba("Masa pesada negativa rechazada", "true", String(!!Modelo.revisarArchivo(o)));
+    })();
+
     // ============================================================ Caso 1
     var op1 = ejemplo("caso1");
     var r1 = Calculos.calcular(op1);
@@ -950,9 +980,9 @@
       ida("Caso 1 con celulares, códigos fuera de lista, 6 decimales y vacíos", o);
       var f = formularioDe(ejemplo("caso1"));
       teclear(f, "especificos.items.0.cantidad", "400");
-      prueba("Huella tras editar: cambia", "distinta", Modelo.huella(f.operacion()) !== "7945E0E3" ? "distinta" : "igual");
+      prueba("Huella tras editar: cambia", "distinta", Modelo.huella(f.operacion()) !== "5B16EA73" ? "distinta" : "igual");
       teclear(f, "especificos.items.0.cantidad", "200");
-      prueba("Huella al volver al valor original: la del caso 1", "7945E0E3", Modelo.huella(f.operacion()));
+      prueba("Huella al volver al valor original: la del caso 1", "5B16EA73", Modelo.huella(f.operacion()));
     })();
 
     grupo("F5-3. Cambiar la cantidad del ítem 1 del caso 1 recalcula",

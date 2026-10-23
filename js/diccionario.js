@@ -197,6 +197,9 @@ var DICCIONARIO = (function () {
   d("B3", C + "vgmMetodo", "Método VGM", "VGM method", "codigo", "H*", "SOLAS VI/2", { lista: "metodoVgm", docs: "BL", cas: SC, ayuda: "Cómo se obtuvo la masa bruta verificada." });
   d("B3", C + "vgmResponsable", "VGM: responsable", "VGM signatory", "texto", "H*", "SOLAS VI/2", { docs: "BL", ayuda: "Quien firma la declaración VGM (el embarcador)." });
   d("B3", C + "vgmFecha", "VGM: fecha", "VGM date", "fecha", "H*", "SOLAS VI/2", { docs: "BL", ayuda: "Fecha de la declaración VGM." });
+  d("B3", C + "vgmMasaPesada", "VGM: masa bruta pesada (kg)", "Weighed gross mass (kg)", "numero", "H*", "SOLAS VI/2", { obl: "si vgm método 1", docs: "BL HR", ayuda: "Masa del contenedor lleno obtenida en báscula calibrada (método 1)." });
+  d("B3", C + "temperaturaC", "Temperatura de consigna (°C)", "Set temperature (°C)", "numero", "H*", "Práctica naviera (reefer)", { obl: "no", docs: "BL HR", ayuda: "Consigna del contenedor refrigerado, admite temperaturas negativas." });
+  d("B3", C + "ventilacion", "Ventilación del reefer", "Reefer ventilation", "texto", "S", "—", { obl: "no", docs: "BL", ayuda: "Configuración de ventilación indicada en el booking, si la hay." });
 
   // --- B4 Transporte
   var T = E + "transporte.";
@@ -298,6 +301,8 @@ var DICCIONARIO = (function () {
     };
   }
   var CONDICIONES_VISIBLES = {
+    "VGM método 1": function (op) { return op.especificos.contenedor.vgmMetodo === "1"; },
+    "contenedor refrigerado (tipo …R*)": function (op) { return /R\d$/.test(op.especificos.contenedor.tipo); },
     "consignatario distinto del comprador": function (op) { return op.generales.partes.consignatario.tipo !== "comprador"; },
     "notify distinto del consignatario": function (op) { return op.generales.partes.notify.tipo !== "consignatario"; },
     "hay seguro": function (op) { return op.especificos.seguro.hay === true; },
@@ -327,7 +332,10 @@ var DICCIONARIO = (function () {
     }
   };
   var VISIBILIDAD = {};
+  // Se registran con siempreQue, una vez definida, junto a las demás condiciones.
   function siempreQue(cond, rutas) { rutas.forEach(function (r) { VISIBILIDAD[r] = cond; }); }
+  siempreQue("VGM método 1", [C + "vgmMasaPesada"]);
+  siempreQue("contenedor refrigerado (tipo …R*)", [C + "temperaturaC", C + "ventilacion"]);
   siempreQue("consignatario distinto del comprador", [P + "consignatario.razonSocial", P + "consignatario.direccion"]);
   siempreQue("notify distinto del consignatario", [P + "notify.razonSocial", P + "notify.direccion"]);
   siempreQue("hay seguro", [P + "aseguradora.razonSocial", P + "aseguradora.direccion"].concat(
@@ -516,9 +524,9 @@ var DICCIONARIO = (function () {
     ["B2", "Peso neto / Peso bruto", "Pesos neto y bruto por bulto", [IT + "pesoNetoBulto", IT + "pesoBrutoBulto"], "dato", ""],
     ["B2", "Medidas y volumen", "Medidas del bulto", [IT + "largoCm", IT + "anchoCm", IT + "altoCm"], "dato", ""],
     ["B2", "Marcas", "Marcas de embarque", [EX + "marcasEmbarque"], "dato", ""],
-    ["B3", "Contenedor y precinto", "Tipo, número y precinto del contenedor", [EX + "contenedor.tipo", EX + "contenedor.numero", EX + "contenedor.precinto"], "dato", ""],
+    ["B3", "Contenedor y precinto", "Tipo, número y precinto del contenedor", [EX + "contenedor.tipo", EX + "contenedor.numero", EX + "contenedor.precinto", EX + "contenedor.temperaturaC", EX + "contenedor.ventilacion"], "dato", ""],
     ["B3", "Contenedor y precinto", "Unidad de carga (02)", [], "derivado", "Fija en v1 (IT A 7.37 k); la muestra la casilla A 7.37 k) en importación (dam_a.js)"],
-    ["B3", "Tara y VGM", "Tara, estiba y datos de la declaración VGM", [EX + "contenedor.tara", EX + "contenedor.estibaTrincaje", EX + "contenedor.vgmMetodo", EX + "contenedor.vgmResponsable", EX + "contenedor.vgmFecha"], "dato", ""],
+    ["B3", "Tara y VGM", "Tara, estiba y datos de la declaración VGM", [EX + "contenedor.tara", EX + "contenedor.estibaTrincaje", EX + "contenedor.vgmMetodo", EX + "contenedor.vgmResponsable", EX + "contenedor.vgmFecha", EX + "contenedor.vgmMasaPesada"], "dato", ""],
     ["B4", "Nave y viaje", "Nave, viaje, booking y manifiesto", [EX + "transporte.nave", EX + "transporte.viaje", EX + "transporte.booking", EX + "transporte.manifiesto"], "dato", ""],
     ["B4", "N° de B/L", "Datos del B/L (número, tipo, originales, emisión, cláusulas, embarcador)", [EX + "transporte.blNumero", EX + "transporte.blTipo", EX + "transporte.blOriginales", EX + "transporte.blLugarEmision", EX + "transporte.blFechaEmision", EX + "transporte.fechaShippedOnBoard", EX + "transporte.clausulaSlac", EX + "transporte.clausulaStc", EX + "transporte.shipper"], "dato", ""],
     ["B4", "Flete", "Flete en el B/L, prepaid o collect (D8)", [EX + "transporte.fleteBl"], "dato", "El valor sugerido lo calcula calculos.js: fleteBl.sugerido"],

@@ -1235,3 +1235,5 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 | C | Tributos, TPI | Liquidación, percepción y pago en soles | — | **derivado**: calculos.js: liquidacion, percepcion, soles |
 
 Entrada numérica P1: `limitesNumero` admite mínimo opcional; montos, tasas, tributos, tara, estiba, originales y plazos tienen mínimo 0. El pago diferido admite 0–100 %. Cantidades, precios, pesos y medidas del ítem mantienen E07; tipo de cambio mantiene E15.
+
+Formato de operación v3: `contenedor.vgmMasaPesada` (kg, mínimo 0), `temperaturaC` (±100 °C, un decimal) y `ventilacion` (texto). Una migración v2→v3 al abrir añade solo los campos ausentes; la revisión del esquema sigue siendo estricta para v3.

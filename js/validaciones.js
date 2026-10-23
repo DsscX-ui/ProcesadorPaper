@@ -252,6 +252,7 @@ var Validaciones = (function () {
 
   // Condiciones de obligatoriedad del diccionario (campo "obl"), evaluadas sobre la operación.
   var CONDICIONES = {
+    "si vgm método 1": function (x) { return x.op.especificos.contenedor.vgmMetodo === "1"; },
     "sí": function () { return true; },
     "no": function () { return false; },
     "importación": function (x) { return x.imp; },

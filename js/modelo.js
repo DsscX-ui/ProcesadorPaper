@@ -5,9 +5,8 @@
 
 var Modelo = (function () {
   var FORMATO = "procesador-paper/operacion";
-  // Versión 2 (F2.1): equipos con IMEI por equipo, percepción por operación,
-  // casillas B 8.1.2–8.1.4, ítems objeto de ajuste y flete prepaid/collect.
-  var VERSION = 2;
+  // Versión 3: masa VGM pesada, temperatura y ventilación; Abrir migra los archivos v2.
+  var VERSION = 3;
 
   // Límites al abrir un archivo (PLAN.md §11, decisión M7). Evitan bloquear la pestaña.
   var LIMITES = {
@@ -31,6 +30,7 @@ var Modelo = (function () {
     pesoNetoBulto: [100000, 2], pesoBrutoBulto: [100000, 2],
     largoCm: [10000, 1], anchoCm: [10000, 1], altoCm: [10000, 1],
     tara: [100000, 2, 0], estibaTrincaje: [100000, 2, 0], blOriginales: [100, 0, 0],
+    vgmMasaPesada: [100000, 2, 0], temperaturaC: [100, 1], // la temperatura admite negativos
     tasaAV: PCT, tasaPercepcion: PCT, coberturaPct: PCT, tasaPrimaPct: PCT, pctTablaSunat: PCT, porcentaje: [100, 4, 0],
     plazoDias: [10000, 0, 0], tipoCambio: [1000, 3],
     sobretasa: TRIBUTO, derechoEspecifico: TRIBUTO, isc: TRIBUTO, antidumping: TRIBUTO,
@@ -127,7 +127,8 @@ var Modelo = (function () {
         marcasEmbarque: "",
         contenedor: {
           tipo: "", numero: "", precinto: "", tara: null, estibaTrincaje: 0,
-          vgmMetodo: "", vgmResponsable: "", vgmFecha: ""
+          vgmMetodo: "", vgmResponsable: "", vgmFecha: "",
+          vgmMasaPesada: null, temperaturaC: null, ventilacion: ""
         },
         transporte: {
           nave: "", viaje: "", booking: "",
@@ -366,8 +367,7 @@ var Modelo = (function () {
       return "El archivo no es una operación de esta herramienta (falta o no coincide el campo 'formato').";
     }
     if (datos.version !== VERSION) {
-      return "El archivo es de la versión " + String(datos.version) + " y esta herramienta lee la versión " + VERSION +
-        ". Vuelve a crear la operación con esta versión.";
+      return "El archivo es de la versión " + String(datos.version) + " y esta herramienta lee las versiones 2 (la actualiza) y 3. Vuelve a guardar con una versión compatible.";
     }
     var p = profundidad(datos);
     if (p > LIMITES.profundidad) {
@@ -421,6 +421,17 @@ var Modelo = (function () {
     return enlace.download;
   }
 
+  // Un único salto de esquema; no completa bloques faltantes ni corrige datos mal formados.
+  function migrar(datos) {
+    var nuevo = clonar(datos), c = nuevo.especificos && nuevo.especificos.contenedor;
+    if (tipoDe(c) === "object") {
+      var campos = { vgmMasaPesada: null, temperaturaC: null, ventilacion: "" };
+      Object.keys(campos).forEach(function (k) { if (!Object.prototype.hasOwnProperty.call(c, k)) { c[k] = campos[k]; } });
+    }
+    nuevo.version = VERSION;
+    return nuevo;
+  }
+
   // Interpreta el texto de un archivo. Devuelve { error, operacion }; nunca lanza excepciones.
   function interpretar(texto) {
     try {
@@ -433,14 +444,19 @@ var Modelo = (function () {
       } catch (e) {
         return { error: "El archivo no es un JSON válido (revisa comas, comillas y llaves).", operacion: null };
       }
+      var aviso = "";
+      if (datos && datos.formato === FORMATO && datos.version === 2) {
+        datos = migrar(datos);
+        aviso = "Archivo de la versión 2: se actualizó a la 3 al abrirlo. Guárdalo para conservar el formato nuevo.";
+      }
       var error = revisarArchivo(datos);
-      return error ? { error: error, operacion: null } : { error: "", operacion: datos };
+      return error ? { error: error, operacion: null, aviso: "" } : { error: "", operacion: datos, aviso: aviso };
     } catch (e) {
       return { error: "No se pudo revisar el archivo: " + (e && e.message ? e.message : String(e)) + ".", operacion: null };
     }
   }
 
-  // Lee un archivo elegido por el usuario. alTerminar(error, operacion).
+  // Lee un archivo elegido por el usuario. alTerminar(error, operacion, aviso).
   function abrir(archivo, alTerminar) {
     if (archivo.size > LIMITES.bytes) {
       alTerminar("El archivo pesa " + (archivo.size / 1048576).toFixed(1) + " MB; el máximo es 2 MB.", null);
@@ -449,7 +465,7 @@ var Modelo = (function () {
     var lector = new FileReader();
     lector.onload = function () {
       var r = interpretar(String(lector.result));
-      alTerminar(r.error, r.operacion);
+      alTerminar(r.error, r.operacion, r.aviso);
     };
     lector.onerror = function () { alTerminar("No se pudo leer el archivo.", null); };
     lector.readAsText(archivo, "UTF-8");

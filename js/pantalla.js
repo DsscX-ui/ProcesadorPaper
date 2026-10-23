@@ -835,12 +835,12 @@
       var archivo = entrada.files && entrada.files[0];
       if (!archivo) { return; }
       try {
-        Modelo.abrir(archivo, function (error, datos) {
+        Modelo.abrir(archivo, function (error, datos, aviso) {
           try {
             if (error) {
               mensaje(error + " No se cambió lo que había en pantalla.", "error");
             } else {
-              cargar(datos, "Se abrió '" + archivo.name + "'. Huella: {huella}.");
+              cargar(datos, "Se abrió '" + archivo.name + "'. Huella: {huella}." + (aviso ? " " + aviso : ""));
             }
           } catch (e) {
             mensaje("Error inesperado al abrir el archivo. No se cambió lo que había en pantalla.", "error");

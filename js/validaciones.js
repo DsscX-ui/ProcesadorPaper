@@ -179,6 +179,13 @@ var Validaciones = (function () {
     "El booking de un reefer necesita temperatura de consigna; una temperatura en un contenedor seco puede indicar que se eligió mal el tipo.",
     "Comprueba el tipo y la temperatura de consigna con el booking de la naviera.");
 
+  regla("A25", "RUC 10 (persona natural) con razón social de sociedad", "H*", "SUNAT: RUC 10 personas naturales, 20 personas jurídicas",
+    "Un RUC con prefijo 10 corresponde a persona natural, mientras que S.A.C., S.A., S.A.A., S.R.L. y E.I.R.L. identifican sociedades o personas jurídicas.",
+    "Comprueba el RUC y la razón social con la constancia; si el dato se conserva por decisión del usuario, ten presente esta advertencia.");
+  regla("A26", "Tasa de prima poco creíble", "S", "Criterio didáctico de plausibilidad; no es norma (configurable)",
+    "Una tasa de prima superior al umbral didáctico puede ser un decimal mal escrito. Es un criterio de plausibilidad configurable, no un límite normativo.",
+    "Revisa la tasa de la póliza: 0.5 % se escribe 0.5, con punto decimal.");
+
   // Avisos del cálculo (decisión D12) convertidos en advertencias, como pide PLAN §6.5.
   regla("C01", "Reparto en partes iguales (base cero)", "S", "PLAN §6.1 (D12)",
     "Un monto (FOB, flete, seguro o ajustes) debía repartirse en proporción a una base (valor, peso bruto o FOB) que suma 0; como no hay proporción, se repartió en partes iguales.",
@@ -409,6 +416,11 @@ var Validaciones = (function () {
 
   function revisarSeguro(x, agregar) {
     var s = x.op.especificos.seguro;
+    var umbralPrima = NORMATIVA.valores.tasaPrimaPlausibleMaxPct.valor;
+    if (s.hay === true && s.tasaPrimaPct != null && umbralPrima != null && s.tasaPrimaPct > umbralPrima) {
+      agregar("A26", "La tasa de prima " + s.tasaPrimaPct + " % supera el umbral didáctico " + umbralPrima + " % (supuesto configurable; no es norma).",
+        ["especificos.seguro.tasaPrimaPct"]);
+    }
     var cod = x.regla ? x.regla.codigo : "";
     if (cod === "CIF" || cod === "CIP") {
       if (s.hay !== true) {
@@ -487,12 +499,21 @@ var Validaciones = (function () {
     });
   }
 
+  function avisarSociedad(ruc, razon, rutaRuc, rutaNombre, agregar) {
+    var sociedad = /(^|[\s,])(S\.?\s?A\.?\s?C\.?|S\.?\s?A\.?\s?A\.?|S\.?\s?A\.?|S\.?\s?R\.?\s?L\.?|E\.?\s?I\.?\s?R\.?\s?L\.?)\.?\s*$/i;
+    if (/^10\d{9}$/.test(ruc || "") && sociedad.test(razon || "")) {
+      agregar("A25", "El RUC " + ruc + " empieza por 10 (persona natural), pero la razón social «" + razon + "» termina como sociedad.", [rutaRuc, rutaNombre]);
+    }
+  }
+
   function revisarIdentificadores(x, agregar) {
     var g = x.op.generales, e = x.op.especificos;
     // E10 y A09: RUC del importador (importación) o del exportador (exportación).
     var rutaRuc = x.imp ? "generales.partes.comprador.idFiscal" : "generales.partes.vendedor.idFiscal";
     var quien = x.imp ? "importador" : "exportador";
     var ruc = Modelo.leer(x.op, rutaRuc);
+    var rutaNombre = rutaRuc.replace(/idFiscal$/, "razonSocial");
+    avisarSociedad(ruc, Modelo.leer(x.op, rutaNombre), rutaRuc, rutaNombre, agregar);
     if (!vacio(ruc)) {
       var cr = CTRL.ruc(ruc);
       if (!cr.formato) {
@@ -504,6 +525,7 @@ var Validaciones = (function () {
     // Agentes: RUC o código (PV-28). Solo se controla si es un número de 11 dígitos.
     [["agenteMaritimo", "del agente marítimo"], ["agenteAduana", "del agente de aduana"], ["depositoTemporal", "del depósito temporal"]].forEach(function (a) {
       var r = g.partes[a[0]].ruc;
+      avisarSociedad(r, g.partes[a[0]].razonSocial, "generales.partes." + a[0] + ".ruc", "generales.partes." + a[0] + ".razonSocial", agregar);
       if (/^\d{11}$/.test(r || "")) { avisarRuc(CTRL.ruc(r), a[1], "generales.partes." + a[0] + ".ruc", agregar); }
     });
     // E09: contenedor

@@ -113,7 +113,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 - **Errores (E01–E23), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
   E20 significa que un número no se pudo usar (no es número, supera su máximo o tiene decimales de más): la revisión y
   los resultados quedan en pausa hasta corregirlo. Cada error también se marca en rojo junto a su campo del formulario.
-- **Advertencias (A01–A24), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
+- **Advertencias (A01–A26), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
   C01 y C02 son avisos del propio cálculo: C01, un reparto hecho en partes iguales porque su base suma 0
   (por ejemplo, flete con pesos brutos en 0); C02, ajustes sin ningún ítem marcado como objeto de ajuste.
 - Cada aviso dice **qué pasa**, **por qué importa** y **cómo corregirlo**, con su **fuente** y su **marca**
@@ -121,7 +121,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 - El botón **→ Ir al dato** abre la sección del formulario (y la tarjeta del ítem), centra el campo, lo resalta y pone el cursor en él.
 - **A19** resume cuántos datos de la DAM llevan la marca H* o POR VERIFICAR, con enlaces a los primeros.
 - Resultado esperado: caso 1 → A01, A08, A19 y A20; caso 2 → A01, A08 y A19; ningún error.
-- Caso AA4 FINAL (`casos/AA4_portuaria_camote_CIF_FINAL.json`) → A01, A08, A19, A23; S 6.5 = **34,050.000**. El RUC 10754001220 de ALFAZ se conserva por decisión del usuario (A25 lo advertirá). La regresión incluye el defecto original y verifica que el cuadre lo detecta.
+- Caso AA4 FINAL (`casos/AA4_portuaria_camote_CIF_FINAL.json`) → A01, A08, A19, A23, A25; S 6.5 = **34,050.000**. El RUC 10754001220 de ALFAZ se conserva por decisión del usuario (A25 lo advierte). La regresión incluye el defecto original y verifica que el cuadre lo detecta.
 - En exportación se cruza el valor de factura con S 6.1; en CFR/CIF, el Valor FOB de la factura más S 6.4 debe coincidir con S 6.5. El cuadro compara cada documento con sus propios decimales (2 o 3). CPT/CIP/D queda por verificar (PV-31).
 
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
@@ -356,3 +356,5 @@ Los archivos se guardan en formato de operación v3 (masa VGM pesada, temperatur
 VGM: el método 1 utiliza la masa pesada del contenedor lleno; el método 2 suma carga, estiba y tara. El método 1 muestra la suma y su diferencia solo como referencia; no se aplica una tolerancia sin fuente.
 
 A24 avisa de un reefer sin consigna o de una temperatura en un contenedor seco. Temperatura y ventilación se piden para los reefer; la temperatura aparece en las instrucciones y en el borrador de B/L. AA4 FINAL usa formato v3 con −20 °C, ya indicado en la evidencia.
+
+A25 avisa si un RUC 10 acompaña una razón social de sociedad (importador, exportador o agentes). El RUC de ALFAZ se conserva por decisión expresa. A26 avisa si la prima supera 5 %: umbral didáctico configurable en `NORMATIVA.valores.tasaPrimaPlausibleMaxPct`, no es norma.

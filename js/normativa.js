@@ -292,6 +292,7 @@ var NORMATIVA = (function () {
 
   // Tasas y umbrales. Se usan desde F3 (cálculos) y F4 (validaciones).
   var valores = {
+    tasaPrimaPlausibleMaxPct: { valor: 5, unidad: "%", marca: "S", fuente: "Criterio didáctico de plausibilidad; no es norma (configurable)" },
     igv: { valor: 16, unidad: "%", marca: "H*", fuente: "Ley del IGV" },
     ipm: { valor: 2, unidad: "%", marca: "H*", fuente: "Ley del IPM" },
     coberturaMinimaCifCip: { valor: 110, unidad: "%", marca: "H*", fuente: "Incoterms® 2020, CIF y CIP A5" },

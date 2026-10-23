@@ -175,6 +175,10 @@ var Validaciones = (function () {
     "Solo hay valores referenciales POR VERIFICAR (PV-16) para 22G1, 42G1 y 45G1; sin referencia no se puede comprobar si la carga cabe (A06) ni si el VGM supera el máximo (A07).",
     "Revisa el volumen interior y el peso bruto máximo en la placa CSC o con la naviera.");
 
+  regla("A24", "Contenedor refrigerado sin temperatura de consigna (o temperatura en uno seco)", "H*", "Práctica naviera (booking reefer)",
+    "El booking de un reefer necesita temperatura de consigna; una temperatura en un contenedor seco puede indicar que se eligió mal el tipo.",
+    "Comprueba el tipo y la temperatura de consigna con el booking de la naviera.");
+
   // Avisos del cálculo (decisión D12) convertidos en advertencias, como pide PLAN §6.5.
   regla("C01", "Reparto en partes iguales (base cero)", "S", "PLAN §6.1 (D12)",
     "Un monto (FOB, flete, seguro o ajustes) debía repartirse en proporción a una base (valor, peso bruto o FOB) que suma 0; como no hay proporción, se repartió en partes iguales.",
@@ -624,6 +628,12 @@ var Validaciones = (function () {
 
   function revisarFechasYCarga(x, agregar) {
     var t = x.op.especificos.transporte, cont = x.op.especificos.contenedor, r = x.r;
+    var reefer = /R\d$/.test(cont.tipo), tieneTemperatura = !vacio(cont.temperaturaC);
+    if ((reefer && !tieneTemperatura) || (!reefer && tieneTemperatura)) {
+      agregar("A24", reefer ? "El contenedor " + cont.tipo + " es refrigerado y no tiene temperatura de consigna." :
+        "El contenedor " + (cont.tipo || "(sin tipo)") + " no es refrigerado y tiene una temperatura de consigna.",
+        ["especificos.contenedor.tipo", "especificos.contenedor.temperaturaC"]);
+    }
     function orden(a, b, invalida, texto, rutas) {
       if (esFecha(a) && esFecha(b) && invalida(a, b)) { agregar("A22", texto + " (" + fechaTexto(a) + " / " + fechaTexto(b) + ").", rutas); }
     }

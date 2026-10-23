@@ -87,6 +87,10 @@
     var stc = e.transporte.clausulaStc ? " — STC (dice contener / said to contain):" : ":";
     desc.appendChild(el("strong", null, "1 × " + (cont.tipo.split(" — ")[1] || cont.tipo) + " FCL" + stc));
     desc.appendChild(el("span", "doc-linea", descripcionGenerica(ctx)));
+    if (/R\d$/.test(e.contenedor.tipo) && e.contenedor.temperaturaC != null) {
+      var temp = el("span", "doc-linea", "REEFER — SET TEMP " + Fm.temperatura(Calculos.aFijo(e.contenedor.temperaturaC, 1)) + " ");
+      temp.appendChild(D.etiquetaMarca("H*", "Práctica naviera (booking reefer)")); desc.appendChild(temp);
+    }
     desc.appendChild(subpartidasSa(ctx));
     desc.appendChild(el("span", "doc-linea", "Factura / Invoice " + (ctx.op.generales.comercial.facturaNumero || "—")));
     var pb = el("span"); pb.appendChild(D.cifra(Fm.kg(r.totales.pesoBruto), "pesoBruto")); pb.appendChild(document.createTextNode(" kg"));
@@ -121,6 +125,8 @@
       ["Modalidad", "Load type", "FCL / CY–CY (contenedor completo)"],
       ["Peso neto total", "Total net weight", Fm.kg(r.totales.pesoNeto) + " kg"],
       ["VGM declarado", "Declared VGM", vgm],
+      /R\d$/.test(c.tipo) && c.temperaturaC != null ? ["Temperatura de consigna", "Set temperature", D.conMarca(ctx, Fm.temperatura(Calculos.aFijo(c.temperaturaC, 1)), "especificos.contenedor.temperaturaC")] : null,
+      /R\d$/.test(c.tipo) && c.ventilacion ? ["Ventilación del reefer", "Reefer ventilation", c.ventilacion] : null,
       ["Fecha de embarque prevista", "Expected loading date", D.fecha(t.fechaEmbarque)],
       ["Documentos que acompañan", "Documents attached", "Factura comercial, lista de empaque, declaración VGM"]
     ]));

@@ -179,6 +179,7 @@ var Calculos = (function () {
     kg: function (x) { return numero(x, 2); },          // kg con 2 decimales [S]
     m3: function (x) { return numero(x, 3); },          // m³ con 3 decimales [S]
     m3Bulto: function (x) { return numero(x, igual(x, escalar(x, 3)) ? 3 : 6); },
+    temperatura: function (x) { return numero(x, 1) + " °C"; },
     cantidad: cantidad,
     // Cantidades en la DAM, Formatos A y C (F8a.1): enteras sin decimales ("360"); no enteras con 3 decimales ("360.500") [H: IT IV.3].
     damCantidad: function (x) { var r = escalar(x, 3); return numero(r, r.v % 1000 === 0 ? 0 : 3); },

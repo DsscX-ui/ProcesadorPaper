@@ -4,7 +4,7 @@
 var CASOS_REGRESION = {
   "AA4_portuaria_camote_CIF_FINAL": {
     "formato": "procesador-paper/operacion",
-    "version": 2,
+    "version": 3,
     "meta": {
       "referencia": "AA4-E06-2026-001",
       "descripcion": "Operatividad Portuaria AA4 (Certus E06) — Exportación CIF PortMiami de camote congelado IQF, 1×40' reefer HC, Seaboard Marine. Datos comerciales simulados del trabajo. VERSIÓN FINAL: campos no presentes en la evidencia completados con datos sintéticos coherentes (ficticios). Revisado el 22-10-2026: RUC ficticios (vendedor conservado por decisión del usuario), subpartida por verificar y S 6.3 calculado.",
@@ -192,7 +192,10 @@ var CASOS_REGRESION = {
         "estibaTrincaje": 500,
         "vgmMetodo": "2",
         "vgmResponsable": "ALFAZ IMPORT S.A.C.",
-        "vgmFecha": "2026-11-11"
+        "vgmFecha": "2026-11-11",
+        "vgmMasaPesada": null,
+        "temperaturaC": -20,
+        "ventilacion": ""
       },
       "transporte": {
         "nave": "SEABOARD PATRIOT",
@@ -472,6 +475,10 @@ var CASOS_REGRESION = {
       "especificos.items.0.unidadFisica": {
         "marca": "PV",
         "nota": "PV-09: unidad física de la subpartida 0714.20.90.00 por confirmar en el Arancel (¿KG = 22 700?). Mientras tanto se declara U (VERIFICAR V5)."
+      },
+      "especificos.contenedor.temperaturaC": {
+        "marca": "S",
+        "nota": "Temperatura de consigna de la evidencia (descripción y marcas: −20 °C)"
       }
     }
   }

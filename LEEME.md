@@ -113,7 +113,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 - **Errores (E01–E23), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
   E20 significa que un número no se pudo usar (no es número, supera su máximo o tiene decimales de más): la revisión y
   los resultados quedan en pausa hasta corregirlo. Cada error también se marca en rojo junto a su campo del formulario.
-- **Advertencias (A01–A23), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
+- **Advertencias (A01–A24), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
   C01 y C02 son avisos del propio cálculo: C01, un reparto hecho en partes iguales porque su base suma 0
   (por ejemplo, flete con pesos brutos en 0); C02, ajustes sin ningún ítem marcado como objeto de ajuste.
 - Cada aviso dice **qué pasa**, **por qué importa** y **cómo corregirlo**, con su **fuente** y su **marca**
@@ -354,3 +354,5 @@ A23 avisa si el tipo de contenedor carece de capacidad interior o peso bruto má
 Los archivos se guardan en formato de operación v3 (masa VGM pesada, temperatura y ventilación). Abrir acepta v2 y lo migra a v3 con aviso; guarda de nuevo para conservar el formato actualizado. Otras versiones se rechazan.
 
 VGM: el método 1 utiliza la masa pesada del contenedor lleno; el método 2 suma carga, estiba y tara. El método 1 muestra la suma y su diferencia solo como referencia; no se aplica una tolerancia sin fuente.
+
+A24 avisa de un reefer sin consigna o de una temperatura en un contenedor seco. Temperatura y ventilación se piden para los reefer; la temperatura aparece en las instrucciones y en el borrador de B/L. AA4 FINAL usa formato v3 con −20 °C, ya indicado en la evidencia.

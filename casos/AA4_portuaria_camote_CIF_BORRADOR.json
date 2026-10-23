@@ -1,0 +1,465 @@
+{
+  "formato": "procesador-paper/operacion",
+  "version": 2,
+  "meta": {
+    "referencia": "AA4-E06-2026-001-BORRADOR",
+    "descripcion": "Operatividad Portuaria AA4 (Certus E06) — Exportación CIF PortMiami de camote congelado IQF, 1×40' reefer HC, Seaboard Marine. Datos comerciales simulados del trabajo. BORRADOR: campos faltantes rellenados con 'POR VERIFICAR' o supuestos marcados, solo para previsualizar documentos.",
+    "ficticio": true
+  },
+  "generales": {
+    "operacion": {
+      "tipo": "exportacion",
+      "modalidadCarga": "FCL"
+    },
+    "partes": {
+      "vendedor": {
+        "razonSocial": "ALFAZ IMPORT S.A.C.",
+        "direccion": "Jr. Cusco 690, Cercado de Lima",
+        "ciudad": "Lima",
+        "pais": "PE",
+        "idFiscal": "",
+        "ubigeo": "150101",
+        "telefono": "",
+        "correo": "",
+        "condicion": ""
+      },
+      "comprador": {
+        "razonSocial": "Southern Container Corporation",
+        "direccion": "",
+        "ciudad": "Miami, FL",
+        "pais": "US",
+        "idFiscal": "POR VERIFICAR",
+        "ubigeo": ""
+      },
+      "consignatario": {
+        "tipo": "a_la_orden",
+        "razonSocial": "TO ORDER OF [banco emisor de la carta de crédito — POR VERIFICAR]",
+        "direccion": "Miami, FL"
+      },
+      "notify": {
+        "tipo": "otro",
+        "razonSocial": "Southern Container Corporation",
+        "direccion": "Miami, FL, EE. UU."
+      },
+      "naviera": {
+        "nombre": "Seaboard Marine Ltd."
+      },
+      "agenteMaritimo": {
+        "razonSocial": "Agente general de Seaboard Marine en el Callao — POR VERIFICAR",
+        "ruc": "POR VERIFICAR"
+      },
+      "agenteAduana": {
+        "razonSocial": "POR VERIFICAR",
+        "ruc": "POR VERIFICAR"
+      },
+      "depositoTemporal": {
+        "razonSocial": "DP World Callao (terminal) — POR VERIFICAR",
+        "ruc": "POR VERIFICAR"
+      },
+      "entidadFinanciera": {
+        "nombre": "Banco avisador/negociador de la L/C — POR VERIFICAR",
+        "codigo": ""
+      },
+      "aseguradora": {
+        "razonSocial": "",
+        "direccion": ""
+      },
+      "productor": {
+        "razonSocial": "",
+        "direccion": ""
+      },
+      "entidadCO": {
+        "nombre": ""
+      }
+    },
+    "ruta": {
+      "puertoEmbarque": {
+        "nombre": "Callao (Muelle Sur, DP World)",
+        "locode": "PECLL"
+      },
+      "puertoDescarga": {
+        "nombre": "Miami (PortMiami)",
+        "locode": "USMIA"
+      },
+      "paisAdquisicion": "",
+      "lugarRecepcion": "",
+      "lugarEntrega": ""
+    },
+    "comercial": {
+      "incoterm": "CIF",
+      "lugarConvenido": "Miami (PortMiami)",
+      "moneda": "USD",
+      "facturaNumero": "POR VERIFICAR",
+      "facturaFecha": "2026-11-11",
+      "modalidadPago": "1",
+      "condicionesPago": "Carta de crédito documentaria irrevocable a la vista (UCP 600)",
+      "medioPago": "",
+      "pagoDiferido": {
+        "porcentaje": null,
+        "plazoDias": null,
+        "evento": "",
+        "fecha": ""
+      },
+      "contrato": ""
+    },
+    "aduana": {
+      "aduana": "118",
+      "modalidadDespacho": "",
+      "tipoDespacho": "00",
+      "numeroOrden": "2026-000000",
+      "fechaFormulacion": "2026-11-11",
+      "tipoCambio": null,
+      "tipoCambioFecha": "",
+      "tipoCambioFuente": "",
+      "regionDestino": ""
+    },
+    "valor": {
+      "nivelComercial": "",
+      "naturaleza": "",
+      "formaEnvio": "",
+      "tipoValor": "",
+      "intermediario": {
+        "hubo": "",
+        "nombre": "",
+        "direccion": "",
+        "ciudad": "",
+        "pais": "",
+        "tipo": "",
+        "contacto": ""
+      },
+      "rubro7": {
+        "p7_1": "",
+        "p7_2": "",
+        "p7_3": "",
+        "p7_4": "",
+        "p7_5": "",
+        "p7_6": "",
+        "p7_7": "",
+        "p7_8": "",
+        "p7_9": "",
+        "p7_10": "",
+        "p7_11": "",
+        "p7_12": "",
+        "p7_13": "",
+        "p7_14": ""
+      }
+    }
+  },
+  "especificos": {
+    "items": [
+      {
+        "nombre": "Camote congelado IQF",
+        "descripcion": "Camote (batata) congelado IQF, en cajas de cartón de 10 kg netos; temperatura de consigna −20 °C",
+        "marca": "S/M",
+        "modelo": "",
+        "subpartida": "0714.20.90.00",
+        "subpartidaVerificada": false,
+        "paisOrigen": "PE",
+        "ubigeoOrigen": "150101",
+        "estado": "10",
+        "cantidad": 2270,
+        "unidadComercial": "U",
+        "unidadFisica": "U",
+        "precioUnitario": 17.7518,
+        "objetoAjuste": true,
+        "equipos": [],
+        "claseBulto": "CAJA_CARTON",
+        "unidadesPorBulto": 1,
+        "pesoNetoBulto": 10,
+        "pesoBrutoBulto": 10.5,
+        "largoCm": 40,
+        "anchoCm": 30,
+        "altoCm": 20,
+        "tasaAV": null,
+        "sobretasa": 0,
+        "derechoEspecifico": 0,
+        "isc": 0,
+        "antidumping": 0,
+        "tpi": "",
+        "tipoA720": ""
+      }
+    ],
+    "marcasEmbarque": "SOUTHERN CONTAINER CORP. / MIAMI / FROZEN IQF SWEET POTATO / C/No. 1-2270 / PRODUCT OF PERU",
+    "contenedor": {
+      "tipo": "45R1",
+      "numero": "",
+      "precinto": "",
+      "tara": 4800,
+      "estibaTrincaje": 500,
+      "vgmMetodo": "2",
+      "vgmResponsable": "ALFAZ IMPORT S.A.C.",
+      "vgmFecha": "2026-11-11"
+    },
+    "transporte": {
+      "nave": "Seaboard — POR VERIFICAR",
+      "viaje": "POR VERIFICAR",
+      "booking": "",
+      "blNumero": "",
+      "blTipo": "a_la_orden",
+      "blOriginales": 3,
+      "blLugarEmision": "Callao",
+      "blFechaEmision": "2026-11-14",
+      "fechaShippedOnBoard": "2026-11-14",
+      "clausulaSlac": false,
+      "clausulaStc": false,
+      "shipper": "",
+      "fleteBl": "prepaid",
+      "manifiesto": "118-2026-POR ASIGNAR",
+      "fechaEmbarque": "2026-11-14",
+      "fechaTerminoEmbarque": "2026-11-14",
+      "eta": "2026-11-24",
+      "fechaTerminoDescarga": ""
+    },
+    "seguro": {
+      "hay": true,
+      "tipoPoliza": "individual",
+      "poliza": "POR VERIFICAR",
+      "certificado": "POR VERIFICAR",
+      "fechaEmision": "2026-11-11",
+      "clausulas": "A",
+      "guerra": false,
+      "huelgas": false,
+      "coberturaPct": 110,
+      "tasaPrimaPct": 0.5,
+      "lugarPagoSiniestros": "Miami, FL — USD",
+      "agenteReclamos": "",
+      "pctTablaSunat": null
+    },
+    "origen": {
+      "solicitaPreferencia": false,
+      "acuerdo": "",
+      "criterio": "",
+      "certificadoNumero": "",
+      "certificadoFecha": ""
+    },
+    "valoracion": {
+      "flete": 6025,
+      "gastosExw815": 0,
+      "otros816": 0,
+      "ajuste812": 0,
+      "ajuste813": 0,
+      "descuentosNoAceptables814": 0,
+      "comisiones821": 0,
+      "envases822": 0,
+      "materiales8231": 0,
+      "herramientas8232": 0,
+      "consumidos8233": 0,
+      "ingenieria8234": 0,
+      "canones824": 0,
+      "reversion825": 0,
+      "gastosDestino832": 0,
+      "posteriores851": 0,
+      "montaje852": 0,
+      "tributos853": 0,
+      "intereses854": 0,
+      "otros855": 0,
+      "expOtrosDeducibles": 0,
+      "expAjustes": 0
+    },
+    "tributos": {
+      "tasaPercepcion": null
+    }
+  },
+  "marcas": {
+    "generales.partes.vendedor.idFiscal": {
+      "marca": "PV",
+      "nota": "RUC en blanco en el contrato de la evidencia."
+    },
+    "generales.partes.vendedor.ubigeo": {
+      "marca": "S",
+      "nota": "Domicilio Cercado de Lima (150101)."
+    },
+    "generales.partes.comprador.direccion": {
+      "marca": "PV",
+      "nota": "La evidencia solo dice Miami, Florida."
+    },
+    "generales.partes.consignatario.razonSocial": {
+      "marca": "PV",
+      "nota": "B/L a la orden del banco emisor de la L/C, sin nombre en la evidencia."
+    },
+    "generales.comercial.modalidadPago": {
+      "marca": "PV",
+      "nota": "L/C a la vista asimilada a contado (código 1); confirmar."
+    },
+    "generales.comercial.facturaNumero": {
+      "marca": "PV",
+      "nota": "Falta en la evidencia; marcador de borrador."
+    },
+    "generales.aduana.aduana": {
+      "marca": "S",
+      "nota": "Aduana Marítima del Callao (118), deducida del puerto."
+    },
+    "generales.aduana.fechaFormulacion": {
+      "marca": "S",
+      "nota": "Declaración 11/11/2026 según flujograma de la evidencia."
+    },
+    "especificos.items.0.subpartida": {
+      "marca": "PV",
+      "nota": "La evidencia indica 0714.20.90.00 'a confirmar con el agente de aduana'."
+    },
+    "especificos.items.0.precioUnitario": {
+      "marca": "S",
+      "nota": "Precio CIF por caja = CIF USD 40 296,63 ÷ 2 270 (evidencia: FOB USD 15/caja supuesto + flete 6 025 + seguro 221,63). Redondeado a 4 decimales."
+    },
+    "especificos.items.0.pesoBrutoBulto": {
+      "marca": "S",
+      "nota": "23 835 kg brutos de mercancía ÷ 2 270 cajas = 10,5 kg."
+    },
+    "especificos.contenedor.tipo": {
+      "marca": "S",
+      "nota": "40' High Cube refrigerado (40RH); ISO 45R1."
+    },
+    "especificos.contenedor.tara": {
+      "marca": "S",
+      "nota": "4 800 kg = VGM 29 135 − 24 335 kg; tara supuesta en la evidencia."
+    },
+    "especificos.contenedor.estibaTrincaje": {
+      "marca": "S",
+      "nota": "Se usa para los 20 pallets (500 kg), supuesto de la evidencia; la herramienta no tiene campo de pallets."
+    },
+    "especificos.contenedor.numero": {
+      "marca": "PV",
+      "nota": "[número] pendiente en la evidencia."
+    },
+    "especificos.contenedor.precinto": {
+      "marca": "PV",
+      "nota": "Precinto ISO 17712 [número] pendiente."
+    },
+    "especificos.transporte.nave": {
+      "marca": "PV",
+      "nota": "Nave y viaje no figuran."
+    },
+    "especificos.transporte.booking": {
+      "marca": "PV",
+      "nota": "No figura."
+    },
+    "especificos.transporte.blNumero": {
+      "marca": "PV",
+      "nota": "No figura."
+    },
+    "especificos.transporte.fechaEmbarque": {
+      "marca": "S",
+      "nota": "Zarpe simulado 14/11/2026."
+    },
+    "especificos.transporte.eta": {
+      "marca": "S",
+      "nota": "Arribo simulado 24/11/2026."
+    },
+    "especificos.seguro.tasaPrimaPct": {
+      "marca": "S",
+      "nota": "Tasa supuesta 0,50 % (evidencia, 4.3)."
+    },
+    "especificos.valoracion.flete": {
+      "marca": "S",
+      "nota": "Flete todo incluido USD 6 025 (cotización simulada)."
+    },
+    "generales.partes.aseguradora.razonSocial": {
+      "marca": "PV",
+      "nota": "No figura en la evidencia."
+    },
+    "especificos.contenedor.vgmMetodo": {
+      "marca": "S",
+      "nota": "Evidencia: VGM 'estimada' = carga + pallets + tara (método 2)."
+    },
+    "especificos.transporte.fechaTerminoEmbarque": {
+      "marca": "S",
+      "nota": "Zarpe simulado 14/11/2026."
+    },
+    "generales.partes.comprador.idFiscal": {
+      "marca": "PV",
+      "nota": "Falta en la evidencia; marcador de borrador."
+    },
+    "generales.partes.agenteMaritimo.razonSocial": {
+      "marca": "PV",
+      "nota": "Evidencia: 'agente general marítimo' sin nombre."
+    },
+    "generales.partes.agenteMaritimo.ruc": {
+      "marca": "PV",
+      "nota": "PV-28"
+    },
+    "generales.partes.agenteAduana.razonSocial": {
+      "marca": "PV",
+      "nota": "Sin nombre en evidencia."
+    },
+    "generales.partes.agenteAduana.ruc": {
+      "marca": "PV",
+      "nota": "PV-28"
+    },
+    "generales.partes.depositoTemporal.razonSocial": {
+      "marca": "PV",
+      "nota": "Evidencia nombra DP World Callao como terminal; confirmar depósito temporal."
+    },
+    "generales.partes.depositoTemporal.ruc": {
+      "marca": "PV",
+      "nota": "PV-28"
+    },
+    "generales.partes.entidadFinanciera.nombre": {
+      "marca": "PV",
+      "nota": "No figura."
+    },
+    "generales.comercial.facturaFecha": {
+      "marca": "S",
+      "nota": "Supuesto de borrador = fecha de declaración."
+    },
+    "generales.aduana.numeroOrden": {
+      "marca": "S",
+      "nota": "Marcador de borrador."
+    },
+    "especificos.items.0.marca": {
+      "marca": "PV",
+      "nota": "Marca no figura; 'S/M' de borrador."
+    },
+    "especificos.items.0.ubigeoOrigen": {
+      "marca": "PV",
+      "nota": "Lugar de procesamiento no figura; supuesto Lima."
+    },
+    "especificos.items.0.largoCm": {
+      "marca": "S",
+      "nota": "Medidas supuestas que reproducen el volumen de la evidencia (54,5 m³ ÷ 2 270 ≈ 0,024 m³/caja)."
+    },
+    "especificos.items.0.anchoCm": {
+      "marca": "S",
+      "nota": "Medidas supuestas que reproducen el volumen de la evidencia (54,5 m³ ÷ 2 270 ≈ 0,024 m³/caja)."
+    },
+    "especificos.items.0.altoCm": {
+      "marca": "S",
+      "nota": "Medidas supuestas que reproducen el volumen de la evidencia (54,5 m³ ÷ 2 270 ≈ 0,024 m³/caja)."
+    },
+    "especificos.marcasEmbarque": {
+      "marca": "S",
+      "nota": "Marcas de borrador armadas con datos de la evidencia."
+    },
+    "especificos.contenedor.vgmFecha": {
+      "marca": "S",
+      "nota": "Supuesto de borrador."
+    },
+    "especificos.transporte.viaje": {
+      "marca": "PV",
+      "nota": "Falta en la evidencia; marcador de borrador."
+    },
+    "especificos.transporte.manifiesto": {
+      "marca": "S",
+      "nota": "Estructura aduana–año–número; por asignar."
+    },
+    "especificos.seguro.tipoPoliza": {
+      "marca": "PV",
+      "nota": "Seguro ICC (A) 110 % según evidencia; detalle de póliza no figura."
+    },
+    "especificos.seguro.poliza": {
+      "marca": "PV",
+      "nota": "Seguro ICC (A) 110 % según evidencia; detalle de póliza no figura."
+    },
+    "especificos.seguro.certificado": {
+      "marca": "PV",
+      "nota": "Seguro ICC (A) 110 % según evidencia; detalle de póliza no figura."
+    },
+    "especificos.seguro.fechaEmision": {
+      "marca": "PV",
+      "nota": "Seguro ICC (A) 110 % según evidencia; detalle de póliza no figura."
+    },
+    "especificos.seguro.lugarPagoSiniestros": {
+      "marca": "PV",
+      "nota": "Seguro ICC (A) 110 % según evidencia; detalle de póliza no figura."
+    }
+  }
+}

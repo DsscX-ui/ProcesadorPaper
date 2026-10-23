@@ -1237,3 +1237,5 @@ Generada desde `DICCIONARIO.cobertura` (`js/diccionario.js`). "dato" = se ingres
 Entrada numérica P1: `limitesNumero` admite mínimo opcional; montos, tasas, tributos, tara, estiba, originales y plazos tienen mínimo 0. El pago diferido admite 0–100 %. Cantidades, precios, pesos y medidas del ítem mantienen E07; tipo de cambio mantiene E15.
 
 Formato de operación v3: `contenedor.vgmMasaPesada` (kg, mínimo 0), `temperaturaC` (±100 °C, un decimal) y `ventilacion` (texto). Una migración v2→v3 al abrir añade solo los campos ausentes; la revisión del esquema sigue siendo estricta para v3.
+
+Seguro voluntario de exportación fuera de CIF/CIP: base = (S 6.1 − S 6.3 + S 6.4) + flete [S]. En CFR, S 6.3 vacío/cero ya deduce flete y no depende de la prima. No se leen 8.1.6, 8.5.4 ni 8.5.5 ocultos de importación; tampoco se usa 8.3.2 en el desglose del grupo D de exportación (PV-31).

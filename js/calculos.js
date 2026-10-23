@@ -374,6 +374,13 @@ var Calculos = (function () {
     var flete = aFijo(val.flete, 2);
     function casilla(c) { return aFijo(val[INCOTERMS.campoCasilla[c]], 2); }
 
+    // Bases de salida antes del seguro voluntario: fuera de CIF/CIP S 6.3 no depende de la prima.
+    // CFR con dato vacío/cero deduce el flete; las demás reglas conservan el dato manual (PV-31).
+    var ventaExportacion = escalar(totales.valorFactura, 3);
+    var deduccionesExportacion = escalar(incoterm === "CFR" && (val.expOtrosDeducibles === null || val.expOtrosDeducibles === 0) ?
+      flete : aFijo(val.expOtrosDeducibles, 2), 3);
+    var ajustesExportacion = escalar(aFijo(val.expAjustes, 2), 3);
+
     // --- Seguro (§6.4)
     var seguro = { hay: seg.hay === true, tipoSeguro: "1", base: fx(0, 2), baseExplicacion: "", coberturaPct: aFijo(seg.coberturaPct, 4),
       sumaAsegurada: fx(0, 2), tasaPrimaPct: aFijo(seg.tasaPrimaPct, 4), prima: fx(0, 2) };
@@ -383,7 +390,8 @@ var Calculos = (function () {
         seguro.base = totales.valorFactura;
         seguro.baseExplicacion = "En " + incoterm + " la base es el valor de la factura (Vc) [H*: Incoterms® 2020].";
       } else {
-        seguro.base = sumar(fobDesdeFormula(null).total, esImportacion ? flete : fx(0, 2));
+        seguro.base = esImportacion ? sumar(fobDesdeFormula(null).total, flete) :
+          escalar(sumar(restar(ventaExportacion, deduccionesExportacion), ajustesExportacion, flete), 2);
         seguro.baseExplicacion = "Fuera de CIF y CIP la base es FOB + flete [S, editable].";
       }
       seguro.sumaAsegurada = porcentaje(seguro.base, seguro.coberturaPct, 2);
@@ -406,14 +414,15 @@ var Calculos = (function () {
 
     // --- Desglose del precio en la factura comercial (F6, PLAN §5: «flete: desglose C/D»; «prima: desglose CIF/CIP»).
     // Solo en los grupos C y D: el precio pactado (Vc) incluye el flete (y en CIF/CIP la prima; en el grupo D,
-    // además, los gastos en destino de 8.3.2). La primera línea es el resto del precio: Vc − lo incluido.
+    // además, en importación los gastos en destino de 8.3.2; en exportación se excluye ese dato oculto, PV-31). La primera línea es el resto del precio: Vc − lo incluido.
     function desgloseFactura() {
       if (!regla || (regla.grupo !== "C" && regla.grupo !== "D")) { return { lineas: [], total: totales.valorFactura }; }
       var incluidos = [{ id: "flete", es: "Flete internacional", en: "Ocean freight", valor: flete }];
       if (regla.seguroObligatorio) {
         incluidos.push({ id: "seguro", es: "Seguro (prima)", en: "Insurance (premium)", valor: seguro.prima });
       }
-      if (regla.grupo === "D") {
+      // 8.3.2 solo se pide en importación; en salida no cuenta un dato oculto (PV-31).
+      if (esImportacion && regla.grupo === "D") {
         var gd = aFijo(val.gastosDestino832, 2);
         if (!esCero(gd)) { incluidos.push({ id: "gastosDestino", es: "Gastos en destino", en: "Destination charges", valor: gd }); }
       }

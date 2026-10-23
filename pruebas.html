@@ -443,6 +443,21 @@
       prueba("Método 1: diferencia sin tolerancia inventada", "11.00", r.vgm.diferencia);
     })();
 
+    grupo("P2-12. Seguro voluntario de exportación sin datos ocultos de importación");
+    (function () {
+      var o = exportC("FOB", true), r = Calculos.calcular(o);
+      prueba("FOB voluntario: base = S 6.5 + flete", "40750.00", r.seguro.base);
+      o.especificos.valoracion.otros816 = 100; o.especificos.valoracion.intereses854 = 200; o.especificos.valoracion.otros855 = 300;
+      prueba("FOB voluntario: datos ocultos no cambian base", "40750.00", Calculos.calcular(o).seguro.base);
+      o = exportC("CFR", true);
+      prueba("CFR voluntario: base = FOB + flete = factura", "39550.00", Calculos.calcular(o).seguro.base);
+      o = exportC("DAP", true); o.especificos.valoracion.gastosDestino832 = 500;
+      r = Calculos.calcular(o);
+      prueba("DAP exportación: desglose ignora 8.3.2 oculto", "base,flete", r.factura.desglose.lineas.map(function (l) { return l.id; }).join(","));
+      prueba("DAP exportación: base de seguro sin 8.3.2", "40750.00", r.seguro.base);
+      prueba("DAP importación: base sin cambio", "19835.00", Calculos.calcular(sintetica("DAP", true)).seguro.base);
+    })();
+
     grupo("F3-M1. Bultos con división no exacta (sin redondeo previo)",
       "3 000.001 o 3 000.01 unidades en cajas de 100 no llenan 30 cajas: son 31 bultos y aviso E06.");
     [["3000.001", 31], ["3000.01", 31], ["3000", 30]].forEach(function (e) {

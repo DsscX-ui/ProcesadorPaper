@@ -262,7 +262,7 @@
       cuerpo.appendChild(rubro("6.", "Valor aduana (USD)", [
         casilla("6.1", "Valor cláusula de venta", cifra(ex.s61), { fuente: "IT B 6.1 (" + (g.comercial.incoterm || "—") + ")", cuadre: "dam61" }),
         casilla("6.2", "Comisión exterior", "", { fuente: "IT B 6.2 (referencial; solo para acogerse a la restitución de derechos)", estado: "no-aplica" }),
-        casilla("6.3", "Otros gastos deducibles", cifra(ex.s63), { fuente: "IT B 6.3 (ventas que no son FOB, ej. CFR o CIF)" }),
+        casilla("6.3", "Otros gastos deducibles", cifra(ex.s63), { fuente: ex.deducciones.origen === "desglose" ? "IT B 6.3 (CFR/CIF: = flete + prima del desglose de la factura; calculado)" : "IT B 6.3 (dato del formulario)", cuadre: "dam63" }),
         casilla("6.4", "Total ajustes", cifra(ex.s64), { fuente: "IT B 6.4 (ventas que no son FOB, ej. EXW)" }),
         casilla("6.5", "Valor neto de entrega (FOB)", el("strong", null, cifra(ex.s65)), { fuente: "IT B 6.5 (= 6.1 − 6.3 + 6.4; = Σ 7.30)", cuadre: "dam65", ancho: 2 })
       ]));

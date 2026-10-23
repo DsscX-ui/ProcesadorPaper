@@ -217,6 +217,45 @@
     prueba("Flete en el B/L sugerido para FOB", "collect", r2.fleteBl.sugerido);
     prueba("Cuadres internos (Σ S 7.30 = S 6.5)", "true", String(r2.cuadres.every(function (c) { return c.ok; })));
 
+    grupo("7b. Exportación C/D: deducciones S 6.3 (IT B 6.3)");
+    function prepararExportC(o, inc, seguro) {
+      o.generales.comercial.incoterm = inc; o.generales.comercial.lugarConvenido = "San Antonio";
+      o.especificos.transporte.fleteBl = "prepaid"; o.especificos.valoracion.flete = 1200;
+      if (seguro) {
+        o.especificos.seguro.hay = true; o.especificos.seguro.tipoPoliza = "individual";
+        o.especificos.seguro.coberturaPct = 110; o.especificos.seguro.tasaPrimaPct = 0.3;
+      }
+      return o;
+    }
+    function exportC(inc, seguro) { return prepararExportC(ejemplo("caso2"), inc, seguro); }
+    (function () {
+      prueba("FOB: S 6.3", "0.000", r2.exportacion.s63);
+      prueba("FOB: S 6.5", "39550.000", r2.exportacion.s65);
+      var o = exportC("CFR"); o.especificos.valoracion.expOtrosDeducibles = null;
+      var r = Calculos.calcular(o);
+      prueba("CFR vacío: S 6.3", "1200.000", r.exportacion.s63);
+      prueba("CFR vacío: S 6.5", "38350.000", r.exportacion.s65);
+      prueba("CFR vacío: origen", "desglose", r.exportacion.deducciones.origen);
+      o.especificos.valoracion.expOtrosDeducibles = 0;
+      prueba("CFR cero: S 6.5", "38350.000", Calculos.calcular(o).exportacion.s65);
+      o = exportC("CIF", true); r = Calculos.calcular(o);
+      prueba("CIF: prima", "130.52", r.seguro.prima);
+      prueba("CIF: S 6.3", "1330.520", r.exportacion.s63);
+      prueba("CIF: S 6.5", "38219.480", r.exportacion.s65);
+      prueba("CIF: serie 1", "20100.257", r.series[0].fob);
+      prueba("CIF: serie 2", "18119.223", r.series[1].fob);
+      prueba("CIF: Σ S 7.30 = S 6.5", "true", String(r.cuadres.every(function (c) { return c.ok; })));
+      o.especificos.valoracion.expOtrosDeducibles = 1330.52; r = Calculos.calcular(o);
+      prueba("CIF dato coincidente: origen", "dato", r.exportacion.deducciones.origen);
+      prueba("CIF dato coincidente: S 6.5", "38219.480", r.exportacion.s65);
+      o = exportC("CPT");
+      prueba("CPT: dato cero se conserva", "39550.000", Calculos.calcular(o).exportacion.s65);
+      o.especificos.valoracion.expOtrosDeducibles = 1200;
+      prueba("CPT: dato manual 1200", "38350.000", Calculos.calcular(o).exportacion.s65);
+      o = ejemplo("caso2"); o.generales.comercial.incoterm = "EXW"; o.especificos.valoracion.expAjustes = 100;
+      prueba("EXW: ajuste S 6.4", "39650.000", Calculos.calcular(o).exportacion.s65);
+    })();
+
     // ============================================================ FOB según Incoterm
     grupo("8. FOB total según el Incoterm (IT C 5.9, §6.3)",
       "Operación sintética: Vc 20,040.00; 8.1.5 = 100; 8.1.6 = 50; 8.3.1 = 1,850; 8.3.2 = 200; 8.4 = 66.13 (CIF/CIP); 8.5.1…8.5.5 = 10, 20, 30, 40, 5.");
@@ -509,8 +548,8 @@
       String(vacia.hallazgos.some(function (h) { return h.id === "E01" && h.rutas[0] === "especificos.items"; })));
     var catE = V.orden.filter(function (id) { return id.charAt(0) === "E"; });
     var catA = V.orden.filter(function (id) { return id.charAt(0) === "A"; });
-    prueba("Catálogo: errores E01–E21 (E20: cálculo en pausa, F5/D14; E21: B/L nominativo «a la orden», F7.1)", "21", String(catE.length) + (catE[0] === "E01" && catE[19] === "E20" && catE[20] === "E21" ? "" : " (desordenado)"));
-    prueba("Catálogo: advertencias A01–A20", "20", String(catA.length) + (catA[0] === "A01" && catA[19] === "A20" ? "" : " (desordenado)"));
+    prueba("Catálogo: errores E01–E22 (E20: cálculo en pausa, F5/D14; E21: B/L nominativo «a la orden», F7.1)", "22", String(catE.length) + (catE[0] === "E01" && catE[19] === "E20" && catE[20] === "E21" && catE[21] === "E22" ? "" : " (desordenado)"));
+    prueba("Catálogo: advertencias A01–A21", "21", String(catA.length) + (catA[0] === "A01" && catA[19] === "A20" && catA[20] === "A21" ? "" : " (desordenado)"));
     prueba("Catálogo: cada regla tiene título, por qué, fuente y marca H/H*/S/PV", "[]", JSON.stringify(V.orden.filter(function (id) {
       var r = V.reglas[id];
       return !r.titulo || !r.porque || !r.fuente || ["H", "H*", "S", "PV"].indexOf(r.marca) === -1;
@@ -530,7 +569,7 @@
       return /nota: el texto supera/.test(Modelo.revisarArchivo(o));
     })()));
 
-    grupo("13. Validaciones: un error por mutación (E01–E19)",
+    grupo("13. Validaciones: un error por mutación (E01–E22)",
       "Cada prueba altera a propósito un dato de una copia de un caso y comprueba que aparece el error esperado.");
     mutacion("E01", "caso1", "vendedor sin razón social", function (o) { o.generales.partes.vendedor.razonSocial = ""; });
     mutacion("E01", "caso2", "se pide trato preferencial y falta el acuerdo (lo usa el certificado de origen)", function (o) { o.especificos.origen.acuerdo = ""; });
@@ -592,7 +631,14 @@
         calc.hallazgos[0].id + " → " + calc.hallazgos[0].rutas[0]);
     })();
 
-    grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A20, C01–C02)",
+    mutacion("E22", "caso2", "CIF con S 6.3 = 1000 en vez de 1330.52", function (o) {
+      prepararExportC(o, "CIF", true); o.especificos.valoracion.expOtrosDeducibles = 1000;
+    });
+    ausente("E22", "caso2", "CIF con S 6.3 vacío: calculado", function (o) {
+      prepararExportC(o, "CIF", true); o.especificos.valoracion.expOtrosDeducibles = null;
+    });
+
+    grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A21, C01–C02)",
       "A01, A08, A19 y A20 ya salen en los casos. A10 no se activa mientras su umbral esté POR VERIFICAR (PV-03).");
     ausente("A01", "caso1", "FCA (recomendado para contenedor) no da el aviso", function (o) { o.generales.comercial.incoterm = "FCA"; o.especificos.seguro.hay = false; o.especificos.transporte.fleteBl = "collect"; });
     mutacion("A02", "caso2", "exportación en EXW", function (o) { o.generales.comercial.incoterm = "EXW"; });
@@ -627,6 +673,14 @@
     // ============================================================ Regresiones de la auditoría de F4 (F4.1)
     function idsDe(op) { return V.ids(revisar(op)); }
     function conLugar(lugar) { var o = ejemplo("caso1"); o.generales.comercial.lugarConvenido = lugar; return o; }
+    ["CPT", "CIP", "DAP"].forEach(function (inc) {
+      mutacion("A21", "caso2", inc + " con S 6.3 = 0", function (o) { prepararExportC(o, inc, inc === "CIP"); });
+    });
+    ausente("A21", "caso2", "CPT con deducciones de 1200", function (o) {
+      prepararExportC(o, "CPT"); o.especificos.valoracion.expOtrosDeducibles = 1200;
+    });
+    ausente("A21", "caso2", "FOB", function () {});
+
     grupo("F4-M1. E03: el lugar convenido debe ser el nombre completo del puerto o su UN/LOCODE",
       "Ya no basta con que el nombre aparezca dentro de otra palabra. Variantes admitidas: «Puerto de/del …», «Port of …» y el país del puerto al final.");
     [["Puerto de Otrocallao", true], ["Callaoo", true], ["Callao Norte", true], ["Ningbo", true],
@@ -733,10 +787,10 @@
         return r.charAt(0) !== "#" && r !== "especificos.items" && !DICCIONARIO.buscar(r);
       }));
     }).map(function (h) { return h.id + ": " + h.rutas.join(" "); }).slice(0, 5)));
-    prueba("Se probaron todos los errores E01–E21", "[]", JSON.stringify(catE.filter(function (id) {
+    prueba("Se probaron todos los errores E01–E22", "[]", JSON.stringify(catE.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
-    prueba("Se probaron todas las advertencias A01–A20", "[]", JSON.stringify(catA.filter(function (id) {
+    prueba("Se probaron todas las advertencias A01–A21", "[]", JSON.stringify(catA.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
 
@@ -1899,6 +1953,8 @@
       var xc = documentosDe(cif);
       prueba("CIF (caso 2 vendido CIF San Antonio): se genera SEG, sin errores", "true · 0", String(!!xc.porId.seguro) + " · " + xc.rv.errores.length);
       var kc = xc.porId.seguro ? xc.porId.seguro.cifras : {};
+      prueba("CIF: S 6.5 = 39,550.00 − 1,200.00 − 130.52", "38219.480", xc.r.exportacion.s65);
+      prueba("CIF: DAM S 6.3", "1,330.520", xc.porId.dam_a.cifras.dam63);
       prueba("CIF: suma asegurada = 39,550.00 × 110 % = 43,505.00; prima = 0.30 % = 130.515 → 130.52 (2 decimales, mitad hacia arriba)", "43,505.00 · 130.52 · 43505.00 · 130.52",
         kc.sumaAsegurada + " · " + kc.prima + " · " + F.decimal(xc.r.seguro.sumaAsegurada, 2) + " · " + F.decimal(xc.r.seguro.prima, 2));
       var qc = xc.gen.bloqueado ? { todoCuadra: false, filas: [] } : Documentos.cuadre(xc.gen.ctx);

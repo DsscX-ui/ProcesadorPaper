@@ -208,7 +208,8 @@
     donde.push("la hoja resumen (resultados clave y cuadro de cuadre)");
     caja.appendChild(el("p", null, "La prima aparece en " + donde.join("; ") + ". " +
       (imp ? "En la importación forma parte del valor en aduana (FOB + flete + seguro + ajustes, IT A 6.5)." :
-        "En la exportación no entra en el valor FOB de la DAM de salida (S 6.5).")));
+        (r.incoterm === "CIF" ? "En la exportación CIF la prima está incluida en el precio y se deduce en S 6.3 para llegar al FOB (S 6.5)." :
+          r.incoterm === "CIP" ? "En CIP la prima está en el precio; revisa S 6.3 (A21)." : "No forma parte del precio ni del FOB de la DAM de salida." ))));
     return caja;
   }
 

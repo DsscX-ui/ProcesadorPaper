@@ -245,7 +245,7 @@ var DICCIONARIO = (function () {
 
   // --- B7 Valoración
   var VA = E + "valoracion.";
-  d("B7", VA + "flete", "Flete internacional (USD)", "Ocean freight (USD)", "numero", "H", "IT C 8.3.1; IT A 6.2", { obl: "C/D e importación", docs: "FC BL DAM SEG HR", cas: ["B 8.3.1 → A 6.2, 7.31", ""], ayuda: "Del puerto de embarque al de destino." });
+  d("B7", VA + "flete", "Flete internacional (USD)", "Ocean freight (USD)", "numero", "H", "IT C 8.3.1; IT A 6.2", { obl: "C/D e importación", docs: "FC BL DAM SEG HR", cas: ["B 8.3.1 → A 6.2, 7.31", "S 6.3 (CFR/CIF, con la prima)"], ayuda: "Del puerto de embarque al de destino." });
   // [clave, es, en, casilla, marca, fuente, ayuda]
   [
     ["gastosExw815", "Gastos hasta el embarque (EXW)", "Pre-carriage costs (EXW)", "B 8.1.5", "PV", "IT C 5.9 (rótulo: PV)", "Solo en EXW; suma al FOB. Nombre exacto de la casilla: POR VERIFICAR."],
@@ -270,7 +270,7 @@ var DICCIONARIO = (function () {
   ].forEach(function (x) {
     d("B7", VA + x[0], x[1] + " (USD)", x[2] + " (USD)", "numero", x[4], x[5], { obl: "no", solo: "importacion", docs: "DAM", cas: [x[3], ""], ayuda: x[6] });
   });
-  d("B7", VA + "expOtrosDeducibles", "Otros gastos deducibles (exportación, USD)", "Export deductions (USD)", "numero", "H", "IT B 6.3", { obl: "no", solo: "exportacion", docs: "DAM", cas: ["", "S 6.3"], ayuda: "Para llevar a FOB una venta CFR o CIF." });
+  d("B7", VA + "expOtrosDeducibles", "Otros gastos deducibles (exportación, USD)", "Export deductions (USD)", "numero", "H", "IT B 6.3", { obl: "no", solo: "exportacion", docs: "DAM", cas: ["", "S 6.3"], ayuda: "En CFR y CIF déjalo vacío (o en 0): la herramienta pone flete + prima del desglose de la factura (IT B 6.3). Si escribes otra cifra, debe coincidir (E22). En CPT, CIP y grupo D escríbelo tú (A21; PV-31)." });
   d("B7", VA + "expAjustes", "Ajustes (exportación, USD)", "Export adjustments (USD)", "numero", "H", "IT B 6.4", { obl: "no", solo: "exportacion", docs: "DAM", cas: ["", "S 6.4"], ayuda: "Para llevar a FOB una venta EXW." });
 
   // --- B8 Tributos (solo importación). Las tasas por ítem deben coincidir dentro de una serie (E16).

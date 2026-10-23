@@ -661,7 +661,14 @@ var Calculos = (function () {
     var val = op.especificos.valoracion;
     // S 6.1 valor según la cláusula de venta; S 6.3 deducciones; S 6.4 ajustes; S 6.5 = FOB (IT B 6.1–6.5).
     var s61 = escalar(r.totales.valorFactura, 3);
-    var s63 = escalar(aFijo(val.expOtrosDeducibles, 2), 3);
+    // IT B 6.3: en CFR/CIF las deducciones son las líneas incluidas en el precio del
+    // desglose de la factura (una sola fuente). En CPT/CIP/D no se calculan solas (PV-31).
+    var esCfrCif = r.incoterm === "CFR" || r.incoterm === "CIF";
+    var incluidos = r.factura.desglose.lineas.slice(1);
+    var derivado = escalar(sumar(incluidos.map(function (l) { return l.valor; }).concat([fx(0, 2)])), 3);
+    var dato = val.expOtrosDeducibles;
+    var origen = esCfrCif && (dato === null || dato === 0) ? "desglose" : "dato";
+    var s63 = origen === "desglose" ? derivado : escalar(aFijo(dato, 2), 3);
     var s64 = escalar(aFijo(val.expAjustes, 2), 3);
     var s65 = sumar(restar(s61, s63), s64);
     if (s65.v <= 0 && items.length) { avisar("E12", "El FOB (S 6.5) es menor o igual que cero."); }
@@ -699,7 +706,10 @@ var Calculos = (function () {
       if (!c.ok) { avisar("E19", "Descuadre interno: " + c.texto); }
     });
 
-    r.exportacion = { s61: s61, s63: s63, s64: s64, s65: s65 };
+    r.exportacion = { s61: s61, s63: s63, s64: s64, s65: s65,
+      deducciones: { origen: origen, derivado: derivado,
+        incluidos: incluidos.map(function (l) { return { id: l.id, es: l.es, valor: l.valor }; }),
+        coincide: !incluidos.length || igual(s63, derivado) } };
     r.series = series;
     r.cuadres = cuadres;
   }

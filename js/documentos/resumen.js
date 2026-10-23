@@ -197,7 +197,7 @@
       filasR = [
         ["Valor de la factura (" + (g.comercial.incoterm || "") + ")", "Invoice value", Fm.comercial(r.totales.valorFactura)],
         ["Valor según la cláusula de venta (S 6.1)", "Value under the sale term", Fm.damAC(x.s61)],
-        ["− otros gastos deducibles (S 6.3) + ajustes (S 6.4)", "Deductions and adjustments", "− " + Fm.damAC(x.s63) + " + " + Fm.damAC(x.s64)],
+        ["− deducciones S 6.3 (" + (x.deducciones.origen === "desglose" ? "flete + prima del desglose, calculado" : "dato del formulario") + ") + ajustes (S 6.4)", "Deductions and adjustments", "− " + Fm.damAC(x.s63) + " + " + Fm.damAC(x.s64)],
         ["Valor FOB (S 6.5)", "FOB value", Fm.damAC(x.s65)],
         ["Series de la DAM de salida", "Declaration lines", String(r.series.length) + " (" + r.series.map(function (s) { return s.subpartida; }).join(", ") + ")"]
       ];

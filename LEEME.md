@@ -63,7 +63,7 @@ La página tiene cuatro pasos, siempre a mano en la **barra fija de arriba** (qu
 | **H** | Hecho con fuente en la carpeta (se cita el documento y la sección, por ejemplo «IT A 7.35») | Sin resaltar; la fuente está en el botón «?» y en la trazabilidad |
 | **H\*** | Conocimiento general, **sin fuente en la carpeta** (por ejemplo, Incoterms®, IGV 16 %, UN/LOCODE) | Etiqueta gris «H\*» |
 | **S** | **SUPUESTO**: decisión de diseño o dato ficticio del ejemplo | Etiqueta «SUPUESTO» (en la DAM, una **S** pequeña) |
-| **PV** | **POR VERIFICAR** (PV-01 a PV-30, `PLAN.md` §8.3): no se puede afirmar con las fuentes de la carpeta; **nunca se inventa** | Resaltado amarillo «POR VERIFICAR» (en la DAM, una **PV** pequeña junto a un código en blanco) |
+| **PV** | **POR VERIFICAR** (PV-01 a PV-31, `PLAN.md` §8.3): no se puede afirmar con las fuentes de la carpeta; **nunca se inventa** | Resaltado amarillo «POR VERIFICAR» (en la DAM, una **PV** pequeña junto a un código en blanco) |
 
 Las marcas H\* y POR VERIFICAR también salen impresas. La hoja resumen (A19) cuenta cuántos datos de la DAM las llevan.
 
@@ -110,10 +110,10 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 
 - **Contador** (arriba, en verde o rojo): cuántos errores y advertencias hay y sus códigos.
   Ejemplo con el caso 1: «✔ Sin errores · 6 advertencias (A01, A08, A19, A20)».
-- **Errores (E01–E21), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
+- **Errores (E01–E22), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
   E20 significa que un número no se pudo usar (no es número, supera su máximo o tiene decimales de más): la revisión y
   los resultados quedan en pausa hasta corregirlo. Cada error también se marca en rojo junto a su campo del formulario.
-- **Advertencias (A01–A20), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
+- **Advertencias (A01–A21), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
   C01 y C02 son avisos del propio cálculo: C01, un reparto hecho en partes iguales porque su base suma 0
   (por ejemplo, flete con pesos brutos en 0); C02, ajustes sin ningún ítem marcado como objeto de ajuste.
 - Cada aviso dice **qué pasa**, **por qué importa** y **cómo corregirlo**, con su **fuente** y su **marca**
@@ -311,7 +311,7 @@ SUNAT, VUCE ni el arancel.
   PV-13 DAM de exportación · PV-14 factura · PV-15 UN/LOCODE de otros puertos · PV-16 contenedores · PV-17 antidumping ·
   PV-18 dígito del RUC · PV-19 que los datos ficticios no sean reales · PV-20 mercancía restringida · PV-21 descripciones mínimas ·
   PV-24 nombre del código 0-0 · PV-25 destinaciones 40 y 41 · PV-26 casilla A 3.4 · PV-27 dígito verificador de la subpartida ·
-  PV-28 código o RUC en el Callao · PV-29 pagos mixtos · PV-30 fidelidad de las copias. Cerrados: PV-05, PV-22 (estructura) y
+  PV-28 código o RUC en el Callao · PV-29 pagos mixtos · PV-30 fidelidad de las copias · PV-31 deducciones S 6.3 en CPT/CIP/D. Cerrados: PV-05, PV-22 (estructura) y
   PV-23 (contenido; el diseño gráfico sigue sin copia).
 
 ## Dudas abiertas para Aarón

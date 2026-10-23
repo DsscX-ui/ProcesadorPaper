@@ -95,6 +95,10 @@ var Validaciones = (function () {
     "Un B/L nominativo (straight) se emite a nombre de un consignatario concreto y no se transfiere por endoso; uno «a la orden» se transfiere por endoso. Si el consignatario dice «a la orden de…» y el B/L es nominativo, el documento enseña dos modalidades incompatibles.",
     "Elige «A la orden» como tipo de B/L o cambia el consignatario a una persona concreta (el comprador u otra).");
 
+  regla("E22", "S 6.3 distinto de flete + prima en CFR o CIF", "H", "IT B 6.3 y 6.5; desglose de la factura (PLAN §5)",
+    "En CFR y CIF el precio incluye el flete (y en CIF la prima). IT B 6.3 manda deducirlos para que S 6.5 sea el FOB; con otra cifra, la DAM declara un FOB distinto del de la factura.",
+    "Deja «Otros gastos deducibles» vacío o en 0 para que la herramienta ponga flete + prima, o corrige el flete o la tasa de prima.");
+
   regla("A01", "Regla marítima con contenedor: considera FCA, CPT o CIP", "H*", "ICC, nota de orientación de Incoterms® 2020",
     "En FAS, FOB, CFR y CIF el riesgo pasa al costado o a bordo del buque, pero la carga en contenedor se entrega antes, en la terminal o el depósito. Entre la entrega y la carga a bordo el riesgo queda en una zona gris.",
     "");
@@ -155,6 +159,10 @@ var Validaciones = (function () {
   regla("A20", "Despacho anticipado sin fecha de término de descarga", "PV", "IT A 3.4; PV-26",
     "En el despacho anticipado la DAM se numera antes de la llegada, así que aún no hay fecha de término de descarga. Qué va en la casilla A 3.4 está POR VERIFICAR (PV-26).",
     "Déjala vacía hasta la descarga; la DAM mostrará POR VERIFICAR.");
+  regla("A21", "Exportación CPT, CIP o grupo D: revisa S 6.3", "PV", "IT B 6.3; conversión a FOB: PV-31",
+    "Las deducciones para llegar al FOB dependen de lo que cubra la base FCA o el valor de la mercancía: está POR VERIFICAR (PV-31); la herramienta no las calcula sola.",
+    "Revisa qué gastos incluidos en el precio se deben deducir en S 6.3 (PV-31) y escríbelos en «Otros gastos deducibles».");
+
   // Avisos del cálculo (decisión D12) convertidos en advertencias, como pide PLAN §6.5.
   regla("C01", "Reparto en partes iguales (base cero)", "S", "PLAN §6.1 (D12)",
     "Un monto (FOB, flete, seguro o ajustes) debía repartirse en proporción a una base (valor, peso bruto o FOB) que suma 0; como no hay proporción, se repartió en partes iguales.",
@@ -517,11 +525,25 @@ var Validaciones = (function () {
 
   function revisarValores(x, agregar) {
     var op = x.op, r = x.r;
+    if (!x.imp) {
+      var ex = r.exportacion, ded = ex.deducciones;
+      var esCfrCif = r.incoterm === "CFR" || r.incoterm === "CIF";
+      if (esCfrCif && ded.origen === "dato" && !ded.coincide) {
+        agregar("E22", "En " + r.incoterm + ", S 6.3 debería ser " + F.damAC(ded.derivado) + " (" +
+          ded.incluidos.map(function (l) { return l.es.toLowerCase() + " " + F.comercial(l.valor); }).join(" + ") +
+          ") y dice " + F.damAC(ex.s63) + ".", ["especificos.valoracion.expOtrosDeducibles", "especificos.valoracion.flete"]);
+      }
+      if (!esCfrCif && x.regla && (x.regla.grupo === "C" || x.regla.grupo === "D") && ded.incluidos.length &&
+          Calculos.comparar(ex.s63, ded.derivado) < 0) {
+        agregar("A21", "En " + r.incoterm + ", S 6.3 (" + F.damAC(ex.s63) + ") es menor que los gastos incluidos del desglose (" +
+          F.damAC(ded.derivado) + "). Conversión a FOB POR VERIFICAR (PV-31).", ["especificos.valoracion.expOtrosDeducibles"]);
+      }
+    }
     if (op.especificos.items.length) {
       var fob = x.imp ? r.fob.total : r.exportacion.s65;
       if (Calculos.comparar(fob, Calculos.cero) <= 0) {
         agregar("E12", "El FOB " + (x.imp ? "total (IT C 5.9)" : "(S 6.5)") + " es USD " + F.comercial(fob) + ".",
-          x.imp ? ["especificos.valoracion.flete", "especificos.items.0.precioUnitario"] : ["especificos.valoracion.expOtrosDeducibles"]);
+          x.imp ? ["especificos.valoracion.flete", "especificos.items.0.precioUnitario"] : ["especificos.valoracion.expOtrosDeducibles", "especificos.valoracion.flete"]);
       }
       // A10: solo si el umbral tiene una cifra con fuente (hoy es null: PV-03).
       var umbral = NORMATIVA.valores.umbralDespachoSimplificadoUsd.valor;

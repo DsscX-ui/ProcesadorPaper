@@ -444,6 +444,7 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 - **Seguro:** la prima pagada. Si no hay póliza, se usa la "Tabla de Porcentajes Promedio de Seguro" [H: IT C 8.4]; sus porcentajes son PV-06.
 - **Exportación, FOB por ítem:** S 6.5 se reparte según el valor de cada ítem, con el mismo criterio de IT C 5.9 [S]; S 7.30 = Σ FOB de los ítems de la serie.
 - **Exportación:** valor según la cláusula de venta (S 6.1) − otros gastos deducibles (S 6.3; en CFR o CIF) + ajustes (S 6.4; en EXW) = **valor neto de entrega, que es el FOB** (S 6.5). Su suma debe ser igual a la de S 7.30 [H: IT B 6.1–6.5].
+  En CFR/CIF, S 6.3 vacío o 0 toma flete + prima del desglose de la factura; otra cifra debe coincidir (E22). En CPT/CIP/D el dato es manual (A21; PV-31).
 
 ### 6.4 Seguro
 
@@ -540,6 +541,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | E19 | Descuadre interno de la DAM: Σ FOB de ítems ≠ FOB total, Σ 7.30 ≠ 6.1, o Σ 7.34 ≠ 6.5. Delata un error de cálculo de la herramienta. |
 | E20 | (F5, decisión D14) Dato que la herramienta no puede calcular: en el formulario, un número que no es número, supera su máximo o tiene más decimales de los admitidos (§6.1), o un cálculo que sale del rango exacto. La revisión queda «en pausa» (solo E20) y los resultados no se muestran hasta corregirlo; la edición sigue libre [S]. |
 | E21 | (F7.1, auditoría F7-M1) B/L nominativo con consignatario «a la orden de…»: el documento mezclaría dos modalidades incompatibles [H\*] |
+| E22 | S 6.3 distinto de flete + prima del desglose en exportación CFR/CIF [H: IT B 6.3 y 6.5] |
 
 **Advertencias (se puede generar, pero se muestran en pantalla y en la hoja resumen)**
 
@@ -565,6 +567,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | A18 | DAP o DPU: se informa que el seguro no se resta del FOB [H: IT C 5.9] |
 | A19 | Resumen: cantidad de datos con marca [H\*] y PV en la DAM |
 | A20 | Despacho anticipado sin fecha de término de descarga: la casilla A 3.4 queda en PV-26 |
+| A21 | Exportación CPT/CIP/D: S 6.3 menor que los gastos incluidos; conversión a FOB POR VERIFICAR (PV-31) |
 
 **Implementación (F4, `js/validaciones.js`)**
 
@@ -649,6 +652,7 @@ Estado: **Cerrado** = resuelto con fuente · **Parcial** = resuelto en parte · 
 | PV-28 | Si sigue vigente la nota del art. 7 de la RSNAA 578-2010: en la Aduana Marítima del Callao va el código y no el RUC en A 3.1, 4.1, 4.2 y 8 | Abierto | Nota final del IT |
 | PV-29 | Código de modalidad de pago para pagos mixtos (ej. 30 % adelanto + 70 % contra copia del B/L) | Abierto | IT A 5.2; IT C "Otros datos" g–k. El caso 1 evita el problema con pago anticipado. |
 | PV-30 | Que las copias de la carpeta sean fieles y vigentes frente al portal de SUNAT | Abierto (bloqueado) | F0b |
+| PV-31 | Deducciones S 6.3 en CPT, CIP y grupo D: desde base FCA o valor de mercancía a FOB | Abierto; no se calculan automáticamente (A21) | IT B 6.3; falta criterio oficial |
 
 ### 8.4 Hechos que usa la herramienta
 

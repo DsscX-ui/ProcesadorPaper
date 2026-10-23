@@ -156,6 +156,29 @@
       prueba("Masa pesada negativa rechazada", "true", String(!!Modelo.revisarArchivo(o)));
     })();
 
+    grupo("P2-14. Guardar produce un JSON reabrible y mide bytes UTF-8");
+    (function () {
+      var o = ejemplo("caso1");
+      prueba("UTF-8: ñ ocupa dos bytes", 2, Modelo.bytesUtf8("ñ"));
+      prueba("1.1 M de caracteres ñ superan 2 MB", "true", String(/tamaño máximo/.test(Modelo.interpretar("ñ".repeat(1100000)).error)));
+      var normal = Modelo.textoParaGuardar(o);
+      prueba("Guardar operación normal: con sangría y reabre", "false · true", String(normal.compacto) + " · " + String(!Modelo.interpretar(normal.texto).error));
+      o.especificos.items.slice(0, 2).forEach(function (it, n) {
+        it.equipos = Array.from({ length: 10000 }, function (_, i) { return { serie: "EQUIPO-" + n + "-" + i, imeis: ["356938035643809"] }; });
+      });
+      var salida = Modelo.textoParaGuardar(o);
+      prueba("20 000 equipos: compacto o error claro", "true", String(salida.compacto || !!salida.error));
+      prueba("20 000 equipos: si hay texto, Abrir lo acepta", "true", String(salida.error ? !salida.texto : !Modelo.interpretar(salida.texto).error));
+      prueba("20 000 equipos: texto dentro del límite de bytes", "true", String(!salida.texto || Modelo.bytesUtf8(salida.texto) <= Modelo.limites.bytes));
+      o = ejemplo("caso1"); o.especificos.valoracion.flete = -1;
+      prueba("Guardar rechaza estructura o datos inválidos", "true", String(!!Modelo.textoParaGuardar(o).error));
+      o = ejemplo("caso1"); o.especificos.items.slice(0, 2).forEach(function (it) {
+        it.equipos = Array.from({ length: 10000 }, function () { return { serie: "ñ".repeat(100), imeis: [] }; });
+      });
+      var enorme = Modelo.textoParaGuardar(o);
+      prueba("Compacto aún mayor a 2 MB: mensaje y sin descarga", "true · true", String(/reduce equipos o ítems/.test(enorme.error)) + " · " + String(!enorme.texto));
+    })();
+
     // ============================================================ Caso 1
     var op1 = ejemplo("caso1");
     var r1 = Calculos.calcular(op1);

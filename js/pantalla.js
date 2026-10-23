@@ -545,6 +545,8 @@
   }
 
   function imprimir(soloId) {
+    clearTimeout(temporizador);
+    recalcular();
     if (Documentos.bloqueados(ultimaRevision)) { mensaje("No hay documentos que imprimir: corrige primero los errores de «Revisión».", "error"); return; }
     prepararImpresion(soloId);
     impresionPreparada = true;
@@ -820,7 +822,9 @@
       // F5-M2: lo que se descarga debe poder abrirse con la propia herramienta.
       var problema = Modelo.revisarArchivo(form.operacion());
       if (problema) { mensaje("No se guardó: " + problema + " Corrige ese dato y vuelve a guardar.", "error"); return; }
-      var nombre = Modelo.guardar(form.operacion());
+      var nombre;
+      try { nombre = Modelo.guardar(form.operacion()); }
+      catch (e) { mensaje("No se guardó: " + e.message, "error"); return; }
       huellaGuardada = Modelo.huella(form.operacion());
       pintarEstadoGuardado();
       mensaje("Se descargó '" + nombre + "'. Huella: " + huellaGuardada + ". Ese archivo es tu copia de trabajo.", "ok");
@@ -909,7 +913,11 @@
     window.addEventListener("resize", ajustarEscala);
     // Ctrl+P sin pasar por los botones: se imprimen todos los documentos.
     window.addEventListener("beforeprint", function () {
-      if (!impresionPreparada) { prepararImpresion(null); }
+      if (!impresionPreparada) {
+        clearTimeout(temporizador);
+        recalcular();
+        prepararImpresion(null);
+      }
     });
     window.addEventListener("afterprint", function () { impresionPreparada = false; });
   }

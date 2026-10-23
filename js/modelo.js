@@ -406,10 +406,28 @@ var Modelo = (function () {
     return ref.replace(/[^A-Za-z0-9_-]+/g, "_") + ".json";
   }
 
+  function bytesUtf8(texto) { return new TextEncoder().encode(texto).length; }
+
+  // Nunca ofrece una descarga que Abrir rechazaría por estructura o tamaño en UTF-8.
+  function textoParaGuardar(operacion) {
+    try {
+      var problema = revisarArchivo(operacion);
+      if (problema) { return { texto: "", compacto: false, error: problema }; }
+      var texto = JSON.stringify(operacion, null, 2);
+      if (bytesUtf8(texto) <= LIMITES.bytes) { return { texto: texto, compacto: false, error: "" }; }
+      texto = JSON.stringify(operacion);
+      if (bytesUtf8(texto) <= LIMITES.bytes) { return { texto: texto, compacto: true, error: "" }; }
+      return { texto: "", compacto: true, error: "La operación supera 2 MB incluso en JSON compacto; reduce equipos o ítems antes de guardar." };
+    } catch (e) {
+      return { texto: "", compacto: false, error: "No se pudo preparar el archivo: " + e.message };
+    }
+  }
+
   // Descarga la operación como archivo .json.
   function guardar(operacion) {
-    var texto = JSON.stringify(operacion, null, 2);
-    var blob = new Blob([texto], { type: "application/json;charset=utf-8" });
+    var salida = textoParaGuardar(operacion);
+    if (salida.error) { throw new Error(salida.error); }
+    var blob = new Blob([salida.texto], { type: "application/json;charset=utf-8" });
     var url = URL.createObjectURL(blob);
     var enlace = document.createElement("a");
     enlace.href = url;
@@ -435,7 +453,7 @@ var Modelo = (function () {
   // Interpreta el texto de un archivo. Devuelve { error, operacion }; nunca lanza excepciones.
   function interpretar(texto) {
     try {
-      if (texto.length > LIMITES.bytes) {
+      if (bytesUtf8(texto) > LIMITES.bytes) {
         return { error: "El archivo supera el tamaño máximo de 2 MB.", operacion: null };
       }
       var datos;
@@ -489,6 +507,8 @@ var Modelo = (function () {
     iguales: iguales,
     revisarArchivo: revisarArchivo,
     interpretar: interpretar,
+    bytesUtf8: bytesUtf8,
+    textoParaGuardar: textoParaGuardar,
     guardar: guardar,
     abrir: abrir
   };

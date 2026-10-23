@@ -113,7 +113,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 - **Errores (E01–E23), en rojo:** bloquean los documentos. Mientras haya uno, los documentos no se generan.
   E20 significa que un número no se pudo usar (no es número, supera su máximo o tiene decimales de más): la revisión y
   los resultados quedan en pausa hasta corregirlo. Cada error también se marca en rojo junto a su campo del formulario.
-- **Advertencias (A01–A22), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
+- **Advertencias (A01–A23), en naranja:** no bloquean. Explican algo que conviene revisar o un dato POR VERIFICAR.
   C01 y C02 son avisos del propio cálculo: C01, un reparto hecho en partes iguales porque su base suma 0
   (por ejemplo, flete con pesos brutos en 0); C02, ajustes sin ningún ítem marcado como objeto de ajuste.
 - Cada aviso dice **qué pasa**, **por qué importa** y **cómo corregirlo**, con su **fuente** y su **marca**
@@ -121,7 +121,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
 - El botón **→ Ir al dato** abre la sección del formulario (y la tarjeta del ítem), centra el campo, lo resalta y pone el cursor en él.
 - **A19** resume cuántos datos de la DAM llevan la marca H* o POR VERIFICAR, con enlaces a los primeros.
 - Resultado esperado: caso 1 → A01, A08, A19 y A20; caso 2 → A01, A08 y A19; ningún error.
-- Caso AA4 FINAL (`casos/AA4_portuaria_camote_CIF_FINAL.json`) → A01, A08, A19; S 6.5 = **34,050.000**. El RUC 10754001220 de ALFAZ se conserva por decisión del usuario (A25 lo advertirá). La regresión incluye el defecto original y verifica que el cuadre lo detecta.
+- Caso AA4 FINAL (`casos/AA4_portuaria_camote_CIF_FINAL.json`) → A01, A08, A19, A23; S 6.5 = **34,050.000**. El RUC 10754001220 de ALFAZ se conserva por decisión del usuario (A25 lo advertirá). La regresión incluye el defecto original y verifica que el cuadre lo detecta.
 - En exportación se cruza el valor de factura con S 6.1; en CFR/CIF, el Valor FOB de la factura más S 6.4 debe coincidir con S 6.5. El cuadro compara cada documento con sus propios decimales (2 o 3). CPT/CIP/D queda por verificar (PV-31).
 
 ## Cómo comprobar los cálculos y las validaciones (pruebas.html)
@@ -348,3 +348,5 @@ La carpeta `verificacion/` guarda las evidencias de cada fase (capturas, PDF y r
 Los montos, tasas, tributos, tara, estiba y plazos admiten valores desde 0; el porcentaje de pago diferido no supera 100. En el formulario usa punto decimal: «0,500» se rechaza; para 0.5 escribe «0.500».
 
 E23 bloquea fechas inexistentes o mal escritas en los campos que se piden; A22 advierte cronologías imposibles de VGM, embarque, a bordo, B/L y término. No se compara la formulación de la DAM con el embarque: la regla de numeración requiere verificación.
+
+A23 avisa si el tipo de contenedor carece de capacidad interior o peso bruto máximo de referencia. Los reefer 22R1 y 45R1 están en el selector, sin capacidades inventadas: revisa placa CSC y naviera (PV-16).

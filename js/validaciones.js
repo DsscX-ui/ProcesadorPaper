@@ -171,6 +171,10 @@ var Validaciones = (function () {
     "El VGM debe estar disponible antes de cargar; el B/L a bordo y el término de embarque o descarga deben respetar las fechas de la operación.",
     "Revisa las fechas con el booking, el B/L y el certificado VGM.");
 
+  regla("A23", "Contenedor sin capacidad ni peso máximo de referencia", "PV", "PV-16",
+    "Solo hay valores referenciales POR VERIFICAR (PV-16) para 22G1, 42G1 y 45G1; sin referencia no se puede comprobar si la carga cabe (A06) ni si el VGM supera el máximo (A07).",
+    "Revisa el volumen interior y el peso bruto máximo en la placa CSC o con la naviera.");
+
   // Avisos del cálculo (decisión D12) convertidos en advertencias, como pide PLAN §6.5.
   regla("C01", "Reparto en partes iguales (base cero)", "S", "PLAN §6.1 (D12)",
     "Un monto (FOB, flete, seguro o ajustes) debía repartirse en proporción a una base (valor, peso bruto o FOB) que suma 0; como no hay proporción, se repartió en partes iguales.",
@@ -654,6 +658,13 @@ var Validaciones = (function () {
         ["especificos.contenedor.tipo"]);
     }
     var max = NORMATIVA.valores.pesoBrutoMaximoReferencialKg.valor[cont.tipo];
+    if (cont.tipo && (cap == null || max == null)) {
+      var faltan = [];
+      if (cap == null) { faltan.push("capacidad interior (A06)"); }
+      if (max == null) { faltan.push("peso bruto máximo (A07)"); }
+      agregar("A23", "Para " + cont.tipo + " falta referencia de " + faltan.join(" y ") + "; no se comprueba ese límite (POR VERIFICAR, PV-16).",
+        ["especificos.contenedor.tipo"]);
+    }
     if (max != null && Calculos.comparar(r.vgm.total, Calculos.aFijo(max, 2)) > 0) {
       agregar("A07", "El VGM es " + F.kg(r.vgm.total) + " kg y el peso bruto máximo referencial del " + cont.tipo + " es " + F.kg(Calculos.aFijo(max, 2)) + " kg (POR VERIFICAR, PV-16).",
         ["especificos.contenedor.tara", "especificos.contenedor.tipo"]);

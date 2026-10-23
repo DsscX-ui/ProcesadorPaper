@@ -216,7 +216,9 @@ var NORMATIVA = (function () {
     tipoContenedor: lista("Tipo de contenedor", "H*", "ISO 6346 (código de tamaño y tipo)", [
       ["22G1", "20' DV (dry van)"],
       ["42G1", "40' DV (dry van)"],
-      ["45G1", "40' HC (high cube)"]
+      ["45G1", "40' HC (high cube)"],
+      ["22R1", "20' RF (refrigerado / reefer)"],
+      ["45R1", "40' HC RF (refrigerado / reefer)"]
     ]),
 
     unidadMedida: lista("Unidad (comercial o física)", "PV", "PV-09; RS129 anexo VI 6.4 cita 'U' como ejemplo", [

@@ -570,6 +570,7 @@ VGM = peso bruto total de la carga + estiba y trincaje + tara del contenedor [H\
 | A20 | Despacho anticipado sin fecha de término de descarga: la casilla A 3.4 queda en PV-26 |
 | A21 | Exportación CPT/CIP/D: S 6.3 menor que los gastos incluidos; conversión a FOB POR VERIFICAR (PV-31) |
 | A22 | Orden cronológico imposible entre VGM, embarque, a bordo, B/L y término de embarque o descarga [H*]. La numeración de la DAM sigue por verificar. |
+| A23 | Tipo de contenedor sin capacidad o peso máximo de referencia para A06/A07: POR VERIFICAR, PV-16 |
 
 **Implementación (F4, `js/validaciones.js`)**
 

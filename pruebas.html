@@ -579,7 +579,7 @@
     var catE = V.orden.filter(function (id) { return id.charAt(0) === "E"; });
     var catA = V.orden.filter(function (id) { return id.charAt(0) === "A"; });
     prueba("Catálogo: errores E01–E23", "23", String(catE.length) + (catE.every(function (id, i) { return id === "E" + String(i + 1).padStart(2, "0"); }) ? "" : " (desordenado)"));
-    prueba("Catálogo: advertencias A01–A22", "22", String(catA.length) + (catA.every(function (id, i) { return id === "A" + String(i + 1).padStart(2, "0"); }) ? "" : " (desordenado)"));
+    prueba("Catálogo: advertencias A01–A23", "23", String(catA.length) + (catA.every(function (id, i) { return id === "A" + String(i + 1).padStart(2, "0"); }) ? "" : " (desordenado)"));
     prueba("Catálogo: cada regla tiene título, por qué, fuente y marca H/H*/S/PV", "[]", JSON.stringify(V.orden.filter(function (id) {
       var r = V.reglas[id];
       return !r.titulo || !r.porque || !r.fuente || ["H", "H*", "S", "PV"].indexOf(r.marca) === -1;
@@ -680,7 +680,7 @@
       prueba("ETA inexistente: E23 y no E13", "true · false", String(ids.indexOf("E23") !== -1) + " · " + String(ids.indexOf("E13") !== -1));
     })();
 
-    grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A22, C01–C02)",
+    grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A23, C01–C02)",
       "A01, A08, A19 y A20 ya salen en los casos. A10 no se activa mientras su umbral esté POR VERIFICAR (PV-03).");
     ausente("A01", "caso1", "FCA (recomendado para contenedor) no da el aviso", function (o) { o.generales.comercial.incoterm = "FCA"; o.especificos.seguro.hay = false; o.especificos.transporte.fleteBl = "collect"; });
     mutacion("A02", "caso2", "exportación en EXW", function (o) { o.generales.comercial.incoterm = "EXW"; });
@@ -730,6 +730,15 @@
     mutacion("A22", "caso1", "término descarga anterior al embarque", function (o) { o.especificos.transporte.fechaTerminoDescarga = "2026-10-13"; });
     ausente("A22", "caso1", "cronología coherente", function () {});
     ausente("A22", "caso2", "cronología coherente", function () {});
+
+    mutacion("A23", "caso1", "contenedor 45R1 sin referencias", function (o) { o.especificos.contenedor.tipo = "45R1"; });
+    ausente("A23", "caso1", "22G1 tiene referencias", function () {});
+    prueba("Tipos reefer disponibles", "true · true", String(!!NORMATIVA.opcion("tipoContenedor", "22R1")) + " · " + String(!!NORMATIVA.opcion("tipoContenedor", "45R1")));
+    (function () {
+      var o = ejemplo("caso1"); o.especificos.contenedor.tipo = "45R1"; o.especificos.contenedor.tara = 30000;
+      var ids = V.ids(revisar(o));
+      prueba("45R1 tara 30000: sin A07, con A23", "false · true", String(ids.indexOf("A07") !== -1) + " · " + String(ids.indexOf("A23") !== -1));
+    })();
 
     grupo("F4-M1. E03: el lugar convenido debe ser el nombre completo del puerto o su UN/LOCODE",
       "Ya no basta con que el nombre aparezca dentro de otra palabra. Variantes admitidas: «Puerto de/del …», «Port of …» y el país del puerto al final.");
@@ -840,7 +849,7 @@
     prueba("Se probaron todos los errores E01–E23", "[]", JSON.stringify(catE.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
-    prueba("Se probaron todas las advertencias A01–A22", "[]", JSON.stringify(catA.filter(function (id) {
+    prueba("Se probaron todas las advertencias A01–A23", "[]", JSON.stringify(catA.filter(function (id) {
       return !todosHallazgos.some(function (h) { return h.id === id; });
     })));
 
@@ -2279,7 +2288,7 @@
       prueba("AA4: serie S 7.30", "34050.000", r.series[0].fob);
       prueba("AA4: FOB unitario", "15.000000", r.items[0].fobUnitario);
       prueba("AA4: cuadres internos", "true", String(r.cuadres.every(function (c) { return c.ok; })));
-      prueba("AA4: revisión errores · ID", "0 · A01,A08,A19", x.rv.errores.length + " · " + V.ids(x.rv).join(","));
+      prueba("AA4: revisión errores · ID", "0 · A01,A08,A19,A23", x.rv.errores.length + " · " + V.ids(x.rv).join(","));
       prueba("AA4: FC base · DAM S 6.3 · DAM S 6.5", "34,050.00 · 6,246.630 · 34,050.000", x.porId.factura.cifras.baseFactura + " · " + x.porId.dam_a.cifras.dam63 + " · " + x.porId.dam_a.cifras.dam65);
       prueba("AA4: HR fila FOB · todoCuadra", "true · true", String(filaCuadre(x, "fobFacturaDam").ok) + " · " + Documentos.cuadre(x.gen.ctx).todoCuadra);
       o.especificos.valoracion.expOtrosDeducibles = 0;

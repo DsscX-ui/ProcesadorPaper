@@ -117,6 +117,22 @@ var Calculos = (function () {
       acumulado += parte;
       partes.push(fx(aNumero(parte), total.d));
     }
+    if (partes[n - 1].v && Math.sign(partes[n - 1].v) !== Math.sign(total.v)) {
+      // PV-08: solo si el residuo habitual invierte el signo, usar mayor residuo.
+      // Truncar hacia cero y asignar unidades a los restos mayores; en empate, al índice mayor.
+      var restos = [], truncadas = [], suma = BigInt(0);
+      w.forEach(function (peso, i) {
+        var numerador = T * peso, q = numerador / W, resto = numerador % W;
+        truncadas.push(q); suma += q;
+        restos.push({ i: i, resto: resto < BigInt(0) ? -resto : resto });
+      });
+      restos.sort(function (a, b) { return a.resto === b.resto ? b.i - a.i : (a.resto > b.resto ? -1 : 1); });
+      var pendiente = T - suma, paso = pendiente < BigInt(0) ? BigInt(-1) : BigInt(1), j = 0;
+      while (pendiente !== BigInt(0)) {
+        truncadas[restos[j % n].i] += paso; pendiente -= paso; j++;
+      }
+      partes = truncadas.map(function (p) { return fx(aNumero(p), total.d); });
+    }
     return { partes: partes, iguales: iguales };
   }
 

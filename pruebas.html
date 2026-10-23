@@ -107,6 +107,14 @@
     var pneg = Calculos.prorratear(fx("-10.00"), [fx("1"), fx("2")]).partes;
     prueba("Prorrateo de un monto negativo: parte 1", "-3.33", pneg[0]);
     prueba("Prorrateo de un monto negativo: parte 2 (residuo)", "-6.67", pneg[1]);
+    ["0.100", "-0.100"].forEach(function (monto) {
+      var partes = Calculos.prorratear(fx(monto), Array.from({ length: 200 }, function () { return fx("1"); })).partes;
+      var signo = Math.sign(Number(monto));
+      prueba(monto + " entre 200: ninguna parte de signo contrario", "true", String(partes.every(function (p) { return p.v === 0 || Math.sign(p.v) === signo; })));
+      prueba(monto + " entre 200: suma exacta", monto, Calculos.sumar(partes));
+      prueba(monto + " entre 200: primera parte", "0.000", partes[0]);
+      prueba(monto + " entre 200: última parte", signo > 0 ? "0.001" : "-0.001", partes[199]);
+    });
 
     // ============================================================ Formato
     grupo("2. Formato de números (§6.1, D10)", "Coma de miles y punto decimal (“20,040.00”; DAM A/C “18,123.870”; DAM B “21.705231”).");

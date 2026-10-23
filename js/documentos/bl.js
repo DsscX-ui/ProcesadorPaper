@@ -1,7 +1,7 @@
 /* Plantillas del transporte (PLAN §3 doc 3, §5 columna BL; fase F7):
    (a) INSTRUCCIONES DE EMBARQUE / SHIPPING INSTRUCTIONS: las da el embarcador a la naviera o a su agente.
    (b) BORRADOR DE B/L / DRAFT BILL OF LADING: lo emite la naviera; aquí, con la leyenda «BORRADOR – DRAFT».
-   (c) DECLARACIÓN VGM / VERIFIED GROSS MASS: la firma el embarcador (SOLAS VI/2 [H*]); VGM = carga + estiba + tara (§6.7).
+   (c) DECLARACIÓN VGM / VERIFIED GROSS MASS: la firma el embarcador (SOLAS VI/2 [H*]); método 1 = pesaje, método 2 = carga + estiba + tara (§6.7).
    Bultos, peso bruto, volumen, contenedor y precinto = lista de empaque (cifras de cuadre data-cuadre).
    Solo leen la operación y el resultado de Calculos.calcular; no calculan ni redondean.
    Script clásico: se registra en Documentos (antes de la hoja resumen). */
@@ -116,7 +116,7 @@
       ["Cláusulas", "Clauses", [t.clausulaSlac ? "SLAC" : "", t.clausulaStc ? "STC" : ""].filter(Boolean).join(" y ") || "Ninguna"],
       ["Lugar de emisión", "Place of issue", t.blLugarEmision]
     ]));
-    var vgm = el("span"); vgm.appendChild(D.cifra(Fm.kg(r.vgm.total), "vgm")); vgm.appendChild(document.createTextNode(" kg (método " + (c.vgmMetodo || "—") + ")"));
+    var vgm = el("span"); vgm.appendChild(D.cifra(Fm.kg(r.vgm.total), "vgm")); vgm.appendChild(document.createTextNode(" kg (método " + (c.vgmMetodo === "1" ? "1: pesaje" : c.vgmMetodo === "2" ? "2: suma" : "—") + ")"));
     col.appendChild(D.datos(["Carga y fechas", "Cargo and dates"], [
       ["Modalidad", "Load type", "FCL / CY–CY (contenedor completo)"],
       ["Peso neto total", "Total net weight", Fm.kg(r.totales.pesoNeto) + " kg"],
@@ -193,11 +193,20 @@
       tara.appendChild(document.createTextNode(" "));
       tara.appendChild(D.etiquetaMarca("PV", "PV-16: la tara real está en la placa del contenedor"));
     }
-    cuerpo.appendChild(D.tabla([{ es: "Concepto", en: "Item" }, { es: "kg", en: "kg", num: true }, { es: "De dónde sale", en: "Source" }], [
-      ["Peso bruto de la carga (todos los bultos)", carga, "Lista de empaque: Σ bultos × peso bruto por bulto"],
-      ["+ Estiba y trincaje (materiales de sujeción)", Fm.kg(v.estiba), "Dato del embarcador (0 si no hay)"],
-      ["+ Tara del contenedor", tara, "Placa CSC del contenedor"]
-    ], { pie: [{ celdas: ["= VGM (masa bruta verificada) / Verified gross mass", total, "PLAN §6.7"] }], clase: "doc-tabla-vgm" }));
+    var columnasVgm = [{ es: "Concepto", en: "Item" }, { es: "kg", en: "kg", num: true }, { es: "De dónde sale", en: "Source" }];
+    if (v.metodo === "1") {
+      cuerpo.appendChild(D.tabla(columnasVgm, [
+        ["Masa bruta pesada (báscula calibrada)", total, "Pesaje del contenedor lleno (SOLAS VI/2, método 1)"]
+      ], { clase: "doc-tabla-vgm" }));
+      cuerpo.appendChild(el("p", "doc-nota", "Referencia: suma de componentes = " + Fm.kg(v.suma) + " kg" +
+        (v.diferencia ? " (diferencia " + Fm.kg(v.diferencia) + " kg)" : "") + "."));
+    } else {
+      cuerpo.appendChild(D.tabla(columnasVgm, [
+        ["Peso bruto de la carga (todos los bultos)", carga, "Lista de empaque: Σ bultos × peso bruto por bulto"],
+        ["+ Estiba y trincaje (materiales de sujeción)", Fm.kg(v.estiba), "Dato del embarcador (0 si no hay)"],
+        ["+ Tara del contenedor", tara, "Placa CSC del contenedor"]
+      ], { pie: [{ celdas: ["= VGM (masa bruta verificada) / Verified gross mass", total, "PLAN §6.7"] }], clase: "doc-tabla-vgm" }));
+    }
     var metodo = el("span", null, D.opcion("metodoVgm", c.vgmMetodo));
     metodo.appendChild(document.createTextNode(" "));
     metodo.appendChild(D.etiquetaMarca("H*"));

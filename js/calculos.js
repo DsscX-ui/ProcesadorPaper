@@ -356,7 +356,11 @@ var Calculos = (function () {
 
     // --- VGM (§6.7)
     var tara = aFijo(cont.tara, 2), estiba = aFijo(cont.estibaTrincaje, 2);
-    var vgm = { pesoBruto: totales.pesoBruto, estiba: estiba, tara: tara, total: sumar(totales.pesoBruto, estiba, tara) };
+    var sumaVgm = sumar(totales.pesoBruto, estiba, tara);
+    var pesada = cont.vgmMasaPesada == null ? null : aFijo(cont.vgmMasaPesada, 2);
+    var vgm = { metodo: cont.vgmMetodo, pesoBruto: totales.pesoBruto, estiba: estiba, tara: tara,
+      suma: sumaVgm, pesada: pesada, total: cont.vgmMetodo === "1" && pesada ? pesada : sumaVgm,
+      diferencia: cont.vgmMetodo === "1" && pesada ? restar(pesada, sumaVgm) : null };
 
     // --- Flete prepaid/collect (D8)
     var fleteBl = {

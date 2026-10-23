@@ -433,6 +433,16 @@
       prueba("AA4 sin cambio de volumen", "54.480", Calculos.calcular(casoRegresion("AA4_portuaria_camote_CIF_FINAL")).totales.volumen);
     })();
 
+    grupo("P2-10. VGM por pesaje o suma");
+    (function () {
+      prueba("Método 2 conserva suma", "4489.00", r1.vgm.total);
+      var o = ejemplo("caso1"); o.especificos.contenedor.vgmMetodo = "1"; o.especificos.contenedor.vgmMasaPesada = 4500;
+      var r = Calculos.calcular(o);
+      prueba("Método 1: VGM pesado", "4500.00", r.vgm.total);
+      prueba("Método 1: suma de referencia", "4489.00", r.vgm.suma);
+      prueba("Método 1: diferencia sin tolerancia inventada", "11.00", r.vgm.diferencia);
+    })();
+
     grupo("F3-M1. Bultos con división no exacta (sin redondeo previo)",
       "3 000.001 o 3 000.01 unidades en cajas de 100 no llenan 30 cajas: son 31 bultos y aviso E06.");
     [["3000.001", 31], ["3000.01", 31], ["3000", 30]].forEach(function (e) {
@@ -736,6 +746,8 @@
       var ids = V.ids(revisar(o));
       prueba("ETA inexistente: E23 y no E13", "true · false", String(ids.indexOf("E23") !== -1) + " · " + String(ids.indexOf("E13") !== -1));
     })();
+
+    mutacion("E01", "caso1", "VGM método 1 sin masa pesada", function (o) { o.especificos.contenedor.vgmMetodo = "1"; });
 
     grupo("14. Validaciones: advertencias alcanzables por mutación (A01–A23, C01–C02)",
       "A01, A08, A19 y A20 ya salen en los casos. A10 no se activa mientras su umbral esté POR VERIFICAR (PV-03).");
@@ -1339,6 +1351,18 @@
       var x = documentosDe(cajasVolumen(500, 45, 32, 28));
       prueba("PL muestra volumen por caja con precisión", "true", String(x.porId.packing.hoja.textContent.indexOf("0.040320 m³") !== -1));
       prueba("PL muestra volumen total exacto", "20.160", x.porId.packing.cifras.volumen);
+    })();
+
+    grupo("P2-10b. VGM pesado en documentos y formulario");
+    (function () {
+      var o = ejemplo("caso1"); o.especificos.contenedor.vgmMetodo = "1"; o.especificos.contenedor.vgmMasaPesada = 4500;
+      var x = documentosDe(o);
+      ["instrucciones", "vgm", "resumen"].forEach(function (id) { prueba("Método 1: " + id + " muestra VGM pesado", "4,500.00", x.porId[id].cifras.vgm); });
+      prueba("Método 1: todoCuadra", "true", String(Documentos.cuadre(x.gen.ctx).todoCuadra));
+      prueba("Método 1: formulario pide masa", "visible", visible(formularioDe(o), "especificos.contenedor.vgmMasaPesada"));
+      o.especificos.contenedor.vgmMetodo = "2";
+      prueba("Método 2: masa pesada oculta", "oculto", visible(formularioDe(o), "especificos.contenedor.vgmMasaPesada"));
+      prueba("Método 2 ignora pesada conservada", "4489.00", Calculos.calcular(o).vgm.total);
     })();
 
     grupo("F6-2. Importe en letras (factura comercial)", "Lee los centavos exactos del monto ya calculado; no redondea.");

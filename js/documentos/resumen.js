@@ -217,7 +217,9 @@
         ["Series de la DAM de salida", "Declaration lines", String(r.series.length) + " (" + r.series.map(function (s) { return s.subpartida; }).join(", ") + ")"]
       ];
     }
-    filasR.push(["VGM = peso bruto + estiba + tara (kg)", "Verified gross mass", Fm.kg(r.vgm.pesoBruto) + " + " + Fm.kg(r.vgm.estiba) + " + " + Fm.kg(r.vgm.tara) + " = " + Fm.kg(r.vgm.total)]);
+    var textoVgm = el("span", null, r.vgm.metodo === "1" ? "" : Fm.kg(r.vgm.pesoBruto) + " + " + Fm.kg(r.vgm.estiba) + " + " + Fm.kg(r.vgm.tara) + " = ");
+    textoVgm.appendChild(D.cifra(Fm.kg(r.vgm.total), "vgm"));
+    filasR.push([r.vgm.metodo === "1" ? "VGM = masa bruta pesada (método 1, kg)" : "VGM = peso bruto + estiba + tara (método 2, kg)", "Verified gross mass", textoVgm]);
     if (r.seguro.hay) {
       filasR.push(["Suma asegurada (" + Fm.pct(r.seguro.coberturaPct) + ") y prima (" + Fm.pct(r.seguro.tasaPrimaPct) + ")", "Sum insured and premium",
         Fm.comercial(r.seguro.sumaAsegurada) + " / " + Fm.comercial(r.seguro.prima)]);

@@ -352,3 +352,5 @@ E23 bloquea fechas inexistentes o mal escritas en los campos que se piden; A22 a
 A23 avisa si el tipo de contenedor carece de capacidad interior o peso bruto máximo de referencia. Los reefer 22R1 y 45R1 están en el selector, sin capacidades inventadas: revisa placa CSC y naviera (PV-16).
 
 Los archivos se guardan en formato de operación v3 (masa VGM pesada, temperatura y ventilación). Abrir acepta v2 y lo migra a v3 con aviso; guarda de nuevo para conservar el formato actualizado. Otras versiones se rechazan.
+
+VGM: el método 1 utiliza la masa pesada del contenedor lleno; el método 2 suma carga, estiba y tara. El método 1 muestra la suma y su diferencia solo como referencia; no se aplica una tolerancia sin fuente.

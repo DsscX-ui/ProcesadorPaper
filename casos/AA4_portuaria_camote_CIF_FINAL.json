@@ -3,7 +3,7 @@
   "version": 2,
   "meta": {
     "referencia": "AA4-E06-2026-001",
-    "descripcion": "Operatividad Portuaria AA4 (Certus E06) — Exportación CIF PortMiami de camote congelado IQF, 1×40' reefer HC, Seaboard Marine. Datos comerciales simulados del trabajo. VERSIÓN FINAL: campos no presentes en la evidencia completados con datos sintéticos coherentes (ficticios).",
+    "descripcion": "Operatividad Portuaria AA4 (Certus E06) — Exportación CIF PortMiami de camote congelado IQF, 1×40' reefer HC, Seaboard Marine. Datos comerciales simulados del trabajo. VERSIÓN FINAL: campos no presentes en la evidencia completados con datos sintéticos coherentes (ficticios). Revisado el 22-10-2026: RUC ficticios (vendedor conservado por decisión del usuario), subpartida por verificar y S 6.3 calculado.",
     "ficticio": true
   },
   "generales": {
@@ -46,15 +46,15 @@
       },
       "agenteMaritimo": {
         "razonSocial": "Agencia Marítima Pacífico Sur S.A.C. (agente general de Seaboard Marine en Callao)",
-        "ruc": "20604187355"
+        "ruc": "20000000061"
       },
       "agenteAduana": {
         "razonSocial": "Aduanas Integrales del Callao S.A.C.",
-        "ruc": "20517632903"
+        "ruc": "20000000079"
       },
       "depositoTemporal": {
         "razonSocial": "Frío Portuario Callao S.A.C. (depósito temporal refrigerado)",
-        "ruc": "20609826143"
+        "ruc": "20000000087"
       },
       "entidadFinanciera": {
         "nombre": "Banco de Crédito del Perú (banco avisador/negociador de la L/C)",
@@ -153,7 +153,7 @@
         "marca": "ALFAZ",
         "modelo": "",
         "subpartida": "0714.20.90.00",
-        "subpartidaVerificada": true,
+        "subpartidaVerificada": false,
         "paisOrigen": "PE",
         "ubigeoOrigen": "150101",
         "estado": "10",
@@ -253,7 +253,7 @@
       "tributos853": 0,
       "intereses854": 0,
       "otros855": 0,
-      "expOtrosDeducibles": 0,
+      "expOtrosDeducibles": null,
       "expAjustes": 0
     },
     "tributos": {
@@ -263,7 +263,7 @@
   "marcas": {
     "generales.partes.vendedor.idFiscal": {
       "marca": "S",
-      "nota": "RUC ficticio indicado por el usuario."
+      "nota": "RUC ficticio indicado por el usuario: 10754001220. Se conserva por decisión expresa; el prefijo 10 corresponde a persona natural y A25 advertirá la incompatibilidad con S.A.C."
     },
     "generales.partes.vendedor.ubigeo": {
       "marca": "S",
@@ -299,7 +299,7 @@
     },
     "especificos.items.0.precioUnitario": {
       "marca": "S",
-      "nota": "Precio CIF por caja = CIF USD 40 296,63 ÷ 2 270 (evidencia: FOB USD 15/caja supuesto + flete 6 025 + seguro 221,63). Redondeado a 4 decimales."
+      "nota": "Precio CIF por caja con 6 decimales (17.751819): 2 270 × 17.751819 = 40 296.63; FOB = 40 296.63 − 6 025 − 221.63 = 34 050.00 (USD 15/caja, evidencia)."
     },
     "especificos.items.0.pesoBrutoBulto": {
       "marca": "S",
@@ -375,7 +375,7 @@
     },
     "generales.partes.agenteMaritimo.ruc": {
       "marca": "S",
-      "nota": "Dato sintético (ficticio) para la versión final; no figura en la evidencia. PV-28"
+      "nota": "Dato sintético (ficticio) para la versión final; no figura en la evidencia. PV-28 RUC ficticio del patrón 200000000XX."
     },
     "generales.partes.agenteAduana.razonSocial": {
       "marca": "S",
@@ -383,7 +383,7 @@
     },
     "generales.partes.agenteAduana.ruc": {
       "marca": "S",
-      "nota": "Dato sintético (ficticio) para la versión final; no figura en la evidencia. PV-28"
+      "nota": "Dato sintético (ficticio) para la versión final; no figura en la evidencia. PV-28 RUC ficticio del patrón 200000000XX."
     },
     "generales.partes.depositoTemporal.razonSocial": {
       "marca": "S",
@@ -391,7 +391,7 @@
     },
     "generales.partes.depositoTemporal.ruc": {
       "marca": "S",
-      "nota": "Dato sintético (ficticio) para la versión final; no figura en la evidencia. PV-28"
+      "nota": "Dato sintético (ficticio) para la versión final; no figura en la evidencia. PV-28 RUC ficticio del patrón 200000000XX."
     },
     "generales.partes.entidadFinanciera.nombre": {
       "marca": "S",
@@ -460,6 +460,14 @@
     "especificos.seguro.lugarPagoSiniestros": {
       "marca": "S",
       "nota": "Dato sintético (ficticio) para la versión final; no figura en la evidencia. Seguro ICC (A) 110 % según evidencia; detalle de póliza no figura."
+    },
+    "especificos.valoracion.expOtrosDeducibles": {
+      "marca": "S",
+      "nota": "Vacío: la herramienta calcula S 6.3 = flete 6 025.00 + prima 221.63 = 6 246.63 (IT B 6.3)."
+    },
+    "especificos.items.0.unidadFisica": {
+      "marca": "PV",
+      "nota": "PV-09: unidad física de la subpartida 0714.20.90.00 por confirmar en el Arancel (¿KG = 22 700?). Mientras tanto se declara U (VERIFICAR V5)."
     }
   }
 }

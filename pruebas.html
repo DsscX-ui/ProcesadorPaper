@@ -26,6 +26,7 @@
   <script src="js/modelo.js"></script>
   <script src="js/incoterms.js"></script>
   <script src="js/ejemplos.js"></script>
+  <script src="pruebas/casos_regresion.js"></script>
   <script src="js/calculos.js"></script>
   <script src="js/diccionario.js"></script>
   <script src="js/validaciones.js"></script>
@@ -81,6 +82,7 @@
 
     function fx(texto) { var dec = (String(texto).split(".")[1] || "").length; return Calculos.aFijo(texto, dec); }
     function ejemplo(id) { return Modelo.clonar(EJEMPLOS.filter(function (e) { return e.id === id; })[0].operacion); }
+    function casoRegresion(n) { return Modelo.clonar(CASOS_REGRESION[n]); }
 
     // ============================================================ Núcleo numérico
     grupo("1. Decimal fijo, redondeo y prorrateo (§6.1)", "Enteros con BigInt; mitad hacia arriba (PV-08); el residuo del prorrateo va a la última parte.");
@@ -2204,6 +2206,47 @@
         [cob.porEstado.dato, cob.porEstado.derivado, cob.porEstado.pv, cob.porEstado.reservado].join(" · "));
       prueba("F10-X2 · la DAM A sigue mostrando «DV: POR VERIFICAR» en 7.19 (sin dígito inventado)", "true",
         String(/DV:\s*POR VERIFICAR/.test(hDam.textContent)));
+    })();
+
+    grupo("R-AA4. Regresión: camote congelado IQF, exportación CIF PortMiami (casos/…FINAL.json)");
+    (function () {
+      var o = casoRegresion("AA4_portuaria_camote_CIF_FINAL"), x = documentosDe(o), r = x.r, ex = r.exportacion;
+      prueba("AA4: Abrir", "", Modelo.interpretar(JSON.stringify(o)).error);
+      prueba("AA4: bultos · numeración", "2270 · 1-2270", r.totales.bultos + " · " + r.totales.numeracion);
+      prueba("AA4: peso neto", "22700.00", r.totales.pesoNeto);
+      prueba("AA4: peso bruto", "23835.00", r.totales.pesoBruto);
+      prueba("AA4: volumen por bulto", "0.024", r.items[0].volumenBulto);
+      prueba("AA4: volumen total", "54.480", r.totales.volumen);
+      prueba("AA4: VGM = 23835 + 500 + 4800", "29135.00", r.vgm.total);
+      prueba("AA4: valor factura", "40296.63", r.totales.valorFactura);
+      prueba("AA4: suma asegurada", "44326.29", r.seguro.sumaAsegurada);
+      prueba("AA4: prima", "221.63", r.seguro.prima);
+      prueba("AA4: desglose", "base:34,050.00 · flete:6,025.00 · seguro:221.63", r.factura.desglose.lineas.map(function (l) { return l.id + ":" + F.comercial(l.valor); }).join(" · "));
+      prueba("AA4: S 6.1", "40296.630", ex.s61);
+      prueba("AA4: S 6.3", "6246.630", ex.s63);
+      prueba("AA4: S 6.4", "0.000", ex.s64);
+      prueba("AA4: S 6.5", "34050.000", ex.s65);
+      prueba("AA4: origen deducciones", "desglose", ex.deducciones.origen);
+      prueba("AA4: serie S 7.30", "34050.000", r.series[0].fob);
+      prueba("AA4: FOB unitario", "15.000000", r.items[0].fobUnitario);
+      prueba("AA4: cuadres internos", "true", String(r.cuadres.every(function (c) { return c.ok; })));
+      prueba("AA4: revisión errores · ID", "0 · A01,A08,A19", x.rv.errores.length + " · " + V.ids(x.rv).join(","));
+      prueba("AA4: FC base · DAM S 6.3 · DAM S 6.5", "34,050.00 · 6,246.630 · 34,050.000", x.porId.factura.cifras.baseFactura + " · " + x.porId.dam_a.cifras.dam63 + " · " + x.porId.dam_a.cifras.dam65);
+      prueba("AA4: HR fila FOB · todoCuadra", "true · true", String(filaCuadre(x, "fobFacturaDam").ok) + " · " + Documentos.cuadre(x.gen.ctx).todoCuadra);
+      o.especificos.valoracion.expOtrosDeducibles = 0;
+      prueba("AA4: S 6.3 cero también calcula", "34050.000", Calculos.calcular(o).exportacion.s65);
+      o.especificos.valoracion.expOtrosDeducibles = 6246.63;
+      prueba("AA4: S 6.3 manual coincidente", "34050.000", Calculos.calcular(o).exportacion.s65);
+      prueba("AA4: manual coincidente sin E22", "false", String(V.ids(V.validar(o, Calculos.calcular(o))).indexOf("E22") !== -1));
+      o.especificos.valoracion.expOtrosDeducibles = 5000;
+      prueba("AA4: manual distinto produce E22", "true", String(V.ids(V.validar(o, Calculos.calcular(o))).indexOf("E22") !== -1));
+      o = casoRegresion("AA4_portuaria_camote_CIF_FINAL");
+      var roto = Modelo.clonar(r); roto.exportacion.s63 = fx("0.000"); roto.exportacion.s65 = roto.exportacion.s61;
+      var gen = Documentos.generar(o, roto, x.rv, new Date(2026, 9, 3));
+      var f = Documentos.cuadre(gen.ctx).filas.filter(function (f) { return f.clave === "fobFacturaDam"; })[0];
+      prueba("AA4: defecto original FC y DAM detectado", "34,050.00 · 40,296.630 · false", f.celdas.filter(function (v) { return v !== null; }).join(" · ") + " · " + f.ok);
+      prueba("AA4: RUC ALFAZ conservado por DA-3 del usuario", "10754001220", o.generales.partes.vendedor.idFiscal);
+      prueba("AA4: RUC de agentes sintéticos y válidos", "true", String(["agenteMaritimo", "agenteAduana", "depositoTemporal"].every(function (k) { return C.ruc(o.generales.partes[k].ruc).valido && o.generales.partes[k].ruc.slice(0, 2) === "20"; })));
     })();
 
     // ============================================================ Pintar

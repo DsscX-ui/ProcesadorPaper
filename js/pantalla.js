@@ -217,7 +217,7 @@
     b6.appendChild(explicacion("Ad valorem = valor en aduana × tasa (tasas del caso: dato del usuario, PV-11). Base del IGV = valor en aduana + ad valorem + sobretasa + específico + ISC; el antidumping queda fuera.",
       [["S"], ["PV", "PV-11, PV-17"]]));
     b6.appendChild(explicacion("IGV = " + Fm.pct(l.igvPct) + " × base; IPM = " + Fm.pct(l.ipmPct) + " × base. El servicio de despacho (C 4.8) no se calcula.",
-      [["H*", "Ley del IGV"], ["PV", "PV-02"]]));
+      [["H*", NORMATIVA.valores.igv.fuente], ["PV", "PV-02"]]));
     var p = r.percepcion;
     // F3-M5: la base se descompone (valor en aduana + tributos = base) y lleva junto la marca del antidumping (D11).
     b6.appendChild(explicacion("Percepción del IGV (fuera del Formato C): base = valor en aduana " + Fm.damAC(p.valorAduana) +

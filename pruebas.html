@@ -231,24 +231,27 @@
     prueba("Total valor en aduana (A 6.5)", "20040.000", r1.valorAduana.total);
     prueba("Todos los cuadres internos (E19) correctos", "true", String(r1.cuadres.every(function (c) { return c.ok; })));
 
-    grupo("6. Caso 1 — Formato C y percepción (§9.1)", "IGV 16 % e IPM 2 % sobre VA + AV [H*]; percepción 3.5 % sobre VA + tributos (PV-01).");
+    grupo("6. Caso 1 — Formato C y percepción (§9.1)", "IGV 15.5 % e IPM 2.5 % sobre VA + AV [H*: Ley 32387, 2026]; percepción 3.5 % sobre VA + tributos (PV-01).");
+    var nIgv = NORMATIVA.valores.igv, nIpm = NORMATIVA.valores.ipm;
+    prueba("Ley 32387 (2026): IGV · IPM · suma (sigue en 18 %) · vigencia · fuente", "15.5 · 2.5 · 18 · 2026-01-01 · 2026-01-01 · Ley 32387 / SUNAT",
+      [nIgv.valor, nIpm.valor, nIgv.valor + nIpm.valor, nIgv.vigenteDesde, nIpm.vigenteDesde, nIgv.fuente].join(" · "));
     [
-      ["8693.630", "521.618", "9215.248", "1474.440", "184.305"],
-      ["11346.370", "0.000", "11346.370", "1815.419", "226.927"]
+      ["8693.630", "521.618", "9215.248", "1428.363", "230.381"],
+      ["11346.370", "0.000", "11346.370", "1758.687", "283.659"]
     ].forEach(function (e, i) {
       var l = s1[i].liquidacion, n = "Serie " + (i + 1) + ": ";
       prueba(n + "valor en aduana", e[0], s1[i].valorAduana);
       prueba(n + "ad valorem (C 4.1)", e[1], l.adValorem);
       prueba(n + "base del IGV", e[2], l.baseIgv);
-      prueba(n + "IGV 16 % (C 4.6)", e[3], l.igv);
-      prueba(n + "IPM 2 % (C 4.5)", e[4], l.ipm);
+      prueba(n + "IGV 15.5 % (C 4.6)", e[3], l.igv);
+      prueba(n + "IPM 2.5 % (C 4.5)", e[4], l.ipm);
     });
     prueba("Total ad valorem", "521.618", r1.liquidacion.adValorem);
     prueba("Total base del IGV", "20561.618", r1.liquidacion.baseIgv);
-    prueba("Total IGV", "3289.859", r1.liquidacion.igv);
-    prueba("Total IPM", "411.232", r1.liquidacion.ipm);
-    prueba("Total de tributos (AV + IGV + IPM)", "4222.709", r1.liquidacion.total);
-    prueba("Base de la percepción (VA + tributos)", "24262.709", r1.percepcion.base);
+    prueba("Total IGV", "3187.050", r1.liquidacion.igv);
+    prueba("Total IPM", "514.040", r1.liquidacion.ipm);
+    prueba("Total de tributos (AV + IGV + IPM)", "4222.708", r1.liquidacion.total);
+    prueba("Base de la percepción (VA + tributos)", "24262.708", r1.percepcion.base);
     prueba("Percepción 3.5 %", "849.195", r1.percepcion.monto);
     prueba("Pago en soles: tributos × 3.500", "14779.48", r1.soles.tributos);
     prueba("Pago en soles: percepción × 3.500", "2972.18", r1.soles.percepcion);
@@ -256,7 +259,7 @@
     oad.especificos.items[2].antidumping = 100;
     var rad = Calculos.calcular(oad);
     prueba("Antidumping 100 (ítem 3): NO entra en la base del IGV", "20561.618", rad.liquidacion.baseIgv);
-    prueba("Antidumping 100 (ítem 3): SÍ entra en la base de la percepción (D11; H*, PV-17)", "24362.709", rad.percepcion.base);
+    prueba("Antidumping 100 (ítem 3): SÍ entra en la base de la percepción (D11; H*, PV-17)", "24362.708", rad.percepcion.base);
 
     // ============================================================ Caso 2
     var r2 = Calculos.calcular(ejemplo("caso2"));
@@ -611,11 +614,11 @@
     })();
 
     grupo("F3-M5. Percepción: base descompuesta y antidumping (D11)",
-      "Base = valor en aduana + tributos (20,040.000 + 4,222.709 = 24,262.709); incluye antidumping [H*; PV-17].");
+      "Base = valor en aduana + tributos (20,040.000 + 4,222.708 = 24,262.708); incluye antidumping [H*; PV-17].");
     prueba("Valor en aduana de la base", "20040.000", r1.percepcion.valorAduana);
-    prueba("Tributos de la base (incluye antidumping)", "4222.709", r1.percepcion.tributos);
-    prueba("Base = valor en aduana + tributos", "24262.709", Calculos.sumar(r1.percepcion.valorAduana, r1.percepcion.tributos));
-    prueba("Base de la percepción", "24262.709", r1.percepcion.base);
+    prueba("Tributos de la base (incluye antidumping)", "4222.708", r1.percepcion.tributos);
+    prueba("Base = valor en aduana + tributos", "24262.708", Calculos.sumar(r1.percepcion.valorAduana, r1.percepcion.tributos));
+    prueba("Base de la percepción", "24262.708", r1.percepcion.base);
     prueba("Antidumping incluido (caso 1)", "0.000", r1.percepcion.antidumping);
 
     // ============================================================ Validaciones (F4)
@@ -2035,19 +2038,19 @@
       prueba("3.1–3.3 y 3.5 = A 6.1–6.3 y 6.5 (mismos textos)", "true", String([1, 2, 3, 5].every(function (i) { return k["c3" + i] === a["dam6" + i]; })));
 
       // Por serie (§9.1).
-      prueba("Serie 1: VA · AV · base IGV · IGV · IPM = §9.1", "8,693.630 · 521.618 · 9,215.248 · 1,474.440 · 184.305",
+      prueba("Serie 1: VA · AV · base IGV · IGV · IPM = §9.1", "8,693.630 · 521.618 · 9,215.248 · 1,428.363 · 230.381",
         [k.cVa1, k.c41s1, k.cBase1, k.c46s1, k.c45s1].join(" · "));
-      prueba("Serie 2: VA · AV · base IGV · IGV · IPM = §9.1", "11,346.370 · 0.000 · 11,346.370 · 1,815.419 · 226.927",
+      prueba("Serie 2: VA · AV · base IGV · IGV · IPM = §9.1", "11,346.370 · 0.000 · 11,346.370 · 1,758.687 · 283.659",
         [k.cVa2, k.c41s2, k.cBase2, k.c46s2, k.c45s2].join(" · "));
       prueba("Cuadro por serie: tasa AV 6 % y 0 %; base total 20,561.618", "6 % · 0 % · 20,561.618",
         Array.prototype.map.call(c.querySelectorAll(".dam-tabla-c tbody tr"), function (tr) { return tr.children[2].textContent; }).join(" · ") + " · " + k.cBase);
-      prueba("Aritmética por serie a la vista («base = VA + AV = … → IGV … · IPM …»)", "true", String(/Serie 1: base = 8,693\.630 \+ 521\.618 \(AV 6 %\) = 9,215\.248 → IGV 1,474\.440 · IPM 184\.305/.test(c.textContent)));
+      prueba("Aritmética por serie a la vista («base = VA + AV = … → IGV … · IPM …»)", "true", String(/Serie 1: base = 8,693\.630 \+ 521\.618 \(AV 6 %\) = 9,215\.248 → IGV 1,428\.363 · IPM 230\.381/.test(c.textContent)));
 
       // Totales (casillas del rubro 4).
-      prueba("Totales: 4.1 AV · 4.6 IGV · 4.5 IPM · Total = §9.1", "521.618 · 3,289.859 · 411.232 · 4,222.709", [k.c41, k.c46, k.c45, k.cTotal].join(" · "));
+      prueba("Totales: 4.1 AV · 4.6 IGV · 4.5 IPM · Total = §9.1", "521.618 · 3,187.050 · 514.040 · 4,222.708", [k.c41, k.c46, k.c45, k.cTotal].join(" · "));
       prueba("Las cifras son las de calculos.js (sin recalcular en la plantilla)", "true",
         String(k.cTotal === F.damAC(x.r.liquidacion.total) && k.c46 === F.damAC(x.r.liquidacion.igv) && k.c46s2 === F.damAC(x.r.series[1].liquidacion.igv)));
-      prueba("4.13 = «Total» = 4,222.709 (IT D 4.13), con la nota de 4.8; sin otra casilla «Total» sin número", "Total · 4,222.709 · true · 0",
+      prueba("4.13 = «Total» = 4,222.708 (IT D 4.13), con la nota de 4.8; sin otra casilla «Total» sin número", "Total · 4,222.708 · true · 0",
         casC(c, "4.13").querySelector(".dam-rot").textContent + " · " + valC(c, "4.13") + " · " + String(/No incluye el servicio de despacho \(4\.8, PV-02\)/.test(casC(c, "4.13").querySelector(".dam-nota").textContent)) + " · " +
         Array.prototype.filter.call(c.querySelectorAll('.dam-rejilla > [data-casilla=""]'), function (n) { return n.querySelector(".dam-rot").textContent === "Total"; }).length);
       prueba("4.10 · 4.11 · 4.12: sin rótulo en el IT, en blanco", "«»«»«» · true",
@@ -2067,7 +2070,7 @@
         String(/antidumping \(4\.7\) queda fuera/.test(c.querySelector(".dam-c-series").textContent) && !!c.querySelector(".dam-c-series .marca-pv")));
 
       // Rubro 5 (soles).
-      prueba("Rubro 5: tipo de cambio 3.500 (S) · total tributos en soles = 4,222.709 × 3.500 = S/ 14,779.48 [S]", "3.500 · S/ 14,779.48 · 14,779.48",
+      prueba("Rubro 5: tipo de cambio 3.500 (S) · total tributos en soles = 4,222.708 × 3.500 = S/ 14,779.48 [S]", "3.500 · S/ 14,779.48 · 14,779.48",
         Array.prototype.filter.call(c.querySelectorAll('[data-casilla=""]'), function (n) { return /Tipo de cambio venta/.test(n.textContent); })[0].querySelector(".dam-valor").textContent.replace(/S$/, "").trim() + " · " + k.cSoles + " · " + F.comercial(x.r.soles.tributos));
       prueba("Rubro 5: forma de pago y fecha del tipo de cambio en blanco (se llenan al pagar); fuente con POR VERIFICAR (PV-07)", "«» · «» · true",
         Array.prototype.filter.call(c.querySelectorAll('[data-casilla=""]'), function (n) { return /Forma de pago|Fecha del tipo de cambio/.test(n.querySelector(".dam-rot").textContent); })
@@ -2076,7 +2079,7 @@
 
       // Percepción fuera del Formato C.
       var fu = c.querySelector('[data-fuera="percepcion"]');
-      prueba("Percepción: recuadro «FUERA DEL FORMATO C», no es casilla; base 24,262.709; monto 849.195 = §9.1; S/ 2,972.18", "true · false · 24,262.709 · 849.195 · 2,972.18",
+      prueba("Percepción: recuadro «FUERA DEL FORMATO C», no es casilla; base 24,262.708; monto 849.195 = §9.1; S/ 2,972.18", "true · false · 24,262.708 · 849.195 · 2,972.18",
         String(!!fu && /FUERA DEL FORMATO C/.test(fu.querySelector("h4").textContent)) + " · " + String(!!fu.closest("[data-casilla]")) + " · " +
         [k.cPercepcionBase, k.cPercepcion, k.cPercepcionSoles].join(" · "));
       prueba("Percepción: marcas PV-01, H* (Ley 29173) y PV-17 visibles", "true · true · true",

@@ -294,8 +294,10 @@ var NORMATIVA = (function () {
   // Tasas y umbrales. Se usan desde F3 (cálculos) y F4 (validaciones).
   var valores = {
     tasaPrimaPlausibleMaxPct: { valor: 5, unidad: "%", marca: "S", fuente: "Criterio didáctico de plausibilidad; no es norma (configurable)" },
-    igv: { valor: 16, unidad: "%", marca: "H*", fuente: "Ley del IGV" },
-    ipm: { valor: 2, unidad: "%", marca: "H*", fuente: "Ley del IPM" },
+    // Ley 32387: el total sigue en 18 %, pero el IPM sube 0.5 por año fiscal y el IGV baja lo mismo
+    // (hasta 2025: 16 + 2; 2026: 15.5 + 2.5; 2027: 15 + 3; 2028: 14.5 + 3.5; desde 2029: 14 + 4). Sin copia en la carpeta.
+    igv: { valor: 15.5, unidad: "%", marca: "H*", fuente: "Ley 32387 / SUNAT", vigenteDesde: "2026-01-01" },
+    ipm: { valor: 2.5, unidad: "%", marca: "H*", fuente: "Ley 32387 / SUNAT", vigenteDesde: "2026-01-01" },
     coberturaMinimaCifCip: { valor: 110, unidad: "%", marca: "H*", fuente: "Incoterms® 2020, CIF y CIP A5" },
     umbralMediosPagoUsd: { valor: 500, unidad: "USD FOB", marca: "H", fuente: "IT C, rubro 4, 'Otros datos' a) (Ley 28194)" },
     decimalesDamAyC: { valor: 3, unidad: "decimales", marca: "H", fuente: "IT IV.3" },

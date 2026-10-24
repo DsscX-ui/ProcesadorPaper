@@ -481,8 +481,8 @@ En la herramienta, esta tabla **se genera desde `diccionario.js`** y se imprime 
 | C 4.3 | Derecho específico | Dato | PV-11 |
 | C 4.4 | ISC | Dato | PV-11 |
 | — | **Base del IGV** | VA + AV + sobretasa + derecho específico + ISC | [H\*: art. 13 de la Ley del IGV]. El antidumping queda fuera [S; PV-17]. |
-| C 4.6 | IGV | 16 % × base | [H\*], en `normativa.js` |
-| C 4.5 | IPM | 2 % × base | [H\*], en `normativa.js` |
+| C 4.6 | IGV | 15.5 % × base (2026, Ley 32387) | [H\*], en `normativa.js` |
+| C 4.5 | IPM | 2.5 % × base (2026, Ley 32387) | [H\*], en `normativa.js` |
 | C 4.7 | Antidumping o compensatorio | Dato | PV-17 |
 | C 4.8 | Servicio de despacho | No se calcula; se muestra "POR VERIFICAR" | PV-02 |
 | C 4.9 | Interés compensatorio | No aplica en v1 [S] | — |
@@ -684,7 +684,7 @@ Estado: **Cerrado** = resuelto con fuente · **Parcial** = resuelto en parte · 
 **[H\*] Conocimiento general, sin fuente en la carpeta** (se muestran con la etiqueta "H\*")
 
 - Contenido de Incoterms® 2020 (ICC), incluida la recomendación de FCA para contenedores.
-- IGV 16 % + IPM 2 %; base del IGV según el art. 13 de la Ley del IGV.
+- IGV 15.5 % + IPM 2.5 % desde 2026 (Ley 32387; hasta 2025, 16 % + 2 %; el total sigue en 18 %); base del IGV según el art. 13 de la Ley del IGV.
 - Aduana 118 = Intendencia de Aduana Marítima del Callao.
 - UN/LOCODE CNNGB, PECLL, CLSAI; códigos de país ISO 3166 alfa-2; UBIGEO 150101 = Lima, Lima, Lima.
 - Subpartidas SA de 6 dígitos: 8414.51, 8504.40, 6109.10, 6110.20.
@@ -810,14 +810,14 @@ Los RUC de ambos casos son ficticios y cumplen el módulo 11 [H\*]:
 
 *Formato C (liquidación, USD):*
 
-| Serie | Valor en aduana | AV (C 4.1) | Base IGV | IGV 16 % (C 4.6) | IPM 2 % (C 4.5) |
+| Serie | Valor en aduana | AV (C 4.1) | Base IGV | IGV 15.5 % (C 4.6) | IPM 2.5 % (C 4.5) |
 |---|---|---|---|---|---|
-| 1 | 8 693.630 | 521.618 (6 %) | 9 215.248 | 1 474.440 | 184.305 |
-| 2 | 11 346.370 | 0.000 (0 %) | 11 346.370 | 1 815.419 | 226.927 |
-| **Total** | **20 040.000** | **521.618** | **20 561.618** | **3 289.859** | **411.232** |
+| 1 | 8 693.630 | 521.618 (6 %) | 9 215.248 | 1 428.363 | 230.381 |
+| 2 | 11 346.370 | 0.000 (0 %) | 11 346.370 | 1 758.687 | 283.659 |
+| **Total** | **20 040.000** | **521.618** | **20 561.618** | **3 187.050** | **514.040** |
 
-- Total de tributos (AV + IGV + IPM): **USD 4 222.709**.
-- Percepción de 3.5 % [S] sobre 24 262.709: **USD 849.195**, fuera del Formato C.
+- Total de tributos (AV + IGV + IPM): **USD 4 222.708**. Con 16 % + 2 % (hasta 2025) era 4 222.709: la tasa total sigue en 18 %, pero cada tributo se redondea a 3 decimales por serie, y en la serie 1 eso da 0.001 menos.
+- Percepción de 3.5 % [S] sobre 24 262.708: **USD 849.195**, fuera del Formato C.
 - **Por qué este caso sirve de prueba:** la serie 1 tiene el 90.17 % del peso, pero solo el 38.62 % del valor. Por eso un reparto por peso y otro por valor dan resultados muy distintos. Por ejemplo, el valor en aduana de la serie 2 (11 346.370) es menor que su valor en la factura (12 300.00), porque el flete se reparte por peso. Es el efecto que explica PV-04.
 - **Advertencias esperadas:** A01, A08, A19 y A20. Errores esperados: ninguno.
 

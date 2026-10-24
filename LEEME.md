@@ -37,7 +37,7 @@ La página tiene cuatro pasos, siempre a mano en la **barra fija de arriba** (qu
 
 - **Caso 1 — Importación CIF Callao** (`OP-2026-001`): proveedor de Ningbo (China) → importador de Lima; 3 ítems
   (ventiladores de pie de 16" y 18" y un cargador USB-C) en **2 series**; con póliza de seguro. Genera 12 documentos: FC, PL,
-  IE, B/L, VGM, DAM A, A1, B, B1, C, **SEG** y HR (sin CO). Cifras clave: factura 20,040.00; FOB 18,123.870; tributos 4,222.709;
+  IE, B/L, VGM, DAM A, A1, B, B1, C, **SEG** y HR (sin CO). Cifras clave: factura 20,040.00; FOB 18,123.870; tributos 4,222.708;
   percepción 849.195; suma asegurada 22,044.00 y prima 66.13. Advertencias esperadas: A01, A08, A19 y A20.
 - **Caso 2 — Exportación FOB Callao con certificado de origen** (`OP-2026-002`): exportador de Lima → comprador de Santiago
   (Chile), por San Antonio; 2 ítems (polos y sudaderas de algodón) en 2 series; TLC Perú–Chile, sin seguro. Genera 9
@@ -61,7 +61,7 @@ La página tiene cuatro pasos, siempre a mano en la **barra fija de arriba** (qu
 | Marca | Qué significa | Cómo se ve |
 |---|---|---|
 | **H** | Hecho con fuente en la carpeta (se cita el documento y la sección, por ejemplo «IT A 7.35») | Sin resaltar; la fuente está en el botón «?» y en la trazabilidad |
-| **H\*** | Conocimiento general, **sin fuente en la carpeta** (por ejemplo, Incoterms®, IGV 16 %, UN/LOCODE) | Etiqueta gris «H\*» |
+| **H\*** | Conocimiento general, **sin fuente en la carpeta** (por ejemplo, Incoterms®, IGV 15.5 % de la Ley 32387, UN/LOCODE) | Etiqueta gris «H\*» |
 | **S** | **SUPUESTO**: decisión de diseño o dato ficticio del ejemplo | Etiqueta «SUPUESTO» (en la DAM, una **S** pequeña) |
 | **PV** | **POR VERIFICAR** (PV-01 a PV-31, `PLAN.md` §8.3): no se puede afirmar con las fuentes de la carpeta; **nunca se inventa** | Resaltado amarillo «POR VERIFICAR» (en la DAM, una **PV** pequeña junto a un código en blanco) |
 
@@ -151,7 +151,7 @@ Mientras escribes, la herramienta revisa la operación con las reglas de `PLAN.m
    8.4 = 66.130000) y FOB total 18,123.870000 = A 6.1 (`PLAN.md` §9.1); que el B1 aparece con 3 ítems y desaparece con 2 o
    menos; que la exportación no genera Formato B; y alteraciones a propósito (ajustes, pago a crédito, intermediario). El grupo F8b.1 comprueba
    que la casilla del declarante del Formato B queda en blanco. El grupo F8c comprueba el Formato C: tributos por serie y totales de
-   `PLAN.md` §9.1 (IGV 3,289.859 · IPM 411.232 · total 4,222.709), 3.1–3.5 = A 6.1–6.5, 4.13 = Total, 4.8 POR VERIFICAR, la percepción (849.195)
+   `PLAN.md` §9.1 (IGV 3,187.050 · IPM 514.040 · total 4,222.708), 3.1–3.5 = A 6.1–6.5, 4.13 = Total, 4.8 POR VERIFICAR, la percepción (849.195)
    fuera del formato, el pago en soles con tipo de cambio 3.500 y que la exportación no genera Formato C. El grupo F9 comprueba los
    certificados: el caso 1 (CIF con póliza) genera SEG y no CO; el caso 2 (FOB sin seguro, TLC Perú–Chile) genera CO y no SEG;
    suma asegurada 22,044.00 y prima 66.13 (= desglose de la factura); bultos, peso bruto y contenedor = lista de empaque; criterio
@@ -253,8 +253,8 @@ caso 1 = `7945E0E3`, caso 2 = `C17FBFFE`.
 - Lo formula el despachador de aduana y dice **cuánto se paga**: el valor en aduana (rubro 3: 3.1 a 3.5, los mismos de A 6.1 a 6.5),
   los tributos (rubro 4) y el pago en soles (rubro 5). En la exportación no hay Formato C (IT IV.1).
 - El **cuadro por serie** del rubro 4 muestra cómo se calcula: por cada serie, ad valorem = valor en aduana × tasa; **base del IGV** =
-  valor en aduana + ad valorem + sobretasa + específico + ISC (el antidumping queda fuera); IGV 16 % y IPM 2 % sobre esa base. Luego se
-  suma: las casillas 4.1 a 4.7 y la **4.13 Total** son los totales de la declaración (caso 1: 4,222.709).
+  valor en aduana + ad valorem + sobretasa + específico + ISC (el antidumping queda fuera); IGV 15.5 % e IPM 2.5 % sobre esa base (Ley 32387, desde 2026; hasta 2025 eran 16 % y 2 %; el total sigue en 18 %). Luego se
+  suma: las casillas 4.1 a 4.7 y la **4.13 Total** son los totales de la declaración (caso 1: 4,222.708).
 - **4.8 servicio de despacho** dice POR VERIFICAR (PV-02): la herramienta no inventa su monto. **4.9** queda en blanco (no aplica en v1).
   Un monto en 0 deja su casilla en blanco (también 3.4 si no hay ajustes); el rubro 2 (registro de aduana) queda en blanco: lo llena la Aduana.
 - **Rubro 5:** total en soles = total en USD × tipo de cambio venta, con 2 decimales (supuesto); la fecha y la fuente del tipo de cambio
@@ -292,7 +292,7 @@ SUNAT, VUCE ni el arancel.
 
 - Las copias **no se han contrastado con el portal de SUNAT** (PV-30): al 28-09-2026 el acceso a `www.sunat.gob.pe` desde el
   entorno de construcción estaba bloqueado (fase F0b pendiente).
-- Lo que se cita sin copia en la carpeta va con la marca **H\*** y sin fecha: Incoterms® 2020 (ICC), Ley del IGV e IPM,
+- Lo que se cita sin copia en la carpeta va con la marca **H\*** y sin fecha: Incoterms® 2020 (ICC), Ley del IGV e IPM (reparto 2026 de la Ley 32387),
   Ley 29173 (percepción), D. Leg. 1053 (Ley General de Aduanas), códigos UN/LOCODE, ISO 3166, ISO 6346, ISO 668, SOLAS (VGM),
   UCP 600 y el dígito verificador del RUC por módulo 11. Su versión y vigencia quedan **POR VERIFICAR**. El Arancel 2022
   (D.S. 404-2021-EF) se cita según el art. 2 de la RS129.
